@@ -1312,7 +1312,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- EVENT LISTENERS ---
   function setupEventListeners() {
     sidebarCollapseBtn?.addEventListener('click', () => {
-      sidebar.classList.add('collapsed');
+      if (window.innerWidth <= 768) {
+        closeMobileSidebar();
+      } else {
+        sidebar.classList.add('collapsed');
+      }
     });
 
     sidebarToggleBtn?.addEventListener('click', () => {
