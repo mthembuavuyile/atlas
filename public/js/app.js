@@ -369,10 +369,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (modelCurrentName) modelCurrentName.textContent = model.name;
     if (modelPillBadge) modelPillBadge.textContent = model.badge;
     if (modelSparkIcon) modelSparkIcon.innerHTML = getModelIcon(model.id);
-    if (hintModelName) hintModelName.textContent = model.id;
+    if (hintModelName) hintModelName.textContent = model.name;
     if (hintContextSize) hintContextSize.textContent = model.context;
 
-    if (bannerModelTitle) bannerModelTitle.textContent = model.id;
+    if (bannerModelTitle) bannerModelTitle.textContent = model.name;
     if (bannerModelDesc) bannerModelDesc.textContent = `${model.context} context window • ${model.description || model.desc || ''}`;
     if (bannerModelSvg) bannerModelSvg.innerHTML = getModelIcon(model.id);
   }
@@ -654,7 +654,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         <button type="button" class="error-action-btn switch-router-btn" style="background: rgba(255, 255, 255, 0.08); color: var(--text-main); border: 1px solid var(--border-subtle); padding: 5px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 5px;">
           ${ICONS.freeRouter}
-          <span>Switch to Free Router</span>
+          <span>Switch to Atlas Default</span>
         </button>
 
         <button type="button" class="error-action-btn copy-diag-btn" style="background: transparent; color: var(--text-muted); border: 1px solid var(--border-subtle); padding: 5px 8px; border-radius: 4px; font-size: 0.72rem; cursor: pointer; margin-left: auto; display: flex; align-items: center; gap: 4px;">
@@ -683,7 +683,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Hook Copy diagnostic log
     card.querySelector('.copy-diag-btn')?.addEventListener('click', (e) => {
-      const logData = `[Atlas Diagnostic Report — Vylex Technologies]\nTimestamp: ${new Date().toISOString()}\nModel: ${state.currentModel}\nTitle: ${title}\nBadge: ${badge}\nError Message: ${errorMsg}\nEndpoint: ${API_BASE}/api/chat`;
+      const logData = `[Atlas Diagnostic Report — Vylex Technologies]\nTimestamp: ${new Date().toISOString()}\nEngine: Atlas\nTitle: ${title}\nBadge: ${badge}\nError Message: ${errorMsg}\nEndpoint: ${API_BASE}/api/chat`;
       navigator.clipboard.writeText(logData).then(() => {
         const btn = e.currentTarget;
         btn.innerHTML = `${ICONS.check} <span style="color:#10b981;">Copied</span>`;
@@ -780,7 +780,7 @@ document.addEventListener('DOMContentLoaded', () => {
     meta.className = 'message-meta';
     const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     meta.innerHTML = `
-      <span>${role === 'user' ? 'You' : state.currentModel} • ${time}</span>
+      <span>${role === 'user' ? 'You' : 'Atlas'} • ${time}</span>
       <div class="message-actions-bar">
         <button class="msg-action-btn copy-msg-btn" title="Copy text">
           ${ICONS.copy}
@@ -1145,13 +1145,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (stopGenerationBtn) stopGenerationBtn.style.display = 'flex';
     if (sendBtn) sendBtn.style.display = 'none';
 
-    // Start animated verb indicator in floating toolbar
-    let stopFloatingAnim = null;
+    // Show 'Thinking...' indicator in floating toolbar
     if (streamingIndicator) {
       streamingIndicator.style.display = 'flex';
       const textElem = streamingIndicator.querySelector('.indicator-text');
       if (textElem) {
-        stopFloatingAnim = startVerbAnimation(textElem, STREAMING_VERBS, '', '...');
+        textElem.textContent = 'Thinking...';
       }
     }
 
@@ -1291,7 +1290,6 @@ document.addEventListener('DOMContentLoaded', () => {
         bubble.appendChild(buildDiagnosticErrorCard(err, userText));
       }
     } finally {
-      if (stopFloatingAnim) stopFloatingAnim();
       state.isGenerating = false;
       sendBtn.disabled = false;
       if (stopGenerationBtn) stopGenerationBtn.style.display = 'none';
@@ -1560,9 +1558,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (format === 'json') {
       fileContent = JSON.stringify(session, null, 2);
     } else {
-      fileContent = `# ${session.title}\n*Exported from Atlas by Vylex Technologies (vylex.co.za) on ${new Date().toLocaleString()}*\n*Model: ${session.model}*\n\n---\n\n`;
+      fileContent = `# ${session.title}\n*Exported from Atlas by Vylex Technologies (vylex.co.za) on ${new Date().toLocaleString()}*\n*Engine: Atlas*\n\n---\n\n`;
       session.messages.forEach(m => {
-        fileContent += `### ${m.role === 'user' ? 'User' : 'Assistant (' + session.model + ')'}\n\n`;
+        fileContent += `### ${m.role === 'user' ? 'User' : 'Atlas'}\n\n`;
         if (m.reasoning) {
           fileContent += `> **Reasoning Process:**\n> ${m.reasoning.replace(/\n/g, '\n> ')}\n\n`;
         }
