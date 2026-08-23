@@ -1,5 +1,17 @@
 const env = require('../config/env');
 const { APP } = require('../config/identity');
+const { CURATED_MODELS } = require('../config/models.config');
+
+// Resilient fallback candidate pool
+const DEFAULT_FALLBACK_POOL = [
+  'openrouter/free',
+  'google/gemma-4-26b-a4b-it:free',
+  'cohere/north-mini-code:free',
+  'z-ai/glm-5.2:free',
+  'poolside/laguna-s-2.1:free',
+  'nvidia/nemotron-3-ultra-550b-a55b:free',
+  'stealth/ox-alpha'
+];
 
 class OpenRouterService {
   /**
@@ -11,20 +23,31 @@ class OpenRouterService {
   }
 
   /**
-   * Send a chat completion request to OpenRouter
+   * Helper delay for jittered backoff
+   * @param {number} ms
+   * @returns {Promise<void>}
+   */
+  sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Send a chat completion request to OpenRouter with automatic multi-model failover rotation
    * @param {Object} options
    * @param {Array} options.messages
    * @param {string} options.model
    * @param {number} options.temperature
    * @param {boolean} options.stream
    * @param {string} options.referer
+   * @param {Set<string>} options.attemptedModels
    */
   async createChatCompletion({
     messages,
     model = env.DEFAULT_MODEL,
     temperature = 0.7,
     stream = true,
-    referer = env.APP_URL || APP.url
+    referer = env.APP_URL || APP.url,
+    attemptedModels = new Set()
   }) {
     if (!this.hasApiKey()) {
       throw new Error('OpenRouter API Key not configured. Set OPENROUTER_API_KEY in your environment variables.');
@@ -34,6 +57,8 @@ class OpenRouterService {
       throw new Error('A non-empty messages array is required.');
     }
 
+    attemptedModels.add(model);
+
     const payload = {
       model,
       messages,
@@ -41,16 +66,40 @@ class OpenRouterService {
       stream
     };
 
-    const response = await fetch(`${env.OPENROUTER_BASE_URL}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${env.OPENROUTER_API_KEY}`,
-        'HTTP-Referer': referer,
-        'X-Title': env.APP_TITLE,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(payload)
-    });
+    let response;
+    try {
+      // 18s per-attempt timeout guard to prevent hanging on congested upstream hosts
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 18000);
+
+      response = await fetch(`${env.OPENROUTER_BASE_URL}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${env.OPENROUTER_API_KEY}`,
+          'HTTP-Referer': referer,
+          'X-Title': env.APP_TITLE,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+    } catch (networkErr) {
+      const isTimeout = networkErr.name === 'AbortError' || networkErr.message.includes('abort');
+      const msg = isTimeout ? `Upstream model ${model} timed out after 18s` : networkErr.message;
+      console.warn(`[OpenRouter Network Guard] ${msg}. Attempting auto-rotation...`);
+
+      return this.rotateToNextCandidate({
+        messages,
+        failedModel: model,
+        temperature,
+        stream,
+        referer,
+        attemptedModels,
+        errorMessage: msg
+      });
+    }
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -62,15 +111,31 @@ class OpenRouterService {
       }
       const message = errorJson.error?.message || errorJson.message || `Atlas Engine API error (${response.status})`;
 
-      // Graceful fallback to the guaranteed auto-free router if a specific model is offline or rate-limited
-      if (model !== 'openrouter/free') {
-        console.warn(`[OpenRouter Service Warning]: Model ${model} failed with: ${message}. Falling back to openrouter/free.`);
-        return this.createChatCompletion({
+      // Status codes eligible for automatic rotation:
+      // 429 (Rate Limit / Concurrency), 500, 502, 503, 504 (Provider Down / Overloaded), 408 (Timeout)
+      const isRetryable = [429, 500, 502, 503, 504, 408].includes(response.status) ||
+                          message.toLowerCase().includes('rate limit') ||
+                          message.toLowerCase().includes('overloaded') ||
+                          message.toLowerCase().includes('concurrency') ||
+                          message.toLowerCase().includes('temporarily unavailable');
+
+      if (isRetryable) {
+        console.warn(`⚡ [Auto-Rotation Triggered]: Model "${model}" returned ${response.status} (${message}). Rotating to next available engine in pool...`);
+        
+        // Jittered backoff if rate limited
+        if (response.status === 429) {
+          await this.sleep(350);
+        }
+
+        return this.rotateToNextCandidate({
           messages,
-          model: 'openrouter/free',
+          failedModel: model,
           temperature,
           stream,
-          referer
+          referer,
+          attemptedModels,
+          errorMessage: message,
+          status: response.status
         });
       }
 
@@ -80,6 +145,41 @@ class OpenRouterService {
     }
 
     return response;
+  }
+
+  /**
+   * Find the next untried model candidate and seamlessly continue execution
+   */
+  async rotateToNextCandidate({
+    messages,
+    failedModel,
+    temperature,
+    stream,
+    referer,
+    attemptedModels,
+    errorMessage,
+    status = 500
+  }) {
+    // Pick the next untried model from the curated pool
+    const nextCandidate = DEFAULT_FALLBACK_POOL.find(candidate => !attemptedModels.has(candidate));
+
+    if (nextCandidate) {
+      console.log(`🔄 [Auto-Rotation]: Shifting request from "${failedModel}" ➔ "${nextCandidate}" (Pool size remaining: ${DEFAULT_FALLBACK_POOL.length - attemptedModels.size})`);
+      return this.createChatCompletion({
+        messages,
+        model: nextCandidate,
+        temperature,
+        stream,
+        referer,
+        attemptedModels
+      });
+    }
+
+    // All models in pool exhausted
+    console.error(`❌ [Auto-Rotation Exhausted]: All ${attemptedModels.size} free models in the pool were rate-limited or congested.`);
+    const exhaustedErr = new Error(`All free models are momentarily experiencing high global concurrency. Last error: ${errorMessage}`);
+    exhaustedErr.status = status;
+    throw exhaustedErr;
   }
 }
 

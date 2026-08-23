@@ -14,9 +14,17 @@ function getClientIp(req) {
          'unknown-ip';
 }
 
+function isLocalhost(ip) {
+  return !ip ||
+         ip === '127.0.0.1' ||
+         ip === '::1' ||
+         ip === '::ffff:127.0.0.1' ||
+         ip === 'localhost';
+}
+
 function createRateLimiter({
   windowMs = 60 * 1000, // 1 minute window
-  max = 25,              // max requests per window per IP
+  max = 60,              // max requests per window per IP
   message = 'Too many requests. Please slow down and wait a moment.'
 } = {}) {
   const requests = new Map();
@@ -33,6 +41,12 @@ function createRateLimiter({
 
   return function rateLimiterMiddleware(req, res, next) {
     const ip = getClientIp(req);
+
+    // Bypass local development
+    if (isLocalhost(ip) && process.env.NODE_ENV !== 'production') {
+      return next();
+    }
+
     const now = Date.now();
 
     let record = requests.get(ip);
@@ -69,17 +83,17 @@ module.exports = {
   getClientIp,
   chatLimiter: createRateLimiter({
     windowMs: 60 * 1000,
-    max: 25,
-    message: 'Rate limit reached: Maximum 25 chat messages per minute. Please wait a moment.'
+    max: 60,
+    message: 'Rate limit reached: Maximum 60 chat messages per minute. Please wait a moment.'
   }),
   titleLimiter: createRateLimiter({
     windowMs: 60 * 1000,
-    max: 15,
+    max: 40,
     message: 'Rate limit reached for title generation. Please slow down.'
   }),
   toolLimiter: createRateLimiter({
     windowMs: 60 * 1000,
-    max: 20,
+    max: 50,
     message: 'Rate limit reached for tool executions. Please slow down.'
   })
 };
