@@ -168,6 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Feed & Welcome
   const messagesContainer = document.getElementById('messagesContainer');
+  const scrollToBottomBtn = document.getElementById('scrollToBottomBtn');
   const welcomeScreen = document.getElementById('welcomeScreen');
   const dynamicTimeGreeting = document.getElementById('dynamicTimeGreeting');
   const bannerModelTitle = document.getElementById('bannerModelTitle');
@@ -187,6 +188,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const openSysPromptModalBtn = document.getElementById('openSysPromptModalBtn');
   const activePromptLabel = document.getElementById('activePromptLabel');
   const deepThinkToggleBtn = document.getElementById('deepThinkToggleBtn');
+  const webSearchToggleBtn = document.getElementById('webSearchToggleBtn');
+  const webSearchLabel = document.getElementById('webSearchLabel');
   const attachFileMockBtn = document.getElementById('attachFileMockBtn');
 
   // Canvas Panel
@@ -233,6 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
     activePreset: localStorage.getItem('omni_preset') || 'fullstack',
     temperature: parseFloat(localStorage.getItem('omni_temp') || '0.7'),
     isDeepReasoning: true,
+    isWebSearch: localStorage.getItem('omni_web_search') === 'true',
     sessions: JSON.parse(localStorage.getItem('omni_sessions') || '[]'),
     activeSessionId: null,
     isGenerating: false,
@@ -241,9 +245,52 @@ document.addEventListener('DOMContentLoaded', () => {
     lastUserPrompt: ''
   };
 
-  // Configure marked
+  // --- Rich Callout Alert Icons & Definitions ---
+  const CALLOUT_ICONS = {
+    note: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>',
+    tip: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>',
+    important: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>',
+    warning: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>',
+    caution: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>'
+  };
+
+  // Configure marked with rich typography extensions
   if (window.marked) {
+    const customRenderer = new marked.Renderer();
+
+    // 1. Rich Responsive Table Wrapper
+    customRenderer.table = function (header, body) {
+      return `<div class="table-container"><table class="rich-table"><thead>${header}</thead><tbody>${body}</tbody></table></div>`;
+    };
+
+    // 2. GitHub-style Alert Callouts inside blockquotes
+    customRenderer.blockquote = function (quote) {
+      const match = quote.match(/^\s*<p>\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*(?:<br>|\n)?([\s\S]*?)<\/p>\s*$/i);
+      if (match) {
+        const type = match[1].toLowerCase();
+        const icon = CALLOUT_ICONS[type] || CALLOUT_ICONS.note;
+        const title = type.charAt(0).toUpperCase() + type.slice(1);
+        const bodyContent = match[2];
+        return `<div class="callout-card callout-${type}"><div class="callout-header">${icon}<span>${title}</span></div><div class="callout-body"><p>${bodyContent}</p></div></div>`;
+      }
+      return `<blockquote>${quote}</blockquote>`;
+    };
+
+    // 3. Task list checkboxes
+    customRenderer.listitem = function (text, task, checked) {
+      if (task) {
+        return `<li class="task-list-item"><input type="checkbox" class="task-list-checkbox" ${checked ? 'checked' : ''} disabled /><span>${text}</span></li>`;
+      }
+      return `<li>${text}</li>`;
+    };
+
+    // 4. Clean divider
+    customRenderer.hr = function () {
+      return `<hr class="rich-divider" />`;
+    };
+
     marked.setOptions({
+      renderer: customRenderer,
       highlight: function (code, lang) {
         if (window.hljs && lang && hljs.getLanguage(lang)) {
           try {
@@ -253,7 +300,11 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
         if (window.hljs) {
-          return hljs.highlightAuto(code).value;
+          try {
+            return hljs.highlightAuto(code).value;
+          } catch (e) {
+            return code;
+          }
         }
         return code;
       },
@@ -994,7 +1045,7 @@ document.addEventListener('DOMContentLoaded', () => {
     row.appendChild(wrapper);
     messagesContainer.appendChild(row);
 
-    if (shouldScroll) scrollToBottom();
+    if (shouldScroll) scrollToBottom(true);
 
     return {
       row,
@@ -1168,11 +1219,39 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function parseMarkdownSafely(raw) {
-    if (!raw) return '<span class="pulse-dot"></span>';
-    const cleaned = cleanAndTransformToolCalls(raw);
-    let html = window.marked ? marked.parse(cleaned) : cleaned;
-    if (window.DOMPurify) html = DOMPurify.sanitize(html);
+  function repairIncompleteMarkdown(raw) {
+    if (!raw) return '';
+    let text = cleanAndTransformToolCalls(raw);
+
+    // Virtual closure for unclosed code blocks during streaming
+    const codeBlockCount = (text.match(/```/g) || []).length;
+    if (codeBlockCount % 2 !== 0) {
+      text += '\n```\n';
+    }
+
+    // Virtual closure for unclosed inline code backtick
+    const withoutCodeBlocks = text.replace(/```[\s\S]*?```/g, '');
+    const inlineBacktickCount = (withoutCodeBlocks.match(/`/g) || []).length;
+    if (inlineBacktickCount % 2 !== 0) {
+      text += '`';
+    }
+
+    return text;
+  }
+
+  function parseMarkdownSafely(raw, isStreaming = false) {
+    if (!raw) return isStreaming ? '<span class="streaming-caret" aria-hidden="true"></span>' : '<span class="pulse-dot"></span>';
+    const repaired = repairIncompleteMarkdown(raw);
+    let html = window.marked ? marked.parse(repaired) : repaired;
+    if (window.DOMPurify) {
+      html = DOMPurify.sanitize(html, {
+        ADD_TAGS: ['kbd', 'mark', 'details', 'summary', 'input', 'svg', 'circle', 'line', 'path', 'polyline', 'polygon', 'rect'],
+        ADD_ATTR: ['target', 'disabled', 'checked', 'type', 'viewBox', 'fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin', 'cx', 'cy', 'r', 'x1', 'y1', 'x2', 'y2', 'd', 'points', 'width', 'height', 'aria-hidden']
+      });
+    }
+    if (isStreaming) {
+      html += '<span class="streaming-caret" aria-hidden="true"></span>';
+    }
     return html;
   }
 
@@ -1325,12 +1404,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (stopGenerationBtn) stopGenerationBtn.style.display = 'flex';
     if (sendBtn) sendBtn.style.display = 'none';
 
-    // Show 'Thinking...' indicator in floating toolbar
+    // Show 'Thinking...' or 'Searching web...' indicator in floating toolbar
     if (streamingIndicator) {
       streamingIndicator.style.display = 'flex';
       const textElem = streamingIndicator.querySelector('.indicator-text');
       if (textElem) {
-        textElem.textContent = 'Thinking...';
+        textElem.textContent = state.isWebSearch ? 'Searching web & reasoning...' : 'Thinking...';
       }
     }
 
@@ -1357,7 +1436,8 @@ document.addEventListener('DOMContentLoaded', () => {
           model: state.currentModel,
           messages: payloadMessages,
           stream: true,
-          temperature: state.temperature
+          temperature: state.temperature,
+          webSearch: state.isWebSearch
         })
       });
 
@@ -1418,17 +1498,20 @@ document.addEventListener('DOMContentLoaded', () => {
               }
 
               const now = Date.now();
-              if (now - lastRenderTime > 60) {
-                bubble.innerHTML = parseMarkdownSafely(accumulatedContent);
-                enhanceCodeBlocks(bubble);
+              if (now - lastRenderTime > 45) {
                 lastRenderTime = now;
+                requestAnimationFrame(() => {
+                  bubble.innerHTML = parseMarkdownSafely(accumulatedContent, true);
+                  enhanceCodeBlocks(bubble);
+                  scrollToBottom(false);
+                });
               }
 
               // Incrementally execute fully formed tools
               await executeAgentTools(accumulatedContent);
             }
 
-            scrollToBottom();
+            scrollToBottom(false);
           } catch (jsonErr) {
             // Chunk fragment
           }
@@ -1437,8 +1520,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (!accumulatedContent) {
         accumulatedContent = accumulatedReasoning || '(Empty response received)';
-        bubble.innerHTML = parseMarkdownSafely(accumulatedContent);
       }
+
+      // Final complete render without streaming caret
+      bubble.innerHTML = parseMarkdownSafely(accumulatedContent, false);
 
       if (stopThoughtAnim) stopThoughtAnim();
       if (thoughtBanner) thoughtBanner.style.display = 'none';
@@ -1462,11 +1547,13 @@ document.addEventListener('DOMContentLoaded', () => {
       if (thoughtBanner) thoughtBanner.style.display = 'none';
 
       if (err.name === 'AbortError') {
+        bubble.innerHTML = parseMarkdownSafely(accumulatedContent, false);
         bubble.innerHTML += `<div style="margin-top: 6px; font-size: 0.78rem; color: var(--text-subtle); font-style: italic;">[Generation halted by user]</div>`;
+        enhanceCodeBlocks(bubble);
       } else if (accumulatedContent.trim().length > 0) {
         // Scenario 5: Stream interrupted mid-generation - preserve partial text & add continuation actions
         console.warn('Stream interrupted mid-generation:', err);
-        bubble.innerHTML = parseMarkdownSafely(accumulatedContent);
+        bubble.innerHTML = parseMarkdownSafely(accumulatedContent, false);
         enhanceCodeBlocks(bubble);
         appendStreamCutoffBar(bubble, accumulatedContent, userText);
 
@@ -1489,7 +1576,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (sendBtn) sendBtn.style.display = 'flex';
       if (streamingIndicator) streamingIndicator.style.display = 'none';
       messageInput.focus();
-      scrollToBottom();
+      scrollToBottom(false);
     }
   });
 
@@ -1632,6 +1719,12 @@ document.addEventListener('DOMContentLoaded', () => {
       deepThinkToggleBtn.querySelector('span:last-child').textContent = state.isDeepReasoning ? 'Reasoning: Active' : 'Reasoning: Off';
     });
 
+    webSearchToggleBtn?.addEventListener('click', () => {
+      state.isWebSearch = !state.isWebSearch;
+      localStorage.setItem('omni_web_search', state.isWebSearch.toString());
+      syncWebSearchUI();
+    });
+
     attachFileMockBtn?.addEventListener('click', () => {
       const fileInput = document.createElement('input');
       fileInput.type = 'file';
@@ -1723,6 +1816,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  function syncWebSearchUI() {
+    if (!webSearchToggleBtn) return;
+    webSearchToggleBtn.classList.toggle('active-web', state.isWebSearch);
+    if (webSearchLabel) {
+      webSearchLabel.textContent = state.isWebSearch ? 'Web: Active' : 'Web: Off';
+    }
+  }
+
   function openSettingsModal() {
     customSystemPrompt.value = state.systemPrompt;
     temperatureSlider.value = state.temperature;
@@ -1736,6 +1837,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const name = state.activePreset === 'fullstack' ? 'Full-Stack' : state.activePreset === 'architect' ? 'Architect' : state.activePreset === 'reasoner' ? 'Deep Thinker' : 'Concise';
       activePromptLabel.textContent = `System: ${name}`;
     }
+    syncWebSearchUI();
   }
 
   function autoResizeTextarea() {
@@ -1743,8 +1845,47 @@ document.addEventListener('DOMContentLoaded', () => {
     messageInput.style.height = Math.min(messageInput.scrollHeight, 160) + 'px';
   }
 
-  function scrollToBottom() {
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  let isUserPinnedToBottom = true;
+  let scrollRafId = null;
+
+  function handleContainerScroll() {
+    if (!messagesContainer) return;
+    const distFromBottom = messagesContainer.scrollHeight - messagesContainer.scrollTop - messagesContainer.clientHeight;
+    if (distFromBottom <= 80) {
+      isUserPinnedToBottom = true;
+      if (scrollToBottomBtn) scrollToBottomBtn.style.display = 'none';
+    } else {
+      isUserPinnedToBottom = false;
+      if (scrollToBottomBtn) scrollToBottomBtn.style.display = 'inline-flex';
+    }
+  }
+
+  messagesContainer?.addEventListener('scroll', handleContainerScroll, { passive: true });
+
+  scrollToBottomBtn?.addEventListener('click', () => {
+    isUserPinnedToBottom = true;
+    if (scrollToBottomBtn) scrollToBottomBtn.style.display = 'none';
+    messagesContainer.scrollTo({
+      top: messagesContainer.scrollHeight,
+      behavior: 'smooth'
+    });
+  });
+
+  function scrollToBottom(force = false) {
+    if (!messagesContainer) return;
+    if (force) {
+      isUserPinnedToBottom = true;
+      if (scrollToBottomBtn) scrollToBottomBtn.style.display = 'none';
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      return;
+    }
+
+    if (!isUserPinnedToBottom) return;
+
+    if (scrollRafId) cancelAnimationFrame(scrollRafId);
+    scrollRafId = requestAnimationFrame(() => {
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    });
   }
 
   function escapeHtml(str) {

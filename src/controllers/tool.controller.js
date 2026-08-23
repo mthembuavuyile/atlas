@@ -34,6 +34,20 @@ class ToolController {
           result = { success: true, message: `Successfully wrote to ${args.filepath}` };
           break;
 
+        case 'web_search':
+          if (!args || !args.query) {
+            return res.status(400).json({ error: 'Query argument is required' });
+          }
+          result = await toolService.searchWeb(args.query, args.maxResults || 5);
+          break;
+
+        case 'fetch_page':
+          if (!args || !args.url) {
+            return res.status(400).json({ error: 'URL argument is required' });
+          }
+          result = await toolService.fetchPage(args.url);
+          break;
+
         default:
           return res.status(400).json({ error: `Unknown tool: ${tool}` });
       }

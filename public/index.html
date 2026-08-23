@@ -284,6 +284,15 @@
         <!-- Chat message items dynamically injected here -->
       </div>
 
+      <!-- Floating Scroll to Bottom Action Button -->
+      <button id="scrollToBottomBtn" class="scroll-bottom-fab" title="Scroll to bottom" aria-label="Scroll to bottom" style="display: none;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <polyline points="19 12 12 19 5 12"></polyline>
+        </svg>
+        <span class="scroll-bottom-text">Scroll to bottom</span>
+      </button>
+
       <!-- FLOATING COMPOSER -->
       <div class="composer-outer-wrapper">
         <form class="composer-form" id="chatForm">
@@ -297,6 +306,12 @@
             <button type="button" class="tool-pill-chip" id="deepThinkToggleBtn" title="Toggle Chain-of-Thought Reasoning Instructions">
               <span class="think-dot"></span>
               <span>Reasoning: Active</span>
+            </button>
+
+            <button type="button" class="tool-pill-chip" id="webSearchToggleBtn" title="Toggle Real-Time Internet Search Grounding">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+              <span class="web-search-dot"></span>
+              <span id="webSearchLabel">Web: Off</span>
             </button>
 
             <div class="typing-indicator" id="streamingIndicator" style="display: none;">

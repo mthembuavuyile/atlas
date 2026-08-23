@@ -1,4 +1,5 @@
 const openrouterService = require('../services/openrouter.service');
+const searchService = require('../services/search.service');
 const env = require('../config/env');
 const {
   SYSTEM_PROMPT_FULL,
@@ -9,13 +10,19 @@ const {
 
 class ChatController {
   /**
-   * Handle POST /api/chat (Streaming Chat Completion)
+   * Handle POST /api/chat (Streaming Chat Completion with Optional Live Web Grounding)
    */
   async handleChat(req, res) {
-    const { messages = [], model = env.DEFAULT_MODEL, stream = true, temperature = 0.7 } = req.body;
+    const {
+      messages = [],
+      model = env.DEFAULT_MODEL,
+      stream = true,
+      temperature = 0.7,
+      webSearch = false
+    } = req.body;
 
     try {
-      const normalizedMessages = Array.isArray(messages) ? [...messages] : [];
+      let normalizedMessages = Array.isArray(messages) ? [...messages] : [];
       const hasSystemMessage = normalizedMessages.some(m => m && m.role === 'system');
 
       if (!hasSystemMessage) {
@@ -23,6 +30,25 @@ class ChatController {
           role: 'system',
           content: SYSTEM_PROMPT_FULL
         });
+      }
+
+      // Real-Time Web Search Grounding
+      if (webSearch) {
+        const lastUserMsg = [...normalizedMessages].reverse().find(m => m.role === 'user');
+        if (lastUserMsg && lastUserMsg.content) {
+          const userQuery = typeof lastUserMsg.content === 'string'
+            ? lastUserMsg.content
+            : JSON.stringify(lastUserMsg.content);
+
+          const searchResults = await searchService.searchWeb(userQuery, 5);
+          if (searchResults && searchResults.length > 0) {
+            const groundingContext = searchService.formatGroundingContext(searchResults, userQuery);
+            normalizedMessages.push({
+              role: 'system',
+              content: groundingContext
+            });
+          }
+        }
       }
 
       const openRouterResponse = await openrouterService.createChatCompletion({
@@ -123,7 +149,8 @@ class ChatController {
       examplePayload: {
         model: env.DEFAULT_MODEL,
         messages: [{ role: 'user', content: `Hello ${APP.name}!` }],
-        stream: true
+        stream: true,
+        webSearch: false
       }
     });
   }

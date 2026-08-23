@@ -2,6 +2,7 @@ const { exec } = require('child_process');
 const fs = require('fs/promises');
 const path = require('path');
 const util = require('util');
+const searchService = require('./search.service');
 
 const execPromise = util.promisify(exec);
 
@@ -50,6 +51,25 @@ class ToolService {
     } catch (error) {
       throw new Error(`Failed to write file: ${error.message}`);
     }
+  }
+
+  /**
+   * Search the live internet
+   * @param {string} query
+   * @param {number} maxResults
+   * @returns {Promise<Array<{title: string, snippet: string, url: string}>>}
+   */
+  async searchWeb(query, maxResults = 5) {
+    return searchService.searchWeb(query, maxResults);
+  }
+
+  /**
+   * Fetch and extract readable page content
+   * @param {string} url
+   * @returns {Promise<string>}
+   */
+  async fetchPage(url) {
+    return searchService.fetchPageText(url);
   }
 }
 
