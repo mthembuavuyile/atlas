@@ -1,0 +1,29 @@
+{
+  "name": "atlas-by-vylex",
+  "version": "1.0.0",
+  "description": "Atlas — AI Chat Studio by Vylex Technologies (vylex.co.za). Multi-model workspace with SSE streaming, chain-of-thought reasoning, and artifact rendering.",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "cli": "node src/cli/chat-cli.js",
+    "quickstart": "node examples/quickstart.js"
+  },
+  "keywords": [
+    "atlas",
+    "vylex",
+    "vylex-technologies",
+    "ai-chat",
+    "openrouter",
+    "express",
+    "sse-streaming",
+    "multi-model"
+  ],
+  "author": "Vylex Technologies <hello@vylex.co.za> (https://vylex.co.za)",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2"
+  }
+}
