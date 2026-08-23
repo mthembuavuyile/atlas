@@ -1,6 +1,6 @@
-# ◆ Atlas — AI Chat Studio by Vylex Technologies
+# ◆ Atlas | AI Developer Workspace by Vylex Technologies
 
-A premium multi-model AI chat workspace with real-time SSE streaming, chain-of-thought reasoning, artifact rendering, and auto-conversation naming.
+A premium multi-model AI developer workspace with real-time SSE streaming, chain-of-thought reasoning, artifact rendering, and auto-conversation naming.
 
 **Built by [Vylex Technologies](https://vylex.co.za)**
 
@@ -8,16 +8,16 @@ A premium multi-model AI chat workspace with real-time SSE streaming, chain-of-t
 
 ## ✨ Features
 
-- **Multi-Model Support** — Switch between free frontier AI models in real time
-- **SSE Streaming** — Instant token-by-token response rendering
-- **Chain-of-Thought Inspector** — Structured `<think>` tag reasoning display
-- **Artifacts Canvas** — Split-screen code viewer with syntax highlighting & live HTML preview
-- **Auto-Naming** — AI-generated conversation titles (Claude/ChatGPT style)
-- **Three Visual Themes** — Vylex, Obsidian, Carbon
-- **System Persona Presets** — Full-Stack, Architect, Deep Thinker, Concise Coder
-- **File Attachments** — Drag & drop code files into prompts
-- **Export** — Download conversations as Markdown or JSON
-- **Terminal CLI** — Interactive command-line chat interface
+- **Multi-Model Support** - Switch between free frontier AI models in real time
+- **SSE Streaming** - Instant token-by-token response rendering
+- **Chain-of-Thought Inspector** - Structured `<think>` tag reasoning display
+- **Artifacts Canvas** - Split-screen code viewer with syntax highlighting & live HTML preview
+- **Auto-Naming** - AI-generated conversation titles (Claude/ChatGPT style)
+- **Three Visual Themes** - Vylex, Obsidian, Carbon
+- **System Persona Presets** - Full-Stack, Architect, Deep Thinker, Concise Coder
+- **File Attachments** - Drag & drop code files into prompts
+- **Export** - Download conversations as Markdown or JSON
+- **Terminal CLI** - Interactive command-line chat interface
 
 ---
 
