@@ -60,6 +60,19 @@ class OpenRouterService {
         errorJson = { message: errorText };
       }
       const message = errorJson.error?.message || errorJson.message || `OpenRouter API error (${response.status})`;
+
+      // Graceful fallback to the guaranteed auto-free router if a specific model is offline or rate-limited
+      if (model !== 'openrouter/free') {
+        console.warn(`[OpenRouter Service Warning]: Model ${model} failed with: ${message}. Falling back to openrouter/free.`);
+        return this.createChatCompletion({
+          messages,
+          model: 'openrouter/free',
+          temperature,
+          stream,
+          referer
+        });
+      }
+
       const err = new Error(message);
       err.status = response.status;
       throw err;

@@ -58,12 +58,13 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   function getModelIcon(modelId) {
-    if (modelId.includes('free')) return ICONS.freeRouter;
-    if (modelId.includes('owl')) return ICONS.owl;
-    if (modelId.includes('sonoma')) return ICONS.sonoma;
-    if (modelId.includes('hunter')) return ICONS.hunter;
-    if (modelId.includes('polaris')) return ICONS.polaris;
-    if (modelId.includes('aurora')) return ICONS.aurora;
+    if (modelId === 'openrouter/free') return ICONS.freeRouter;
+    if (modelId.includes('ox')) return ICONS.ox;
+    if (modelId.includes('nemotron')) return ICONS.polaris;
+    if (modelId.includes('laguna') || modelId.includes('poolside')) return ICONS.code;
+    if (modelId.includes('north') || modelId.includes('cohere')) return ICONS.hunter;
+    if (modelId.includes('glm') || modelId.includes('z-ai')) return ICONS.owl;
+    if (modelId.includes('gemma')) return ICONS.aurora;
     return ICONS.ox;
   }
 
@@ -75,55 +76,55 @@ document.addEventListener('DOMContentLoaded', () => {
       badge: 'AUTO FREE',
       isFree: true,
       context: 'Dynamic context',
-      desc: 'Smart auto-router that dynamically routes each prompt to the best available free model.'
+      desc: 'Smart auto-router that automatically selects from available free models based on request requirements.'
     },
     {
       id: 'stealth/ox-alpha',
       name: 'Ox Alpha',
-      badge: '1M FREE',
+      badge: '1.05M FREE',
       isFree: true,
       context: '1,048,576 tokens',
-      desc: 'Frontier stealth reasoning model with 1M context window.'
+      desc: 'Reasoning model designed for coding, sustained agentic work, and long-horizon software engineering.'
     },
     {
-      id: 'openrouter/owl-alpha',
-      name: 'Owl Alpha',
+      id: 'nvidia/nemotron-3-ultra-550b-a55b:free',
+      name: 'NVIDIA Nemotron 3 Ultra',
       badge: '1M FREE',
       isFree: true,
       context: '1,000,000 tokens',
-      desc: 'High-performance foundation model for agentic workloads and code generation.'
+      desc: 'Open frontier-reasoning and orchestration MoE model from NVIDIA for coding agents and deep research.'
     },
     {
-      id: 'openrouter/sonoma-sky-alpha',
-      name: 'Sonoma Sky Alpha',
-      badge: '2M FREE',
+      id: 'poolside/laguna-s-2.1:free',
+      name: 'Poolside Laguna S 2.1',
+      badge: '262K FREE',
       isFree: true,
-      context: '2,000,000 tokens',
-      desc: 'Maximally intelligent frontier model with 2 million token context window.'
+      context: '262,144 tokens',
+      desc: 'Specialized 118B coding agent model scoring 70.2% on Terminal-Bench for agentic software engineering.'
     },
     {
-      id: 'openrouter/hunter-alpha',
-      name: 'Hunter Alpha',
-      badge: '1M FREE',
-      isFree: true,
-      context: '1,000,000 tokens',
-      desc: 'Frontier intelligence model built for long-horizon planning and reasoning.'
-    },
-    {
-      id: 'openrouter/polaris-alpha',
-      name: 'Polaris Alpha',
+      id: 'cohere/north-mini-code:free',
+      name: 'Cohere North Mini Code',
       badge: '256K FREE',
       isFree: true,
       context: '256,000 tokens',
-      desc: 'Powerful model with standout performance in coding and instruction following.'
+      desc: 'Agentic coding MoE model optimized for code generation, SWE tasks, and terminal workflows.'
     },
     {
-      id: 'openrouter/aurora-alpha',
-      name: 'Aurora Alpha',
-      badge: '128K FREE',
+      id: 'z-ai/glm-5.2:free',
+      name: 'Z.ai GLM 5.2',
+      badge: '256K FREE',
       isFree: true,
-      context: '128,000 tokens',
-      desc: 'High-speed reasoning model designed for coding assistants and fast responses.'
+      context: '256,000 tokens',
+      desc: 'Large-scale reasoning model suited for project-level software engineering and multi-step automation.'
+    },
+    {
+      id: 'google/gemma-4-26b-a4b-it:free',
+      name: 'Google Gemma 4 26B',
+      badge: '262K FREE',
+      isFree: true,
+      context: '262,144 tokens',
+      desc: 'Instruction-tuned DeepMind MoE model with native function calling and configurable thinking mode.'
     }
   ];
 
@@ -984,7 +985,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    const ATLAS_IDENTITY = 'You are Atlas, a powerful AI assistant created by Vylex Technologies (https://vylex.co.za). When asked who you are, who made you, or who built you, always respond that you are Atlas, made by Vylex Technologies. ';
+    const ATLAS_IDENTITY = 'You are Atlas, a senior software engineering partner and systems architect built by Vylex Technologies (https://vylex.co.za). You specialize in production-grade code, distributed system design, refactoring, specs, and logical verification. When asked who you are or who built you, always state that you are Atlas, a developer assistant made by Vylex Technologies. ';
     const payloadMessages = [];
     const fullSystemPrompt = ATLAS_IDENTITY + (state.systemPrompt || '');
     payloadMessages.push({ role: 'system', content: fullSystemPrompt });
