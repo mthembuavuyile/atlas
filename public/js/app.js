@@ -147,7 +147,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const historyListYesterday = document.getElementById('historyListYesterday');
   const historyListPrevious = document.getElementById('historyListPrevious');
   const emptyHistoryState = document.getElementById('emptyHistoryState');
-  const connectionStatus = document.getElementById('connectionStatus');
 
   // Top Nav
   const modelPillTrigger = document.getElementById('modelPillTrigger');
@@ -299,18 +298,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- BACKEND HEALTH & MODELS ---
   async function checkBackendHealth() {
-    const dot = connectionStatus?.querySelector('.status-indicator-dot');
-    const text = connectionStatus?.querySelector('.status-indicator-text');
-
     try {
       const res = await fetch(`${API_BASE}/api/health`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-
-      if (data.status === 'ok') {
-        dot?.classList.add('connected');
-        if (text) text.textContent = data.hasApiKey ? 'Atlas Ready' : 'API Key Missing';
-      }
 
       // Fetch dynamic models list from backend
       const mRes = await fetch(`${API_BASE}/api/models`);
@@ -322,8 +312,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (err) {
       console.warn('Backend offline:', err);
-      dot?.classList.remove('connected');
-      if (text) text.textContent = 'Server Offline';
     }
   }
 
@@ -1519,20 +1507,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Online / Offline Network Lifecycle Listeners
     window.addEventListener('online', () => {
       if (offlineBanner) offlineBanner.style.display = 'none';
-      const dot = connectionStatus?.querySelector('.status-indicator-dot');
-      const text = connectionStatus?.querySelector('.status-indicator-text');
-      dot?.classList.add('connected');
-      if (text) text.textContent = 'Atlas Ready';
       if (!state.isGenerating && sendBtn) sendBtn.disabled = false;
       checkBackendHealth();
     });
 
     window.addEventListener('offline', () => {
       if (offlineBanner) offlineBanner.style.display = 'flex';
-      const dot = connectionStatus?.querySelector('.status-indicator-dot');
-      const text = connectionStatus?.querySelector('.status-indicator-text');
-      dot?.classList.remove('connected');
-      if (text) text.textContent = 'Offline';
       if (sendBtn) sendBtn.disabled = true;
     });
 
