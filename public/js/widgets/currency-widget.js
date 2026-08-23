@@ -1,20 +1,23 @@
-import { createWidgetShell, escapeHtml, formatNumber } from './widget-utils.js';
+import { createWidgetShell, escapeHtml, formatNumber, WIDGET_ICONS } from './widget-utils.js';
 
 export function renderCurrencyWidget(data) {
     if (data.error) return `<div class="atlas-widget error">${escapeHtml(data.error)}</div>`;
 
     const content = `
-        <div style="font-size: 1.2rem; color: var(--text-secondary); margin-bottom: 4px;">
-            ${formatNumber(data.amount)} ${escapeHtml(data.from)} =
-        </div>
-        <div style="font-size: 2.5rem; font-weight: 700; color: #10b981; margin-bottom: 8px;">
-            ${formatNumber(data.converted)} ${escapeHtml(data.to)}
-        </div>
-        <div style="font-size: 0.85rem; color: var(--text-tertiary);">
-            Rate: 1 ${escapeHtml(data.from)} = ${formatNumber(data.rate)} ${escapeHtml(data.to)}
-            <br>Source: ${escapeHtml(data.source)}
+        <div class="currency-conversion-display">
+            <div class="currency-from-label">
+                ${formatNumber(data.amount)} ${escapeHtml(data.from)} =
+            </div>
+            <div class="currency-result-value">
+                ${formatNumber(data.converted)} <span class="currency-target-code">${escapeHtml(data.to)}</span>
+            </div>
+            <div class="currency-rate-meta">
+                <span>Rate: 1 ${escapeHtml(data.from)} = ${formatNumber(data.rate)} ${escapeHtml(data.to)}</span>
+                <span>•</span>
+                <span>Source: ${escapeHtml(data.source || 'FX Benchmark')}</span>
+            </div>
         </div>
     `;
 
-    return createWidgetShell('currency', '<i class="fa-solid fa-money-bill-transfer"></i>', 'Currency Converter', content);
+    return createWidgetShell('currency', WIDGET_ICONS.currency, 'Currency Exchange', content);
 }

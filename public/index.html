@@ -52,13 +52,13 @@
   }
   </script>
 
-  <!-- Google Fonts: DM Sans, Outfit, Plus Jakarta Sans, Lora, JetBrains Mono -->
+  <!-- Google Fonts: DM Sans, Plus Jakarta Sans, JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <!-- Highlight.js for code syntax highlighting -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css" id="hljsTheme">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark-dimmed.min.css" id="hljsTheme">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 
   <!-- Marked for markdown parsing & DOMPurify for security -->
@@ -67,10 +67,6 @@
 
   <!-- Tesseract.js for OCR -->
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
-  
-  <!-- MathJax for math rendering -->
-  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/widgets.css">
@@ -80,7 +76,7 @@
     <!-- Mobile Sidebar Backdrop Overlay -->
     <div class="sidebar-backdrop" id="sidebarBackdrop" aria-hidden="true"></div>
 
-    <!-- LEFT SIDEBAR: History & Investigation Tree -->
+    <!-- LEFT SIDEBAR: History & Navigation -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
         <div class="brand">
@@ -92,7 +88,7 @@
           </div>
           <div class="brand-info">
             <h2>Atlas</h2>
-            <span class="brand-sub">Scientific Intelligence</span>
+            <span class="brand-sub">Reasoning Studio</span>
           </div>
         </div>
         <button id="sidebarCollapseBtn" class="icon-btn" title="Collapse Sidebar (Ctrl+[)" aria-label="Collapse Sidebar">
@@ -107,7 +103,7 @@
       <!-- New Investigation Action -->
       <div class="sidebar-actions">
         <button id="newChatBtn" class="new-chat-btn">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="12" y1="5" x2="12" y2="19"></line>
             <line x1="5" y1="12" x2="19" y2="12"></line>
           </svg>
@@ -118,17 +114,17 @@
 
       <!-- Search in investigations -->
       <div class="history-search-box">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="11" cy="11" r="8"></circle>
           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
         </svg>
-        <input type="text" id="historySearchInput" placeholder="Filter investigations..." aria-label="Filter investigations">
+        <input type="text" id="historySearchInput" placeholder="Search investigations..." aria-label="Filter investigations">
       </div>
 
       <!-- Investigation History Tree -->
       <div class="history-scroll-container">
         <div class="history-group" id="historyGroupToday">
-          <div class="history-group-title">Today's Investigations</div>
+          <div class="history-group-title">Today</div>
           <div class="history-list" id="historyListToday"></div>
         </div>
 
@@ -138,7 +134,7 @@
         </div>
 
         <div class="history-group" id="historyGroupPrevious">
-          <div class="history-group-title">Previous Investigations</div>
+          <div class="history-group-title">Previous</div>
           <div class="history-list" id="historyListPrevious"></div>
         </div>
 
@@ -150,7 +146,7 @@
       <!-- Sidebar Footer -->
       <div class="sidebar-footer">
         <button id="systemPromptDrawerBtn" class="sidebar-tool-btn">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="3"></circle>
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
           </svg>
@@ -164,78 +160,70 @@
       <!-- TOP NAVIGATION BAR -->
       <div class="offline-banner" id="offlineBanner" style="display: none;">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 1l22 22"></path><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"></path><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"></path><path d="M10.71 5.05A16 16 0 0 1 22.56 9"></path><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></svg>
-        <span>You are currently offline. Atlas is attempting to reconnect...</span>
+        <span>Reconnecting to network...</span>
       </div>
+
       <header class="top-navbar">
         <div class="nav-left">
           <!-- Universal Sidebar Toggle -->
           <button id="sidebarToggleBtn" class="icon-btn sidebar-toggle-btn" title="Toggle Sidebar (Ctrl+[)" aria-label="Toggle Sidebar">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
               <line x1="9" y1="3" x2="9" y2="21"></line>
             </svg>
           </button>
           
-          <!-- Model Switcher Capsule -->
+          <!-- Model Switcher Selector -->
           <div class="model-dropdown-capsule">
             <div class="model-pill-trigger" id="modelPillTrigger" tabindex="0" role="button" aria-haspopup="true" aria-expanded="false">
               <span class="model-spark-icon" id="modelSparkIcon">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>
               </span>
               <div class="model-pill-info">
                 <span class="model-current-name" id="modelCurrentName">Atlas Default Engine</span>
-                <span class="model-pill-badge" id="modelPillBadge">AUTO FREE</span>
+                <span class="model-pill-badge" id="modelPillBadge">AUTO</span>
               </div>
-              <svg class="chevron-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              <svg class="chevron-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
             </div>
 
             <!-- Dropdown Menu -->
             <div class="model-dropdown-menu" id="modelDropdownMenu" role="menu">
-              <div class="dropdown-header">Active Execution Engine</div>
+              <div class="dropdown-header">Inference Engine</div>
               <div class="model-options-list" id="modelOptionsList">
-                <!-- Dynamically populated with clean SVG icons -->
+                <!-- Dynamically populated -->
               </div>
             </div>
           </div>
         </div>
 
         <div class="nav-right">
-          <!-- Theme Switcher (Vylex, Obsidian, Carbon) -->
-          <div class="theme-switcher-group" title="Select Visual Archetype">
-            <button class="theme-btn active" data-theme-val="vylex" title="Vylex Classic (Corporate Navy & Warm Orange)">
-              <span class="theme-dot dot-vylex"></span>
-              <span class="theme-label">Vylex</span>
-            </button>
-            <button class="theme-btn" data-theme-val="obsidian" title="Obsidian (Warm Espresso & Editorial Serif)">
-              <span class="theme-dot dot-obsidian"></span>
-              <span class="theme-label">Obsidian</span>
-            </button>
-            <button class="theme-btn" data-theme-val="carbon" title="Carbon (Minimalist Charcoal & Emerald)">
-              <span class="theme-dot dot-carbon"></span>
-              <span class="theme-label">Carbon</span>
-            </button>
+          <!-- Minimal Theme Selector -->
+          <div class="theme-switcher-group" title="Select Theme">
+            <button class="theme-btn active" data-theme-val="vylex">Vylex</button>
+            <button class="theme-btn" data-theme-val="obsidian">Obsidian</button>
+            <button class="theme-btn" data-theme-val="carbon">Carbon</button>
           </div>
 
           <!-- Session Metrics -->
-          <div class="session-metric-badge" id="sessionMetricBadge" title="Total messages in active session">
+          <div class="session-metric-badge" id="sessionMetricBadge" title="Session message count">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
             <span id="metricMsgCount">0 msgs</span>
           </div>
 
           <!-- Artifacts Canvas Toggle -->
-          <button id="toggleCanvasBtn" class="canvas-toggle-btn" title="Toggle Artifacts Canvas Split View">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <button id="toggleCanvasBtn" class="canvas-toggle-btn" title="Toggle Artifacts Canvas">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
               <line x1="15" y1="3" x2="15" y2="21"></line>
             </svg>
-            <span class="canvas-btn-text">Artifacts Canvas</span>
+            <span class="canvas-btn-text">Canvas</span>
             <span class="artifact-count-bubble" id="artifactCountBubble" style="display: none;">0</span>
           </button>
 
           <!-- Export Menu -->
           <div class="export-dropdown-wrapper">
             <button id="exportMenuBtn" class="icon-btn" title="Export Session" aria-label="Export Session">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                 <polyline points="7 10 12 15 17 10"></polyline>
                 <line x1="12" y1="15" x2="12" y2="3"></line>
@@ -243,15 +231,15 @@
             </button>
             <div class="export-menu-popup" id="exportMenuPopup">
               <button id="exportMarkdownBtn" class="export-opt-btn">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-                Export as Markdown (.md)
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                Export Markdown (.md)
               </button>
               <button id="exportJsonBtn" class="export-opt-btn">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
-                Export as JSON (.json)
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+                Export JSON (.json)
               </button>
               <button id="clearCurrentChatBtn" class="export-opt-btn danger">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                 Clear Messages
               </button>
             </div>
@@ -263,53 +251,63 @@
       <div class="messages-container" id="messagesContainer">
         <!-- Research Environment Welcome Screen -->
         <div class="welcome-screen" id="welcomeScreen">
-          <div class="hero-tech-label">
-            <span class="tech-dot"></span>
-            <span>Scientific Intelligence Platform</span>
+          <div class="welcome-header-block">
+            <h1 class="welcome-heading">
+              <span id="dynamicTimeGreeting">Scientific Reasoning</span>
+            </h1>
+            <p class="welcome-subtitle">
+              Multi-model technical reasoning, computational verification, and live tool grounding.
+            </p>
           </div>
 
-          <h1 class="welcome-heading">
-            <span id="dynamicTimeGreeting">Research Environment</span>
-          </h1>
-          
-          <p class="welcome-subtitle">
-            <strong>Atlas</strong> investigates problems through structured reasoning, computational tools, and multi-model intelligence — then executes verified actions.
-          </p>
-
-          <!-- 7 Investigation Modes Selector Grid -->
+          <!-- 7 Investigation Modes Selector Grid (Zero Emojis, Pure SVGs) -->
           <div class="mode-selector-grid" id="modeSelectorGrid">
             <div class="mode-card-pill active" data-mode="research">
-              <span class="mode-icon">🔬</span>
+              <span class="mode-icon">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+              </span>
               <span class="mode-name">Research</span>
               <span class="mode-desc-hint">Literature & evidence</span>
             </div>
             <div class="mode-card-pill" data-mode="solve">
-              <span class="mode-icon">🧮</span>
+              <span class="mode-icon">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><line x1="16" x2="16" y1="14" y2="18"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/></svg>
+              </span>
               <span class="mode-name">Solve</span>
               <span class="mode-desc-hint">Math & derivations</span>
             </div>
             <div class="mode-card-pill" data-mode="build">
-              <span class="mode-icon">💻</span>
+              <span class="mode-icon">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+              </span>
               <span class="mode-name">Build</span>
               <span class="mode-desc-hint">Systems & code</span>
             </div>
             <div class="mode-card-pill" data-mode="engineer">
-              <span class="mode-icon">⚙️</span>
+              <span class="mode-icon">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 9h6v6H9z"/><path d="M3 9h3"/><path d="M3 15h3"/><path d="M21 9h-3"/><path d="M21 15h-3"/><path d="M9 3v3"/><path d="M15 3v3"/><path d="M9 21v-3"/><path d="M15 21v-3"/></svg>
+              </span>
               <span class="mode-name">Engineer</span>
-              <span class="mode-desc-hint">Architecture & constraints</span>
+              <span class="mode-desc-hint">Architecture & limits</span>
             </div>
             <div class="mode-card-pill" data-mode="experiment">
-              <span class="mode-icon">🧪</span>
+              <span class="mode-icon">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v7.31M14 9.3V1.99M8.5 2h7M14 9.3a6.5 6.5 0 1 1-4 0"/></svg>
+              </span>
               <span class="mode-name">Experiment</span>
               <span class="mode-desc-hint">Data & simulation</span>
             </div>
             <div class="mode-card-pill" data-mode="reason">
-              <span class="mode-icon">🧠</span>
+              <span class="mode-icon">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="19" cy="6" r="2"/><circle cx="5" cy="6" r="2"/><circle cx="19" cy="18" r="2"/><circle cx="5" cy="18" r="2"/><line x1="7" y1="7" x2="10" y2="10"/><line x1="17" y1="7" x2="14" y2="10"/><line x1="7" y1="17" x2="10" y2="14"/><line x1="17" y1="17" x2="14" y2="14"/></svg>
+              </span>
               <span class="mode-name">Reason</span>
-              <span class="mode-desc-hint">Logical decomposition</span>
+              <span class="mode-desc-hint">Logical breakdown</span>
             </div>
             <div class="mode-card-pill" data-mode="discover">
-              <span class="mode-icon">🔭</span>
+              <span class="mode-icon">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+              </span>
               <span class="mode-name">Discover</span>
               <span class="mode-desc-hint">Hypothesis generator</span>
             </div>
@@ -318,16 +316,15 @@
           <!-- Active Mode Info Banner -->
           <div class="active-mode-banner" id="activeModeBanner">
             <div class="active-mode-banner-left">
-              <span class="active-mode-tag" id="activeModeTag">🔬 Mode: Research</span>
+              <span class="active-mode-tag" id="activeModeTag">Mode: Research</span>
               <span id="activeModeDesc">Literature synthesis, evidence evaluation, hypothesis formation, research maps</span>
             </div>
           </div>
 
           <!-- Mode-Tailored Suggested Investigations -->
           <div class="welcome-suggestions">
-            <span class="suggestion-label">Suggested Investigations</span>
+            <span class="suggestion-label">Suggested Inquiries</span>
             <div class="suggestion-pills" id="suggestionPillsContainer">
-              <!-- Dynamically populated per active mode -->
               <button class="prompt-card suggestion-pill" data-prompt="Synthesize the current approaches, contested claims, and experimental gaps in room-temperature superconductivity.">Superconductivity Landscape</button>
               <button class="prompt-card suggestion-pill" data-prompt="Why does this experimental result contradict the standard thermodynamic hypothesis? Identify confounding variables.">Contradicting Hypothesis</button>
               <button class="prompt-card suggestion-pill" data-prompt="Deconstruct the scalability, failure modes, and database partitioning for 10M req/min distributed system.">10M Req/Min Architecture</button>
@@ -335,61 +332,22 @@
           </div>
         </div>
 
-        <!-- Chat message items dynamically injected here -->
+        <!-- Dynamic chat messages injected here -->
       </div>
 
-      <!-- Floating Scroll to Bottom Action Button -->
+      <!-- Floating Scroll to Bottom Button -->
       <button id="scrollToBottomBtn" class="scroll-bottom-fab" title="Scroll to bottom" aria-label="Scroll to bottom" style="display: none;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <line x1="12" y1="5" x2="12" y2="19"></line>
           <polyline points="19 12 12 19 5 12"></polyline>
         </svg>
-        <span class="scroll-bottom-text">Scroll to bottom</span>
       </button>
 
-      <!-- FLOATING COMPOSER -->
+      <!-- INTEGRATED PROFESSIONAL COMPOSER (Zero AI Slop, No Floating Pill with Dot) -->
       <div class="composer-outer-wrapper">
         <form class="composer-form" id="chatForm">
-          <!-- Top floating helper chips -->
-          <div class="composer-floating-tools">
-            <button type="button" class="tool-pill-chip" id="openSysPromptModalBtn" title="Customize AI Persona & System Instructions">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-              <span id="activePromptLabel">Mode: Research</span>
-            </button>
-
-            <button type="button" class="tool-pill-chip" id="deepThinkToggleBtn" title="Toggle Chain-of-Thought Reasoning Instructions">
-              <span class="think-dot"></span>
-              <span>Reasoning: Active</span>
-            </button>
-
-            <button type="button" class="tool-pill-chip" id="webSearchToggleBtn" title="Toggle Real-Time Internet Search Grounding">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
-              <span class="web-search-dot"></span>
-              <span id="webSearchLabel">Web: Off</span>
-            </button>
-
-            <div class="typing-indicator" id="streamingIndicator" style="display: none;">
-              <span class="pulsing-wave">
-                <span></span><span></span><span></span>
-              </span>
-              <span class="indicator-text">Investigating...</span>
-            </div>
-          </div>
-
-          <!-- Main Input Box -->
           <div class="composer-box" id="composerBox">
-            <button type="button" class="action-circle-btn" id="attachFileMockBtn" title="Attach dataset or document" aria-label="Attach File">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
-              </svg>
-            </button>
-            <button type="button" class="action-circle-btn" id="ocrTriggerBtn" title="Scan Formula or Diagram (OCR)" aria-label="Scan Formula (OCR)">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242M12 12v9"></path>
-                <polyline points="8 17 12 21 16 17"></polyline>
-              </svg>
-            </button>
-
+            <!-- Textarea Area -->
             <textarea 
               id="messageInput" 
               class="composer-textarea" 
@@ -398,34 +356,69 @@
               autofocus
             ></textarea>
 
-            <div class="composer-end-actions">
-              <!-- Stop generation button -->
-              <button type="button" id="stopGenerationBtn" class="stop-btn" style="display: none;" title="Halt Investigation" aria-label="Halt Investigation">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
-                  <rect x="5" y="5" width="14" height="14" rx="2"></rect>
-                </svg>
-              </button>
+            <!-- Integrated Bottom Action Bar -->
+            <div class="composer-bottom-bar">
+              <!-- Left: Controls & Grounding Toggles -->
+              <div class="composer-controls-left">
+                <button type="button" class="composer-tool-btn" id="openSysPromptModalBtn" title="Select Domain Intelligence & Instructions">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                  <span id="activePromptLabel">Research</span>
+                </button>
 
-              <!-- Send button -->
-              <button type="submit" id="sendBtn" class="send-btn" aria-label="Start Investigation" title="Investigate (Enter)">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="12" y1="19" x2="12" y2="5"></line>
-                  <polyline points="5 12 12 5 19 12"></polyline>
-                </svg>
-              </button>
+                <button type="button" class="composer-tool-btn" id="deepThinkToggleBtn" title="Toggle Chain-of-Thought Reasoning">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><circle cx="19" cy="6" r="2"></circle><circle cx="5" cy="6" r="2"/><circle cx="19" cy="18" r="2"/><circle cx="5" cy="18" r="2"/><line x1="7" y1="7" x2="10" y2="10"/><line x1="17" y1="7" x2="14" y2="10"/><line x1="7" y1="17" x2="10" y2="14"/><line x1="17" y1="17" x2="14" y2="14"/></svg>
+                  <span>Reasoning</span>
+                </button>
+
+                <button type="button" class="composer-tool-btn" id="webSearchToggleBtn" title="Toggle Real-Time Search Grounding">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                  <span id="webSearchLabel">Web Off</span>
+                </button>
+
+                <button type="button" class="composer-icon-btn" id="attachFileMockBtn" title="Attach file or dataset" aria-label="Attach File">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+                  </svg>
+                </button>
+
+                <button type="button" class="composer-icon-btn" id="ocrTriggerBtn" title="Optical Character Recognition (OCR)" aria-label="Scan Text / OCR">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242M12 12v9"></path>
+                    <polyline points="8 17 12 21 16 17"></polyline>
+                  </svg>
+                </button>
+
+                <div class="streaming-status-tag" id="streamingIndicator" style="display: none;">
+                  <span class="status-spinner"></span>
+                  <span class="indicator-text">Investigating...</span>
+                </div>
+              </div>
+
+              <!-- Right: Execution Engine / Send Buttons -->
+              <div class="composer-controls-right">
+                <span class="composer-engine-hint" id="hintModelName">openrouter/free</span>
+
+                <!-- Stop Generation Button -->
+                <button type="button" id="stopGenerationBtn" class="stop-btn" style="display: none;" title="Halt Generation" aria-label="Halt Generation">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                    <rect x="5" y="5" width="14" height="14" rx="2"></rect>
+                  </svg>
+                </button>
+
+                <!-- Send Button -->
+                <button type="submit" id="sendBtn" class="send-btn" aria-label="Run Investigation" title="Investigate (Enter)">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="19" x2="12" y2="5"></line>
+                    <polyline points="5 12 12 5 19 12"></polyline>
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
 
-          <!-- Composer Meta Footer -->
+          <!-- Subtle Footer Note -->
           <div class="composer-hints">
-            <div class="hint-left">
-              <span>Engine: <strong id="hintModelName">Atlas Default Engine</strong></span>
-              <span class="hint-dot">•</span>
-              <span>Reasoning: <strong id="hintContextSize">1,048,576 Tokens</strong></span>
-            </div>
-            <div class="hint-right">
-              <span>Shift+Enter for newline • Atlas by Vylex Technologies</span>
-            </div>
+            <span>Shift+Enter for newline • Atlas by Vylex Technologies</span>
           </div>
         </form>
       </div>
@@ -436,7 +429,7 @@
       <div class="canvas-header">
         <div class="canvas-title-group">
           <div class="canvas-badge-icon">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="15" y1="3" x2="15" y2="21"></line></svg>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="15" y1="3" x2="15" y2="21"></line></svg>
           </div>
           <div>
             <h3 id="canvasDocumentTitle">Artifact Inspector</h3>
@@ -446,20 +439,20 @@
         
         <div class="canvas-header-actions">
           <button id="copyCanvasContentBtn" class="icon-btn" title="Copy Artifact">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
               <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
             </svg>
           </button>
           <button id="downloadCanvasBtn" class="icon-btn" title="Download File">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
               <polyline points="7 10 12 15 17 10"></polyline>
               <line x1="12" y1="15" x2="12" y2="3"></line>
             </svg>
           </button>
           <button id="closeCanvasBtn" class="icon-btn" title="Close Canvas (Escape)" aria-label="Close Canvas">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           </button>
         </div>
       </div>
@@ -468,7 +461,7 @@
       <div class="canvas-tabs">
         <button class="canvas-tab active" data-tab="code">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
-          <span>Code View</span>
+          <span>Code</span>
         </button>
         <button class="canvas-tab" data-tab="preview" id="canvasPreviewTab">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
@@ -480,7 +473,7 @@
         </button>
         <button class="canvas-tab" data-tab="agent">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
-          <span>Execution Log</span>
+          <span>Log</span>
         </button>
       </div>
 
@@ -495,7 +488,7 @@
         </div>
 
         <div class="canvas-pane" id="canvasPreviewPane">
-          <iframe id="canvasPreviewFrame" sandbox="allow-scripts allow-same-origin" title="Live Artifact HTML Preview"></iframe>
+          <iframe id="canvasPreviewFrame" sandbox="allow-scripts allow-same-origin" title="Artifact HTML Preview"></iframe>
         </div>
 
         <div class="canvas-pane" id="canvasMarkdownPane">
@@ -505,16 +498,16 @@
         <div class="canvas-pane" id="canvasAgentPane">
           <div class="agent-activity-container">
             <div class="agent-task-checklist" id="agentTaskChecklist">
-              <h4 class="agent-section-title">Investigation Objective</h4>
+              <h4 class="agent-section-title">Execution Objectives</h4>
               <ul class="task-list" id="agentTaskList">
-                <li class="task-item placeholder">Waiting for investigation tasks...</li>
+                <li class="task-item placeholder">Awaiting tasks...</li>
               </ul>
             </div>
             
             <div class="agent-terminal-feed" id="agentTerminalFeed">
-              <h4 class="agent-section-title">Execution Log</h4>
+              <h4 class="agent-section-title">Execution Feed</h4>
               <div class="terminal-output" id="terminalOutput">
-                <div class="terminal-line system">Atlas Scientific Reasoning Engine Initialized.</div>
+                <div class="terminal-line system">Atlas Engine Initialized.</div>
               </div>
             </div>
           </div>
@@ -529,7 +522,7 @@
       <div class="modal-header">
         <div class="modal-title-group">
           <div class="modal-icon-svg">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
           </div>
           <div>
             <h3>Reasoning Persona & Parameters</h3>
@@ -537,37 +530,37 @@
           </div>
         </div>
         <button id="closeModalBtn" class="icon-btn" aria-label="Close Parameters">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
       </div>
 
       <div class="modal-body">
-        <!-- Preset Personas -->
+        <!-- Preset Personas (Zero Emojis) -->
         <div class="settings-section">
           <label class="settings-label">Domain Intelligence Presets</label>
           <div class="preset-pills-grid">
             <button class="preset-pill active" data-preset="scientist">
-              <span class="preset-name">🔬 Scientific Researcher</span>
-              <span class="preset-desc">Hypothesis formation, evidence evaluation, and uncertainty</span>
+              <span class="preset-name">Scientific Researcher</span>
+              <span class="preset-desc">Hypothesis formation, evidence evaluation, and uncertainty quantification</span>
             </button>
             <button class="preset-pill" data-preset="mathematician">
-              <span class="preset-name">🧮 Mathematician</span>
-              <span class="preset-desc">Formal proofs, derivation pipelines, and verification</span>
+              <span class="preset-name">Mathematician</span>
+              <span class="preset-desc">Formal proofs, derivation pipelines, and rigorous verification</span>
             </button>
             <button class="preset-pill" data-preset="engineer">
-              <span class="preset-name">⚙️ Systems Engineer</span>
+              <span class="preset-name">Systems Engineer</span>
               <span class="preset-desc">Distributed systems, scalability, constraints, & failure modes</span>
             </button>
             <button class="preset-pill" data-preset="builder">
-              <span class="preset-name">💻 Full-Stack Builder</span>
+              <span class="preset-name">Full-Stack Builder</span>
               <span class="preset-desc">Production-grade code, architectures, and testing</span>
             </button>
             <button class="preset-pill" data-preset="reasoner">
-              <span class="preset-name">🧠 Deep Reasoner</span>
+              <span class="preset-name">Deep Reasoner</span>
               <span class="preset-desc">Logical decomposition & explicit chain-of-thought</span>
             </button>
             <button class="preset-pill" data-preset="concise">
-              <span class="preset-name">⚡ Concise Expert</span>
+              <span class="preset-name">Concise Expert</span>
               <span class="preset-desc">Direct, optimal solutions with minimal preamble</span>
             </button>
           </div>
@@ -577,22 +570,22 @@
         <div class="settings-section">
           <div class="settings-flex-row">
             <label class="settings-label" for="customSystemPrompt">System Instructions</label>
-            <button id="resetModalPromptBtn" class="text-btn">Reset to Default</button>
+            <button id="resetModalPromptBtn" class="text-btn">Reset Default</button>
           </div>
-          <textarea id="customSystemPrompt" class="system-prompt-editor" rows="5" placeholder="Enter instructions for the model..."></textarea>
+          <textarea id="customSystemPrompt" class="system-prompt-editor" rows="5" placeholder="Enter custom instructions for the model..."></textarea>
         </div>
 
         <!-- Temperature Slider -->
         <div class="settings-section">
           <div class="settings-flex-row">
-            <label class="settings-label" for="temperatureSlider">Creativity / Temperature</label>
+            <label class="settings-label" for="temperatureSlider">Temperature</label>
             <span class="slider-val-badge" id="tempValBadge">0.7</span>
           </div>
           <input type="range" id="temperatureSlider" min="0" max="1.5" step="0.05" value="0.7" class="custom-range">
           <div class="slider-hints">
             <span>Deterministic (0.0)</span>
             <span>Balanced (0.7)</span>
-            <span>Creative (1.5)</span>
+            <span>Exploratory (1.5)</span>
           </div>
         </div>
       </div>
@@ -607,14 +600,14 @@
   <div class="atlas-ocr-overlay" id="ocrModalOverlay">
     <div class="atlas-ocr-modal">
       <div class="atlas-ocr-header">
-        <h3 style="margin: 0; font-size: 1.2rem; color: #fff;">Optical Character Recognition</h3>
+        <h3 style="margin: 0; font-size: 1.1rem; color: #fff; font-weight: 600;">Optical Character Recognition</h3>
         <button id="ocrBtnClose" class="atlas-ocr-btn">Close</button>
       </div>
       <div class="atlas-ocr-body">
         <div class="atlas-ocr-panel">
           <video id="ocrVideo" class="atlas-ocr-video" autoplay playsinline style="display: none;"></video>
           <img id="ocrPreview" class="atlas-ocr-preview" style="display: none;" alt="OCR Preview">
-          <div style="position: absolute; bottom: 16px; left: 0; right: 0; display: flex; justify-content: center; gap: 12px; z-index: 10;">
+          <div style="position: absolute; bottom: 14px; left: 0; right: 0; display: flex; justify-content: center; gap: 10px; z-index: 10;">
             <button id="ocrBtnCamera" class="atlas-ocr-btn primary">Use Camera</button>
             <button id="ocrBtnUpload" class="atlas-ocr-btn primary">Upload Image</button>
             <button id="ocrBtnCapture" class="atlas-ocr-btn" style="display: none; background: #fff; color: #000;">Capture</button>
@@ -626,8 +619,8 @@
         </div>
       </div>
       <div class="atlas-ocr-footer">
-        <span style="font-size: 0.85rem; color: #94a3b8;">Supports Drag & Drop and Paste (Ctrl+V)</span>
-        <button id="ocrBtnSend" class="atlas-ocr-btn primary">Send to Chat</button>
+        <span style="font-size: 0.8rem; color: #64748b;">Supports drag & drop and clipboard paste (Ctrl+V)</span>
+        <button id="ocrBtnSend" class="atlas-ocr-btn primary">Send to Investigation</button>
       </div>
     </div>
   </div>

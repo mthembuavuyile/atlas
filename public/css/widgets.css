@@ -1,477 +1,442 @@
-/* atlas widgets */
+/* Atlas Minimalist Widgets & Action Cards */
+
 .atlas-widget {
-    background: var(--bg-secondary, rgba(255, 255, 255, 0.03));
-    border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
-    border-radius: 12px;
-    padding: 16px;
+    background: var(--bg-card, #131417);
+    border: 1px solid var(--border-subtle, #23252a);
+    border-radius: 6px;
+    padding: 14px 16px;
     margin: 12px 0;
-    backdrop-filter: blur(8px);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    color: var(--text-primary, #e2e8f0);
-    font-family: 'DM Sans', sans-serif;
-    max-width: 600px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    color: var(--text-main, #e2e8f0);
+    font-family: var(--font-body, 'DM Sans', sans-serif);
+    max-width: 620px;
+}
+
+.atlas-widget.error {
+    border-color: rgba(239, 68, 68, 0.35);
+    background: rgba(239, 68, 68, 0.05);
+    color: #fca5a5;
+    font-size: 0.88rem;
 }
 
 .atlas-widget-header {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
     font-weight: 600;
-    font-size: 0.9rem;
-    color: var(--accent, #60a5fa);
+    font-size: 0.78rem;
+    color: var(--text-secondary, #94a3b8);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.04em;
 }
 
 .atlas-widget-icon {
     display: flex;
     align-items: center;
     justify-content: center;
-}
-
-.atlas-widget-icon svg {
-    width: 16px;
-    height: 16px;
+    color: var(--accent-primary, #3b82f6);
 }
 
 .atlas-widget-body {
-    font-size: 0.95rem;
+    font-size: 0.92rem;
     line-height: 1.5;
 }
 
-/* Weather */
-.atlas-weather-main {
+.widget-subtext {
     display: flex;
-    align-items: baseline;
-    gap: 12px;
-    margin-bottom: 8px;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.78rem;
+    color: var(--text-muted, #64748b);
+    margin-top: 6px;
 }
-.atlas-weather-temp {
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: var(--text-primary, #fff);
-}
-.atlas-weather-desc {
-    font-size: 1.1rem;
+
+.widget-badge {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--border-subtle, #23252a);
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 0.7rem;
+    font-family: var(--font-mono, monospace);
     color: var(--text-secondary, #94a3b8);
 }
+
+.widget-notice {
+    font-size: 0.84rem;
+    color: var(--text-secondary, #94a3b8);
+    padding: 8px 0;
+}
+
+/* Weather Widget */
+.atlas-weather-main {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.weather-temp-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.atlas-weather-temp {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-main, #fff);
+    font-family: var(--font-mono, monospace);
+    line-height: 1.1;
+}
+
+.weather-condition-label {
+    font-size: 0.82rem;
+    color: var(--text-secondary, #94a3b8);
+    margin-top: 4px;
+}
+
+.weather-icon-visual {
+    color: var(--text-secondary, #94a3b8);
+}
+
 .atlas-weather-details {
     display: flex;
     gap: 16px;
-    font-size: 0.85rem;
-    color: var(--text-tertiary, #64748b);
-    border-top: 1px solid var(--border-color);
-    padding-top: 12px;
-    margin-top: 12px;
+    font-size: 0.8rem;
+    color: var(--text-muted, #64748b);
+    border-top: 1px solid var(--border-subtle, #23252a);
+    padding-top: 10px;
+    margin-top: 10px;
 }
 
-/* Crypto */
+/* Crypto Widget */
 .atlas-crypto-price {
-    font-size: 2rem;
+    font-size: 1.8rem;
     font-weight: 700;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-mono, monospace);
     color: #10b981;
 }
 
-/* Bible */
+/* Bible Widget */
 .atlas-bible-verse {
-    font-family: 'Lora', serif;
-    font-size: 1.1rem;
-    font-style: italic;
+    font-family: var(--font-body, serif);
+    font-size: 0.95rem;
     line-height: 1.6;
     margin: 0;
     padding-left: 12px;
-    border-left: 3px solid var(--accent);
+    border-left: 2px solid var(--border-medium, #333);
+    color: var(--text-main, #e2e8f0);
+}
+
+.bible-reference-footer {
+    font-size: 0.8rem;
+    color: var(--text-muted, #64748b);
+    margin-top: 10px;
+    text-align: right;
 }
 
 /* Image Grid */
 .atlas-image-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 12px;
-    margin-top: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 8px;
+    margin-top: 8px;
 }
+
 .atlas-image-item {
     position: relative;
-    border-radius: 8px;
+    border-radius: 4px;
     overflow: hidden;
     aspect-ratio: 4/3;
+    border: 1px solid var(--border-subtle, #23252a);
 }
+
 .atlas-image-item img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.3s;
-}
-.atlas-image-item:hover img {
-    transform: scale(1.05);
+    transition: opacity 0.2s ease;
 }
 
-/* News & Reddit */
+.atlas-image-item:hover img {
+    opacity: 0.85;
+}
+
+/* News & Discussions List */
 .atlas-list-item {
     display: flex;
-    gap: 12px;
-    padding: 12px 0;
-    border-bottom: 1px solid var(--border-color);
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-subtle, #23252a);
 }
+
 .atlas-list-item:last-child {
     border-bottom: none;
     padding-bottom: 0;
 }
+
 .atlas-list-thumb {
-    width: 80px;
-    height: 80px;
-    border-radius: 6px;
+    width: 64px;
+    height: 64px;
+    border-radius: 4px;
     object-fit: cover;
     flex-shrink: 0;
 }
+
 .atlas-list-content h4 {
-    margin: 0 0 6px 0;
-    font-size: 0.95rem;
+    margin: 0 0 4px 0;
+    font-size: 0.88rem;
+    font-weight: 500;
     line-height: 1.4;
 }
+
 .atlas-list-content a {
-    color: var(--text-primary);
+    color: var(--text-main, #e2e8f0);
     text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 }
+
 .atlas-list-content a:hover {
-    color: var(--accent);
-    text-decoration: underline;
+    color: var(--accent-primary, #3b82f6);
 }
+
 .atlas-list-meta {
-    font-size: 0.8rem;
-    color: var(--text-secondary);
+    font-size: 0.75rem;
+    color: var(--text-muted, #64748b);
     display: flex;
-    gap: 12px;
+    gap: 8px;
+    align-items: center;
 }
 
 /* Dictionary */
 .atlas-dict-word {
-    font-size: 1.8rem;
+    font-size: 1.2rem;
     font-weight: 700;
-    margin: 0 0 4px 0;
+    color: var(--text-main, #fff);
+    margin-bottom: 2px;
 }
+
 .atlas-dict-phonetic {
-    color: var(--accent);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.9rem;
-    margin-bottom: 12px;
+    font-size: 0.82rem;
+    font-family: var(--font-mono, monospace);
+    color: var(--text-muted, #64748b);
+    margin-bottom: 8px;
 }
+
 .atlas-dict-meaning {
-    margin-bottom: 12px;
+    margin-top: 8px;
 }
+
 .atlas-dict-pos {
+    font-size: 0.72rem;
     font-weight: 600;
-    font-size: 0.85rem;
     text-transform: uppercase;
-    color: var(--text-secondary);
+    color: var(--accent-primary, #3b82f6);
     margin-bottom: 4px;
 }
 
-/* OCR Modal */
-.atlas-ocr-overlay {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.8);
-    backdrop-filter: blur(4px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 10000;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s ease;
-}
-.atlas-ocr-overlay.active {
-    opacity: 1;
-    visibility: visible;
-}
-.atlas-ocr-modal {
-    background: var(--bg-primary, #0f172a);
-    border: 1px solid var(--border-color);
-    border-radius: 16px;
-    width: 90%;
-    max-width: 800px;
-    height: 80vh;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-}
-.atlas-ocr-header {
-    padding: 16px 20px;
-    border-bottom: 1px solid var(--border-color);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-.atlas-ocr-body {
-    flex: 1;
-    display: flex;
-    gap: 20px;
-    padding: 20px;
-    overflow: hidden;
-}
-.atlas-ocr-panel {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    background: var(--bg-secondary);
-    border-radius: 8px;
-    border: 1px dashed var(--border-color);
-    position: relative;
-    overflow: hidden;
-}
-.atlas-ocr-video, .atlas-ocr-preview {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    position: absolute;
-    top: 0; left: 0;
-}
-.atlas-ocr-textarea {
-    width: 100%;
-    height: 100%;
-    background: transparent;
-    border: none;
-    padding: 16px;
-    color: var(--text-primary);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 14px;
-    resize: none;
-    outline: none;
-}
-.atlas-ocr-footer {
-    padding: 16px 20px;
-    border-top: 1px solid var(--border-color);
-    display: flex;
-    justify-content: space-between;
-}
-.atlas-ocr-btn {
-    padding: 8px 16px;
-    border-radius: 8px;
-    border: none;
-    background: var(--bg-secondary);
-    color: var(--text-primary);
-    cursor: pointer;
-    font-weight: 500;
-    transition: all 0.2s;
-}
-.atlas-ocr-btn.primary {
-    background: var(--accent);
-    color: #fff;
-}
-.atlas-ocr-btn:hover {
-    filter: brightness(1.2);
+.atlas-dict-meaning ul {
+    margin: 0;
+    padding-left: 18px;
+    font-size: 0.85rem;
+    color: var(--text-secondary, #94a3b8);
 }
 
-/* ==========================================================================
-   Action Cards & Execution Layer (Scientific Reasoning & Execution)
-   ========================================================================== */
+/* Currency */
+.currency-conversion-display {
+    padding: 4px 0;
+}
+
+.currency-from-label {
+    font-size: 0.9rem;
+    color: var(--text-muted, #64748b);
+    margin-bottom: 2px;
+}
+
+.currency-result-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    font-family: var(--font-mono, monospace);
+    color: #10b981;
+    margin-bottom: 6px;
+}
+
+.currency-target-code {
+    font-size: 1rem;
+    color: var(--text-secondary, #94a3b8);
+}
+
+.currency-rate-meta {
+    font-size: 0.76rem;
+    color: var(--text-muted, #64748b);
+    display: flex;
+    gap: 8px;
+}
+
+/* Math */
+.math-operation-tag {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted, #64748b);
+    margin-bottom: 6px;
+}
+
+.math-expression-display {
+    font-size: 0.95rem;
+    font-family: var(--font-mono, monospace);
+    color: var(--text-secondary, #94a3b8);
+    margin-bottom: 6px;
+}
+
+.math-result-display {
+    font-size: 1.5rem;
+    font-weight: 700;
+    font-family: var(--font-mono, monospace);
+    color: var(--accent-primary, #3b82f6);
+}
+
+/* Humour */
+.atlas-joke-text {
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.atlas-joke-setup {
+    font-size: 0.92rem;
+    color: var(--text-secondary, #94a3b8);
+    margin-bottom: 6px;
+}
+
+.atlas-joke-delivery {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-main, #fff);
+}
+
+/* Advice */
+.atlas-advice-content {
+    font-size: 1rem;
+    font-style: italic;
+    line-height: 1.5;
+    color: var(--text-main, #e2e8f0);
+}
+
+.atlas-advice-meta {
+    font-size: 0.72rem;
+    color: var(--text-muted, #64748b);
+    margin-top: 8px;
+    text-align: right;
+}
+
+/* Action Cards */
 .atlas-action-card {
-    background: var(--bg-surface, rgba(18, 24, 38, 0.95));
-    border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
-    border-radius: 12px;
-    margin: 14px 0;
+    background: var(--bg-card, #131417);
+    border: 1px solid var(--border-subtle, #23252a);
+    border-radius: 6px;
+    margin: 12px 0;
     overflow: hidden;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
-    backdrop-filter: blur(12px);
-    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    max-width: 620px;
 }
-.atlas-action-card:hover {
-    border-color: rgba(255, 255, 255, 0.18);
-}
+
 .action-card-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 12px 16px;
-    background: rgba(0, 0, 0, 0.25);
-    border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.06));
+    padding: 10px 14px;
+    background: rgba(255, 255, 255, 0.02);
+    border-bottom: 1px solid var(--border-subtle, #23252a);
 }
+
 .action-card-title-group {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
 }
-.action-card-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    border-radius: 6px;
-    background: rgba(255, 255, 255, 0.06);
-    color: var(--accent-primary, #f97316);
-}
+
 .action-card-title {
-    font-size: 0.92rem;
+    font-size: 0.85rem;
     font-weight: 600;
-    color: var(--text-primary, #f1f5f9);
+    color: var(--text-main, #f1f5f9);
     margin: 0;
 }
-.action-status-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.72rem;
+
+.action-status-tag {
+    font-size: 0.68rem;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    padding: 3px 9px;
-    border-radius: 999px;
+    letter-spacing: 0.04em;
+    padding: 2px 6px;
+    border-radius: 3px;
     border: 1px solid transparent;
 }
-.action-status-pill.automatic {
-    background: rgba(16, 185, 129, 0.12);
+
+.action-status-tag.automatic {
+    background: rgba(16, 185, 129, 0.1);
     color: #34d399;
-    border-color: rgba(16, 185, 129, 0.25);
+    border-color: rgba(16, 185, 129, 0.2);
 }
-.action-status-pill.approval {
-    background: rgba(245, 158, 11, 0.14);
-    color: #fbbf24;
-    border-color: rgba(245, 158, 11, 0.3);
+
+.action-status-tag.running {
+    background: rgba(59, 130, 246, 0.1);
+    color: #93c5fd;
+    border-color: rgba(59, 130, 246, 0.2);
 }
-.action-status-pill.never {
-    background: rgba(239, 68, 68, 0.14);
-    color: #f87171;
-    border-color: rgba(239, 68, 68, 0.3);
+
+.action-status-tag.done {
+    background: rgba(255, 255, 255, 0.06);
+    color: #94a3b8;
+    border-color: var(--border-subtle, #23252a);
 }
-.action-status-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-}
-.action-status-pill.automatic .action-status-dot { background: #10b981; box-shadow: 0 0 8px #10b981; }
-.action-status-pill.approval .action-status-dot { background: #f59e0b; box-shadow: 0 0 8px #f59e0b; }
-.action-status-pill.never .action-status-dot { background: #ef4444; box-shadow: 0 0 8px #ef4444; }
 
 .action-card-body {
-    padding: 14px 16px;
-    font-size: 0.88rem;
+    padding: 12px 14px;
+    font-size: 0.85rem;
     color: var(--text-secondary, #94a3b8);
     line-height: 1.5;
 }
+
 .action-card-desc {
-    margin-bottom: 12px;
+    margin-bottom: 8px;
 }
-.action-steps-checklist {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin: 10px 0;
-    padding: 10px 12px;
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-}
+
 .action-step-row {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 0.82rem;
-    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    font-family: var(--font-mono, monospace);
+    margin: 4px 0;
 }
-.action-step-row.done {
-    color: #34d399;
-}
-.action-step-row.running {
-    color: #60a5fa;
-}
-.action-step-row.pending {
-    color: var(--text-tertiary, #64748b);
-}
-.action-code-preview {
-    background: #090d16;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 6px;
-    padding: 10px 12px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.8rem;
-    color: #cbd5e1;
-    overflow-x: auto;
-    margin: 10px 0 0 0;
-}
+
+.action-step-row.done { color: #34d399; }
+.action-step-row.running { color: #60a5fa; }
+.action-step-row.pending { color: var(--text-muted, #64748b); }
+
 .action-card-footer {
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    gap: 10px;
-    padding: 10px 16px;
-    background: rgba(0, 0, 0, 0.18);
-    border-top: 1px solid var(--border-color, rgba(255, 255, 255, 0.06));
+    gap: 8px;
+    padding: 8px 14px;
+    background: rgba(0, 0, 0, 0.2);
+    border-top: 1px solid var(--border-subtle, #23252a);
 }
+
 .action-card-btn {
-    padding: 6px 14px;
-    font-size: 0.82rem;
+    padding: 4px 10px;
+    font-size: 0.78rem;
     font-weight: 500;
-    border-radius: 6px;
+    border-radius: 4px;
     cursor: pointer;
-    transition: all 0.2s ease;
     border: 1px solid transparent;
+    transition: all 0.15s ease;
 }
-.action-card-btn.secondary {
-    background: transparent;
-    color: var(--text-secondary, #94a3b8);
-}
-.action-card-btn.secondary:hover {
-    color: var(--text-primary, #fff);
-    background: rgba(255, 255, 255, 0.05);
-}
+
 .action-card-btn.primary {
-    background: var(--accent-primary, #f97316);
+    background: var(--accent-primary, #3b82f6);
     color: #fff;
 }
-.action-card-btn.primary:hover {
-    filter: brightness(1.15);
-}
-.action-card-btn.success {
-    background: #10b981;
-    color: #fff;
-}
-
-/* Challenge My Thinking Card */
-.challenge-thinking-card {
-    background: rgba(120, 53, 15, 0.12);
-    border: 1px solid rgba(245, 158, 11, 0.25);
-    border-radius: 12px;
-    padding: 16px;
-    margin: 14px 0;
-    color: #fef3c7;
-}
-.challenge-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 600;
-    font-size: 0.9rem;
-    color: #fbbf24;
-    margin-bottom: 8px;
-}
-.challenge-body {
-    font-size: 0.88rem;
-    line-height: 1.55;
-    color: rgba(254, 243, 199, 0.85);
-}
-.challenge-actions {
-    display: flex;
-    gap: 8px;
-    margin-top: 12px;
-}
-.challenge-action-btn {
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 0.8rem;
-    font-weight: 500;
-    background: rgba(245, 158, 11, 0.2);
-    color: #fde68a;
-    border: 1px solid rgba(245, 158, 11, 0.3);
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-.challenge-action-btn:hover {
-    background: rgba(245, 158, 11, 0.32);
-    color: #fff;
-}
-
