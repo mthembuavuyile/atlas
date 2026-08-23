@@ -580,91 +580,213 @@ document.addEventListener('DOMContentLoaded', () => {
     return () => clearInterval(timer);
   }
 
-  // --- PRODUCTION-GRADE ERROR DIAGNOSTIC CARD BUILDER ---
-  function buildDiagnosticErrorCard(err, failedPrompt) {
+  // --- RESILIENT ERROR CLASSIFIER & DIAGNOSTIC CARD ENGINE ---
+  const ERROR_TYPES = {
+    OFFLINE: 'OFFLINE',
+    RATE_LIMIT: 'RATE_LIMIT',
+    CONTEXT_OVERFLOW: 'CONTEXT_OVERFLOW',
+    CONTENT_FILTER: 'CONTENT_FILTER',
+    STREAM_INTERRUPTED: 'STREAM_INTERRUPTED',
+    SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
+    AUTH_REQUIRED: 'AUTH_REQUIRED',
+    GENERAL: 'GENERAL'
+  };
+
+  function classifyError(err, hasPartialContent = false) {
+    const msg = (err.message || '').toLowerCase();
+    
+    if (!navigator.onLine || msg.includes('failed to fetch') || msg.includes('networkerror') || msg.includes('err_connection')) {
+      return ERROR_TYPES.OFFLINE;
+    }
+    if (hasPartialContent && (msg.includes('network') || msg.includes('stream') || msg.includes('aborted') || msg.includes('timeout'))) {
+      return ERROR_TYPES.STREAM_INTERRUPTED;
+    }
+    if (msg.includes('429') || msg.includes('rate limit') || msg.includes('too many requests') || msg.includes('throttled')) {
+      return ERROR_TYPES.RATE_LIMIT;
+    }
+    if (msg.includes('context') || msg.includes('maximum context') || msg.includes('token limit') || msg.includes('too long') || msg.includes('prompt is too long')) {
+      return ERROR_TYPES.CONTEXT_OVERFLOW;
+    }
+    if (msg.includes('moderation') || msg.includes('safety') || msg.includes('policy') || msg.includes('flagged') || msg.includes('content violation')) {
+      return ERROR_TYPES.CONTENT_FILTER;
+    }
+    if (msg.includes('500') || msg.includes('502') || msg.includes('503') || msg.includes('504') || msg.includes('overloaded') || msg.includes('internal server')) {
+      return ERROR_TYPES.SERVICE_UNAVAILABLE;
+    }
+    if (msg.includes('401') || msg.includes('403') || msg.includes('unauthorized') || msg.includes('api key')) {
+      return ERROR_TYPES.AUTH_REQUIRED;
+    }
+    return ERROR_TYPES.GENERAL;
+  }
+
+  function buildDiagnosticErrorCard(err, failedPrompt, options = {}) {
+    const errorType = classifyError(err, Boolean(options.hasPartialContent));
     const errorMsg = err.message || 'Unknown network error';
-    const isOffline = errorMsg.includes('Failed to fetch') || errorMsg.includes('NetworkError') || errorMsg.includes('ERR_CONNECTION');
-    const isAuth = errorMsg.includes('401') || errorMsg.includes('API Key') || errorMsg.includes('Unauthorized') || errorMsg.includes('authentication');
-    const isRateLimit = errorMsg.includes('429') || errorMsg.includes('rate') || errorMsg.includes('quota') || errorMsg.includes('credits');
-    const isTimeout = errorMsg.includes('timeout') || errorMsg.includes('AbortError');
 
-    let title = 'Studio Gateway Diagnostic Exception';
-    let summary = errorMsg;
-    let badge = 'NETWORK DISCONNECTED';
-    let recoveryHint = 'Verify that the local Node.js backend server is running via `npm start` on port 3000.';
+    let title = 'Studio Engine Exception';
+    let badge = 'ERROR';
+    let badgeBg = 'rgba(239, 68, 68, 0.2)';
+    let badgeColor = '#fca5a5';
+    let desc = errorMsg;
+    let resolution = 'Please retry your request or switch to an alternate engine.';
+    let showCountdown = false;
+    let countdownSeconds = options.retryAfter || 15;
+    let allowPruneHistory = false;
+    let allowEditPrompt = false;
 
-    if (isOffline) {
-      title = 'Atlas Gateway Disconnected (Connection Refused)';
-      badge = 'GATEWAY OFFLINE';
-      summary = 'Could not establish connection to the Atlas backend.';
-      recoveryHint = 'Ensure the Atlas backend is running (`npm start`) and accessible.';
-    } else if (isAuth) {
-      title = 'Authentication Required (401)';
-      badge = 'AUTHENTICATION REQUIRED';
-      summary = 'API key is missing or unauthorized.';
-      recoveryHint = 'Configure your Atlas License Key in your environment variables. Free-tier usage still requires a valid license.';
-    } else if (isRateLimit) {
-      title = 'Free Provider Rate Limit Reached (429)';
-      badge = 'CONCURRENCY THROTTLED';
-      summary = 'Upstream free provider is temporarily overloaded or rate limited.';
-      recoveryHint = 'Switch to `Free Models Router` to automatically balance your request across other available free hosts.';
-    } else if (isTimeout) {
-      title = 'Inference Stream Timed Out';
-      badge = 'STREAM TIMEOUT';
-      summary = 'The model host did not respond within the allocated latency window.';
-      recoveryHint = 'Click Retry or switch to an alternate high-throughput free model.';
+    switch (errorType) {
+      case ERROR_TYPES.OFFLINE:
+        title = 'Network Offline / Connection Lost';
+        badge = 'OFFLINE';
+        badgeBg = 'rgba(239, 68, 68, 0.25)';
+        badgeColor = '#f87171';
+        desc = 'Your device lost connection to the internet or the Atlas server.';
+        resolution = 'Check your network connection. Atlas has preserved your unsent message draft and will automatically reconnect when online.';
+        break;
+
+      case ERROR_TYPES.RATE_LIMIT:
+        title = 'Provider Rate Limit / High Concurrency (429)';
+        badge = 'RATE LIMITED';
+        badgeBg = 'rgba(245, 158, 11, 0.25)';
+        badgeColor = '#fcd34d';
+        desc = 'Upstream AI host is experiencing temporary high concurrency.';
+        resolution = 'Atlas has scheduled an automated cooldown. Wait for the countdown to finish or switch to Atlas Default Engine.';
+        showCountdown = true;
+        break;
+
+      case ERROR_TYPES.CONTEXT_OVERFLOW:
+        title = 'Conversation Context Window Overflow';
+        badge = 'CONTEXT LIMIT';
+        badgeBg = 'rgba(168, 85, 247, 0.25)';
+        badgeColor = '#d8b4fe';
+        desc = 'The total conversation history exceeds the active model’s token capacity.';
+        resolution = 'Start a fresh session (your history remains saved in the sidebar) or prune older messages to continue.';
+        allowPruneHistory = true;
+        break;
+
+      case ERROR_TYPES.CONTENT_FILTER:
+        title = 'Safety & Content Policy Filter';
+        badge = 'POLICY FILTER';
+        badgeBg = 'rgba(234, 179, 8, 0.25)';
+        badgeColor = '#fef08a';
+        desc = 'The requested prompt or response triggered upstream content safety filters.';
+        resolution = 'Please edit your prompt to adjust phrasing or remove sensitive terms.';
+        allowEditPrompt = true;
+        break;
+
+      case ERROR_TYPES.SERVICE_UNAVAILABLE:
+        title = 'Model Host Temporarily Overloaded';
+        badge = 'HOST OVERLOADED';
+        badgeBg = 'rgba(249, 115, 22, 0.25)';
+        badgeColor = '#fdba74';
+        desc = 'The selected upstream AI cluster is temporarily congested.';
+        resolution = 'Click retry or switch to Atlas Default Engine to auto-balance across available clusters.';
+        break;
+
+      case ERROR_TYPES.AUTH_REQUIRED:
+        title = 'Authorization Required (401/403)';
+        badge = 'UNAUTHORIZED';
+        badgeBg = 'rgba(239, 68, 68, 0.25)';
+        badgeColor = '#fca5a5';
+        desc = 'Server authentication credentials missing or unauthorized.';
+        resolution = 'Verify that the Atlas API credentials are configured properly on your host environment.';
+        break;
+
+      default:
+        title = 'Studio Execution Exception';
+        badge = 'DIAGNOSTIC';
+        desc = errorMsg;
+        resolution = 'Click Retry Prompt or switch models if the issue persists.';
+        break;
     }
 
     const card = document.createElement('div');
     card.className = 'error-diagnostic-card';
-    card.style.cssText = `
-      background: rgba(239, 68, 68, 0.08);
-      border: 1px solid rgba(239, 68, 68, 0.35);
-      border-radius: 8px;
-      padding: 14px;
-      margin: 8px 0;
-      color: var(--text-main);
-      font-size: 0.85rem;
-    `;
 
     card.innerHTML = `
-      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-        <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: #ef4444;">
-          ${ICONS.alert}
+      <div class="error-card-header">
+        <div class="error-card-title">
+          <span style="color: #ef4444; display: flex; align-items: center;">${ICONS.alert}</span>
           <span>${escapeHtml(title)}</span>
         </div>
-        <span style="font-size: 0.65rem; font-family: 'JetBrains Mono', monospace; background: rgba(239, 68, 68, 0.2); color: #fca5a5; padding: 2px 6px; border-radius: 4px;">
+        <span class="error-card-badge" style="background: ${badgeBg}; color: ${badgeColor};">
           ${badge}
         </span>
       </div>
 
-      <p style="color: var(--text-secondary); margin-bottom: 10px; font-size: 0.82rem; line-height: 1.5;">
-        ${escapeHtml(summary)}
-      </p>
+      <p class="error-card-desc">${escapeHtml(desc)}</p>
 
-      <div style="background: rgba(0, 0, 0, 0.3); border-left: 3px solid #ef4444; padding: 8px 10px; border-radius: 4px; margin-bottom: 12px; font-size: 0.78rem; color: var(--text-muted);">
-        <strong>Actionable Resolution:</strong> ${escapeHtml(recoveryHint)}
+      <div class="error-card-resolution" style="border-left-color: ${badgeColor};">
+        <strong>Actionable Resolution:</strong> ${escapeHtml(resolution)}
       </div>
 
-      <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-        <button type="button" class="error-action-btn retry-btn" style="background: var(--accent-solid); color: #fff; border: none; padding: 5px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 5px;">
-          ${ICONS.retry}
-          <span>Retry Prompt</span>
-        </button>
+      <div class="error-card-actions">
+        ${showCountdown ? `
+          <button type="button" class="error-action-btn primary retry-countdown-btn" disabled>
+            <span>⏳ Wait (${countdownSeconds}s)</span>
+          </button>
+        ` : `
+          <button type="button" class="error-action-btn primary retry-btn">
+            ${ICONS.retry}
+            <span>Retry Prompt</span>
+          </button>
+        `}
 
-        <button type="button" class="error-action-btn switch-router-btn" style="background: rgba(255, 255, 255, 0.08); color: var(--text-main); border: 1px solid var(--border-subtle); padding: 5px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 5px;">
-          ${ICONS.freeRouter}
-          <span>Switch to Atlas Default</span>
-        </button>
+        ${allowPruneHistory ? `
+          <button type="button" class="error-action-btn secondary prune-retry-btn">
+            <span>✂️ Prune Oldest & Retry</span>
+          </button>
+          <button type="button" class="error-action-btn secondary new-session-btn">
+            <span>🌱 New Session</span>
+          </button>
+        ` : ''}
 
-        <button type="button" class="error-action-btn copy-diag-btn" style="background: transparent; color: var(--text-muted); border: 1px solid var(--border-subtle); padding: 5px 8px; border-radius: 4px; font-size: 0.72rem; cursor: pointer; margin-left: auto; display: flex; align-items: center; gap: 4px;">
+        ${allowEditPrompt ? `
+          <button type="button" class="error-action-btn secondary edit-prompt-btn">
+            <span>✏️ Edit Prompt</span>
+          </button>
+        ` : ''}
+
+        ${!allowPruneHistory && !allowEditPrompt ? `
+          <button type="button" class="error-action-btn secondary switch-router-btn">
+            ${ICONS.freeRouter}
+            <span>Switch to Atlas Default</span>
+          </button>
+        ` : ''}
+
+        <button type="button" class="error-action-btn outline copy-diag-btn" title="Copy trace for debugging">
           ${ICONS.copy}
           <span>Copy Trace</span>
         </button>
       </div>
     `;
 
-    // Hook 1-click retry
+    // Hook countdown if active
+    if (showCountdown) {
+      const countdownBtn = card.querySelector('.retry-countdown-btn');
+      let remaining = countdownSeconds;
+      const interval = setInterval(() => {
+        remaining -= 1;
+        if (remaining > 0) {
+          if (countdownBtn) countdownBtn.innerHTML = `<span>⏳ Wait (${remaining}s)</span>`;
+        } else {
+          clearInterval(interval);
+          if (countdownBtn) {
+            countdownBtn.disabled = false;
+            countdownBtn.innerHTML = `${ICONS.retry} <span>⚡ Retry Now</span>`;
+          }
+        }
+      }, 1000);
+
+      countdownBtn?.addEventListener('click', () => {
+        if (failedPrompt) {
+          messageInput.value = failedPrompt;
+          chatForm.dispatchEvent(new Event('submit'));
+        }
+      });
+    }
+
+    // Hook standard Retry button
     card.querySelector('.retry-btn')?.addEventListener('click', () => {
       if (failedPrompt) {
         messageInput.value = failedPrompt;
@@ -672,7 +794,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // Hook 1-click model fallback to openrouter/free
+    // Hook Switch to Atlas Default
     card.querySelector('.switch-router-btn')?.addEventListener('click', () => {
       selectModel('openrouter/free');
       if (failedPrompt) {
@@ -681,9 +803,41 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
+    // Hook Prune Oldest & Retry
+    card.querySelector('.prune-retry-btn')?.addEventListener('click', () => {
+      const session = getActiveSession();
+      if (session && session.messages.length > 2) {
+        session.messages = session.messages.slice(-2);
+        saveSessions();
+      }
+      if (failedPrompt) {
+        messageInput.value = failedPrompt;
+        chatForm.dispatchEvent(new Event('submit'));
+      }
+    });
+
+    // Hook New Session
+    card.querySelector('.new-session-btn')?.addEventListener('click', () => {
+      startNewSession();
+      if (failedPrompt) {
+        messageInput.value = failedPrompt;
+        autoResizeTextarea();
+        messageInput.focus();
+      }
+    });
+
+    // Hook Edit Prompt
+    card.querySelector('.edit-prompt-btn')?.addEventListener('click', () => {
+      if (failedPrompt) {
+        messageInput.value = failedPrompt;
+        autoResizeTextarea();
+        messageInput.focus();
+      }
+    });
+
     // Hook Copy diagnostic log
     card.querySelector('.copy-diag-btn')?.addEventListener('click', (e) => {
-      const logData = `[Atlas Diagnostic Report — Vylex Technologies]\nTimestamp: ${new Date().toISOString()}\nEngine: Atlas\nTitle: ${title}\nBadge: ${badge}\nError Message: ${errorMsg}\nEndpoint: ${API_BASE}/api/chat`;
+      const logData = `[Atlas Diagnostic Report — Vylex Technologies]\nTimestamp: ${new Date().toISOString()}\nEngine: Atlas\nError Type: ${errorType}\nTitle: ${title}\nBadge: ${badge}\nError Message: ${errorMsg}\nEndpoint: ${API_BASE}/api/chat`;
       navigator.clipboard.writeText(logData).then(() => {
         const btn = e.currentTarget;
         btn.innerHTML = `${ICONS.check} <span style="color:#10b981;">Copied</span>`;
@@ -694,6 +848,44 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     return card;
+  }
+
+  function appendStreamCutoffBar(bubble, accumulatedContent, userText) {
+    const bar = document.createElement('div');
+    bar.className = 'stream-cutoff-bar';
+    bar.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 6px; font-weight: 600;">
+        <span style="color: #f59e0b; display: flex;">${ICONS.alert}</span>
+        <span>Generation interrupted mid-stream.</span>
+      </div>
+      <div class="stream-cutoff-actions">
+        <button type="button" class="error-action-btn primary continue-gen-btn">
+          <span>⏯️ Continue</span>
+        </button>
+        <button type="button" class="error-action-btn secondary regen-full-btn">
+          ${ICONS.retry}
+          <span>Regenerate</span>
+        </button>
+      </div>
+    `;
+
+    bar.querySelector('.continue-gen-btn')?.addEventListener('click', () => {
+      bar.remove();
+      const lastContext = accumulatedContent.slice(-100).trim();
+      const continuePrompt = `Continue generating your response exactly from where it was cut off: "${lastContext}"`;
+      messageInput.value = continuePrompt;
+      chatForm.dispatchEvent(new Event('submit'));
+    });
+
+    bar.querySelector('.regen-full-btn')?.addEventListener('click', () => {
+      bar.remove();
+      if (userText) {
+        messageInput.value = userText;
+        chatForm.dispatchEvent(new Event('submit'));
+      }
+    });
+
+    bubble.appendChild(bar);
   }
 
   // --- MESSAGE RENDERING ---
@@ -1283,11 +1475,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (err.name === 'AbortError') {
         bubble.innerHTML += `<div style="margin-top: 6px; font-size: 0.78rem; color: var(--text-subtle); font-style: italic;">[Generation halted by user]</div>`;
+      } else if (accumulatedContent.trim().length > 0) {
+        // Scenario 5: Stream interrupted mid-generation - preserve partial text & add continuation actions
+        console.warn('Stream interrupted mid-generation:', err);
+        bubble.innerHTML = parseMarkdownSafely(accumulatedContent);
+        enhanceCodeBlocks(bubble);
+        appendStreamCutoffBar(bubble, accumulatedContent, userText);
+        
+        session.messages.push({
+          role: 'assistant',
+          content: accumulatedContent,
+          reasoning: accumulatedReasoning
+        });
+        saveSessions();
       } else {
         console.error('Generation Error:', err);
         // Inject production-grade diagnostic error card
         bubble.innerHTML = '';
-        bubble.appendChild(buildDiagnosticErrorCard(err, userText));
+        bubble.appendChild(buildDiagnosticErrorCard(err, userText, { hasPartialContent: false }));
       }
     } finally {
       state.isGenerating = false;
@@ -1307,8 +1512,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // --- EVENT LISTENERS ---
+  // --- EVENT LISTENERS & NETWORK LIFECYCLE ---
   function setupEventListeners() {
+    const offlineBanner = document.getElementById('offlineBanner');
+
+    // Online / Offline Network Lifecycle Listeners
+    window.addEventListener('online', () => {
+      if (offlineBanner) offlineBanner.style.display = 'none';
+      const dot = connectionStatus?.querySelector('.status-indicator-dot');
+      const text = connectionStatus?.querySelector('.status-indicator-text');
+      dot?.classList.add('connected');
+      if (text) text.textContent = 'Atlas Ready';
+      if (!state.isGenerating && sendBtn) sendBtn.disabled = false;
+      checkBackendHealth();
+    });
+
+    window.addEventListener('offline', () => {
+      if (offlineBanner) offlineBanner.style.display = 'flex';
+      const dot = connectionStatus?.querySelector('.status-indicator-dot');
+      const text = connectionStatus?.querySelector('.status-indicator-text');
+      dot?.classList.remove('connected');
+      if (text) text.textContent = 'Offline';
+      if (sendBtn) sendBtn.disabled = true;
+    });
+
     sidebarCollapseBtn?.addEventListener('click', () => {
       if (window.innerWidth <= 768) {
         closeMobileSidebar();

@@ -1906,3 +1906,156 @@ html, body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 2px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+
+/* --------------------------------------------------------------------------
+   RESILIENT ERROR HANDLING & OFFLINE SYSTEM STYLES
+   -------------------------------------------------------------------------- */
+
+.offline-banner {
+  background: #dc2626;
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 6px 14px;
+  z-index: 30;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.error-diagnostic-card {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin: 10px 0;
+  color: var(--text-main);
+  font-size: 0.85rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.error-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  gap: 8px;
+}
+
+.error-card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 0.88rem;
+}
+
+.error-card-badge {
+  font-size: 0.65rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.error-card-desc {
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+.error-card-resolution {
+  background: rgba(0, 0, 0, 0.3);
+  border-left: 3px solid;
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin-bottom: 12px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.error-card-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.error-action-btn {
+  border: none;
+  padding: 6px 12px;
+  border-radius: 5px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+  transition: all 0.15s ease;
+}
+
+.error-action-btn.primary {
+  background: var(--accent-solid);
+  color: #fff;
+}
+.error-action-btn.primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.error-action-btn.secondary {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-main);
+  border: 1px solid var(--border-subtle);
+}
+.error-action-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.error-action-btn.outline {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border-subtle);
+  margin-left: auto;
+}
+.error-action-btn.outline:hover {
+  color: var(--text-main);
+  border-color: var(--border-medium);
+}
+
+.error-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.stream-cutoff-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: 6px;
+  margin-top: 10px;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  flex-wrap: wrap;
+}
+
+.stream-cutoff-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
