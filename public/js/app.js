@@ -259,13 +259,49 @@ document.addEventListener('DOMContentLoaded', () => {
     const customRenderer = new marked.Renderer();
 
     // 1. Rich Responsive Table Wrapper
-    customRenderer.table = function (header, body) {
-      return `<div class="table-container"><table class="rich-table"><thead>${header}</thead><tbody>${body}</tbody></table></div>`;
+    customRenderer.table = function (tokenOrHeader, body) {
+      if (tokenOrHeader && typeof tokenOrHeader === 'object' && !body) {
+        // Modern Marked (v12+): tokenOrHeader is a table token object
+        const token = tokenOrHeader;
+        let headerHtml = '';
+        let bodyHtml = '';
+
+        if (token.header && Array.isArray(token.header)) {
+          headerHtml = '<tr>' + token.header.map(cell => {
+            const cellContent = this.parser && cell.tokens ? this.parser.parseInline(cell.tokens) : (cell.text || '');
+            const align = cell.align ? ` align="${cell.align}"` : '';
+            return `<th${align}>${cellContent}</th>`;
+          }).join('') + '</tr>';
+        }
+
+        if (token.rows && Array.isArray(token.rows)) {
+          bodyHtml = token.rows.map(row => {
+            return '<tr>' + row.map(cell => {
+              const cellContent = this.parser && cell.tokens ? this.parser.parseInline(cell.tokens) : (cell.text || '');
+              const align = cell.align ? ` align="${cell.align}"` : '';
+              return `<td${align}>${cellContent}</td>`;
+            }).join('') + '</tr>';
+          }).join('');
+        }
+
+        return `<div class="table-container"><table class="rich-table"><thead>${headerHtml}</thead><tbody>${bodyHtml}</tbody></table></div>`;
+      }
+
+      // Legacy Marked (v4-v11): (header, body)
+      return `<div class="table-container"><table class="rich-table"><thead>${tokenOrHeader || ''}</thead><tbody>${body || ''}</tbody></table></div>`;
     };
 
     // 2. GitHub-style Alert Callouts inside blockquotes
-    customRenderer.blockquote = function (quote) {
-      const match = quote.match(/^\s*<p>\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*(?:<br>|\n)?([\s\S]*?)<\/p>\s*$/i);
+    customRenderer.blockquote = function (tokenOrQuote) {
+      let quoteHtml = '';
+      if (tokenOrQuote && typeof tokenOrQuote === 'object' && !Array.isArray(tokenOrQuote)) {
+        // Modern Marked v12+ token
+        quoteHtml = this.parser && tokenOrQuote.tokens ? this.parser.parse(tokenOrQuote.tokens) : (tokenOrQuote.text || '');
+      } else {
+        quoteHtml = String(tokenOrQuote || '');
+      }
+
+      const match = quoteHtml.match(/^\s*(?:<p>)?\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*(?:<br>|\n)?([\s\S]*?)(?:<\/p>)?\s*$/i);
       if (match) {
         const type = match[1].toLowerCase();
         const icon = CALLOUT_ICONS[type] || CALLOUT_ICONS.note;
@@ -273,15 +309,35 @@ document.addEventListener('DOMContentLoaded', () => {
         const bodyContent = match[2];
         return `<div class="callout-card callout-${type}"><div class="callout-header">${icon}<span>${title}</span></div><div class="callout-body"><p>${bodyContent}</p></div></div>`;
       }
-      return `<blockquote>${quote}</blockquote>`;
+      return `<blockquote>${quoteHtml}</blockquote>`;
     };
 
-    // 3. Task list checkboxes
-    customRenderer.listitem = function (text, task, checked) {
-      if (task) {
-        return `<li class="task-list-item"><input type="checkbox" class="task-list-checkbox" ${checked ? 'checked' : ''} disabled /><span>${text}</span></li>`;
+    // 3. Task list checkboxes & list items
+    customRenderer.listitem = function (tokenOrText, task, checked) {
+      let itemHtml = '';
+      let isTask = false;
+      let isChecked = false;
+
+      if (tokenOrText && typeof tokenOrText === 'object' && !Array.isArray(tokenOrText)) {
+        // Modern Marked v12+ token: { type: 'list_item', text, task, checked, tokens }
+        isTask = Boolean(tokenOrText.task);
+        isChecked = Boolean(tokenOrText.checked);
+        if (this.parser && tokenOrText.tokens) {
+          itemHtml = this.parser.parseInline(tokenOrText.tokens);
+        } else {
+          itemHtml = tokenOrText.text || '';
+        }
+      } else {
+        // Legacy Marked signature: (text, task, checked)
+        itemHtml = String(tokenOrText || '');
+        isTask = Boolean(task);
+        isChecked = Boolean(checked);
       }
-      return `<li>${text}</li>`;
+
+      if (isTask) {
+        return `<li class="task-list-item"><input type="checkbox" class="task-list-checkbox" ${isChecked ? 'checked' : ''} disabled /><span>${itemHtml}</span></li>`;
+      }
+      return `<li>${itemHtml}</li>`;
     };
 
     // 4. Clean divider
@@ -1219,9 +1275,28 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function extractTextFromDelta(val) {
+    if (!val) return '';
+    if (typeof val === 'string') return val;
+    if (Array.isArray(val)) {
+      return val.map(item => {
+        if (typeof item === 'string') return item;
+        if (item && typeof item === 'object') {
+          return item.text || item.content || item.value || (item.url ? `[${item.title || item.name || 'Source'}](${item.url})` : '');
+        }
+        return '';
+      }).join('');
+    }
+    if (typeof val === 'object') {
+      return val.text || val.content || val.value || (val.url ? `[${val.title || val.name || 'Source'}](${val.url})` : '');
+    }
+    return String(val);
+  }
+
   function repairIncompleteMarkdown(raw) {
     if (!raw) return '';
-    let text = cleanAndTransformToolCalls(raw);
+    const rawString = extractTextFromDelta(raw);
+    let text = cleanAndTransformToolCalls(rawString);
 
     // Virtual closure for unclosed code blocks during streaming
     const codeBlockCount = (text.match(/```/g) || []).length;
@@ -1467,7 +1542,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
           try {
             const parsed = JSON.parse(dataStr);
-            const delta = parsed.choices?.[0]?.delta?.content || '';
+            const choice = parsed.choices?.[0];
+            const rawContent = choice?.delta?.content ?? choice?.delta?.text ?? choice?.text ?? '';
+            const rawReasoning = choice?.delta?.reasoning ?? choice?.delta?.reasoning_content ?? choice?.delta?.thought ?? '';
+
+            const delta = extractTextFromDelta(rawContent);
+            const reasoningDelta = extractTextFromDelta(rawReasoning);
+
+            if (reasoningDelta) {
+              accumulatedReasoning += reasoningDelta;
+              if (reasoningAccordion) reasoningAccordion.style.display = 'block';
+              if (reasoningBody) reasoningBody.textContent = accumulatedReasoning;
+            }
 
             if (delta.includes('<think>')) {
               inThinkTag = true;
@@ -1487,7 +1573,7 @@ document.addEventListener('DOMContentLoaded', () => {
               if (reasoningBody) {
                 reasoningBody.textContent = accumulatedReasoning;
               }
-            } else {
+            } else if (delta) {
               accumulatedContent += delta;
 
               // Hide thought banner once real text starts streaming

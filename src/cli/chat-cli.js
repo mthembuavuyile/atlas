@@ -91,7 +91,10 @@ rl.on('line', async (line) => {
 
         try {
           const parsed = JSON.parse(dataStr);
-          const delta = parsed.choices?.[0]?.delta?.content || '';
+          const rawDelta = parsed.choices?.[0]?.delta?.content ?? parsed.choices?.[0]?.delta?.text ?? '';
+          const delta = typeof rawDelta === 'string'
+            ? rawDelta
+            : (Array.isArray(rawDelta) ? rawDelta.map(d => (typeof d === 'string' ? d : d?.text || d?.content || '')).join('') : (rawDelta?.text || rawDelta?.content || ''));
           assistantReply += delta;
           process.stdout.write(delta);
         } catch (e) {
