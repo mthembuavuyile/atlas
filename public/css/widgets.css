@@ -265,3 +265,213 @@
 .atlas-ocr-btn:hover {
     filter: brightness(1.2);
 }
+
+/* ==========================================================================
+   Action Cards & Execution Layer (Scientific Reasoning & Execution)
+   ========================================================================== */
+.atlas-action-card {
+    background: var(--bg-surface, rgba(18, 24, 38, 0.95));
+    border: 1px solid var(--border-color, rgba(255, 255, 255, 0.1));
+    border-radius: 12px;
+    margin: 14px 0;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(12px);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.atlas-action-card:hover {
+    border-color: rgba(255, 255, 255, 0.18);
+}
+.action-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: rgba(0, 0, 0, 0.25);
+    border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.06));
+}
+.action-card-title-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.action-card-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--accent-primary, #f97316);
+}
+.action-card-title {
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--text-primary, #f1f5f9);
+    margin: 0;
+}
+.action-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+}
+.action-status-pill.automatic {
+    background: rgba(16, 185, 129, 0.12);
+    color: #34d399;
+    border-color: rgba(16, 185, 129, 0.25);
+}
+.action-status-pill.approval {
+    background: rgba(245, 158, 11, 0.14);
+    color: #fbbf24;
+    border-color: rgba(245, 158, 11, 0.3);
+}
+.action-status-pill.never {
+    background: rgba(239, 68, 68, 0.14);
+    color: #f87171;
+    border-color: rgba(239, 68, 68, 0.3);
+}
+.action-status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+.action-status-pill.automatic .action-status-dot { background: #10b981; box-shadow: 0 0 8px #10b981; }
+.action-status-pill.approval .action-status-dot { background: #f59e0b; box-shadow: 0 0 8px #f59e0b; }
+.action-status-pill.never .action-status-dot { background: #ef4444; box-shadow: 0 0 8px #ef4444; }
+
+.action-card-body {
+    padding: 14px 16px;
+    font-size: 0.88rem;
+    color: var(--text-secondary, #94a3b8);
+    line-height: 1.5;
+}
+.action-card-desc {
+    margin-bottom: 12px;
+}
+.action-steps-checklist {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 10px 0;
+    padding: 10px 12px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+.action-step-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.82rem;
+    font-family: 'JetBrains Mono', monospace;
+}
+.action-step-row.done {
+    color: #34d399;
+}
+.action-step-row.running {
+    color: #60a5fa;
+}
+.action-step-row.pending {
+    color: var(--text-tertiary, #64748b);
+}
+.action-code-preview {
+    background: #090d16;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    color: #cbd5e1;
+    overflow-x: auto;
+    margin: 10px 0 0 0;
+}
+.action-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 10px 16px;
+    background: rgba(0, 0, 0, 0.18);
+    border-top: 1px solid var(--border-color, rgba(255, 255, 255, 0.06));
+}
+.action-card-btn {
+    padding: 6px 14px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+.action-card-btn.secondary {
+    background: transparent;
+    color: var(--text-secondary, #94a3b8);
+}
+.action-card-btn.secondary:hover {
+    color: var(--text-primary, #fff);
+    background: rgba(255, 255, 255, 0.05);
+}
+.action-card-btn.primary {
+    background: var(--accent-primary, #f97316);
+    color: #fff;
+}
+.action-card-btn.primary:hover {
+    filter: brightness(1.15);
+}
+.action-card-btn.success {
+    background: #10b981;
+    color: #fff;
+}
+
+/* Challenge My Thinking Card */
+.challenge-thinking-card {
+    background: rgba(120, 53, 15, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.25);
+    border-radius: 12px;
+    padding: 16px;
+    margin: 14px 0;
+    color: #fef3c7;
+}
+.challenge-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #fbbf24;
+    margin-bottom: 8px;
+}
+.challenge-body {
+    font-size: 0.88rem;
+    line-height: 1.55;
+    color: rgba(254, 243, 199, 0.85);
+}
+.challenge-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+}
+.challenge-action-btn {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    background: rgba(245, 158, 11, 0.2);
+    color: #fde68a;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.challenge-action-btn:hover {
+    background: rgba(245, 158, 11, 0.32);
+    color: #fff;
+}
+

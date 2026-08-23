@@ -1,9 +1,7 @@
 /**
- * Atlas — AI Chat Studio by Vylex Technologies
+ * Atlas — Scientific Intelligence Platform by Vylex Technologies
  * https://vylex.co.za
- * Multi-model workspace with SSE streaming, chain-of-thought reasoning,
- * animated pipeline verbs, auto AI conversation naming,
- * and production-grade resilient error diagnostics.
+ * Technical Reasoning · Multi-Model Deliberation · Action Execution Layer
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -11,40 +9,119 @@ document.addEventListener('DOMContentLoaded', () => {
     ? window.location.origin
     : 'http://localhost:3000';
 
-  // Deep Reasoning & Cognitive Architecture Verbs (for Chat Response Bubble)
+  // Scientific Reasoning & Cognitive Architecture Verbs (for Response Bubble)
   const THOUGHT_VERBS = [
-    'Extrapolating Latent Space',
-    'Formulating Architectural Proof',
-    'Deconstructing Logical Constraints',
-    'Computing Self-Attention Vectors',
-    'Evaluating Algorithmic Trade-offs',
-    'Synthesizing Structural Proof',
-    'Traversing Semantic Knowledge Graph',
-    'Validating Edge Case Invariants',
-    'Deriving Formal Proof Steps',
-    'Refining Abstract Syntax Trees',
-    'Decomposing Distributed Topologies',
-    'Optimizing Execution Complexity',
-    'Reconstructing Context Dependency',
+    'Formulating Hypothesis Space',
+    'Deconstructing Logical Invariants',
+    'Evaluating Mathematical Proof Steps',
+    'Checking Thermodynamic & Physical Constraints',
+    'Synthesizing Cross-Disciplinary Evidence',
+    'Isolating Confounding Variables',
+    'Deriving Formal Differential Operators',
+    'Analyzing Distributed System Topologies',
+    'Traversing Axiomatic Proof Graph',
+    'Testing Falsification Criteria',
+    'Validating Dimensional Consistency',
+    'Synthesizing Competing Explanations',
+    'Computing Boundary Value Constraints',
     'Verifying Type Soundness & Contracts',
-    'Resolving Multi-Step Deductions'
+    'Constructing First-Principles Derivation'
   ];
 
   // Real-Time Token Generation & Telemetry Verbs (for Input Bar Streaming Indicator)
   const STREAMING_VERBS = [
-    'Streaming Token Pipeline',
-    'Decoding Vector Embeddings',
-    'Sampling Token Probabilities',
-    'Transmitting SSE Chunks',
-    'Broadcasting Model Output',
-    'Pipelining Frontier Inference',
-    'Synchronizing Stream Buffer',
-    'Rendering Markdown AST',
-    'Synthesizing Response Stream',
-    'Parsing Delimiter Stream',
-    'Optimizing Throughput Rate',
-    'Flushing Telemetry Stream'
+    'Streaming Investigation Pipeline',
+    'Executing Computational Verification',
+    'Transmitting Investigation Stream',
+    'Evaluating Logical Invariants',
+    'Synthesizing Evidence Matrix',
+    'Pipelining Frontier Model Output',
+    'Decoding Mathematical AST',
+    'Synchronizing Computational Buffer',
+    'Broadcasting Reasoning Telemetry',
+    'Parsing Symbolic Expression Stream'
   ];
+
+  // --- 7 Investigation Modes Definitions ---
+  const INVESTIGATION_MODES = {
+    research: {
+      id: 'research',
+      name: 'Research',
+      icon: '🔬',
+      desc: 'Literature synthesis, evidence evaluation, hypothesis formation, research maps',
+      suggestions: [
+        { label: 'Superconductivity Landscape', prompt: 'Synthesize the current approaches, contested claims, and experimental gaps in room-temperature superconductivity.' },
+        { label: 'Contradicting Hypothesis', prompt: 'Why does this experimental result contradict the standard thermodynamic hypothesis? Identify confounding variables and competing explanations.' },
+        { label: 'Quantum Coherence Limits', prompt: 'Map the theoretical and empirical limits of quantum coherence at room temperature in solid-state systems.' }
+      ]
+    },
+    solve: {
+      id: 'solve',
+      name: 'Solve',
+      icon: '🧮',
+      desc: 'Step-by-step derivation, calculation, verification, alternative solutions',
+      suggestions: [
+        { label: 'Schrödinger PDE Solution', prompt: 'Derive and solve the time-independent Schrödinger equation for a finite square well potential. Verify boundary conditions.' },
+        { label: 'Navier-Stokes Derivation', prompt: 'Derive the Navier-Stokes equations from the Reynolds Transport Theorem and conservation of momentum.' },
+        { label: 'Bayesian Evidence Update', prompt: 'Calculate the posterior probability distribution given this prior and likelihood matrix. Verify with Monte Carlo.' }
+      ]
+    },
+    build: {
+      id: 'build',
+      name: 'Build',
+      icon: '💻',
+      desc: 'Architecture reasoning, code generation, debugging, testing, systems engineering',
+      suggestions: [
+        { label: 'Sandboxed Python Runner', prompt: 'Design and write a high-throughput, secure Python code execution engine with memory cgroups and timeout guards.' },
+        { label: 'Raft Consensus Node', prompt: 'Implement a complete Raft consensus state machine in TypeScript with leader election, log replication, and RPC handling.' },
+        { label: 'Zero-Copy Ring Buffer', prompt: 'Write a high-performance zero-copy lock-free ring buffer for inter-process communication.' }
+      ]
+    },
+    engineer: {
+      id: 'engineer',
+      name: 'Engineer',
+      icon: '⚙️',
+      desc: 'Systems constraints, scalability analysis, failure modes, cost analysis',
+      suggestions: [
+        { label: '10M Req/Min Architecture', prompt: 'Deconstruct the requirements, database partitioning, edge caching, and failure modes for a 10M requests/min system.' },
+        { label: 'Multi-Region Active-Active', prompt: 'Design an active-active multi-region distributed system with CRDT conflict resolution and latency SLAs under 50ms.' },
+        { label: 'Chaos & Fault Resilience', prompt: 'Analyze failure modes, split-brain scenarios, and network partition recovery for a distributed key-value store.' }
+      ]
+    },
+    experiment: {
+      id: 'experiment',
+      name: 'Experiment',
+      icon: '🧪',
+      desc: 'Data analysis, model fitting, hypothesis testing, visualization',
+      suggestions: [
+        { label: 'Dataset Anomaly Inspection', prompt: 'Analyse this dataset for non-linear correlations, statistical anomalies, and distribution shifts. Form hypotheses.' },
+        { label: 'Monte Carlo Power Test', prompt: 'Run a Monte Carlo simulation to estimate sample size and statistical power for a multivariate randomized experiment.' },
+        { label: 'Linear Model Diagnostic', prompt: 'Fit a regularized regression model to this synthetic dataset and check for heteroscedasticity and multicollinearity.' }
+      ]
+    },
+    reason: {
+      id: 'reason',
+      name: 'Reason',
+      icon: '🧠',
+      desc: 'Multi-step logical decomposition, assumption identification, proof strategy',
+      suggestions: [
+        { label: 'Formal Proof Strategy', prompt: 'Prove that no general algorithm can decide whether two context-free grammars generate the same language.' },
+        { label: 'First-Principles Deconstruction', prompt: 'Deconstruct the computational and thermodynamic minimum energy required to erase one bit of information (Landauer Principle).' },
+        { label: 'Challenge My Hypothesis', prompt: 'Challenge my hypothesis: "Deep MoE architectures will replace dense models for all reasoning tasks within 2 years." Expose hidden assumptions.' }
+      ]
+    },
+    discover: {
+      id: 'discover',
+      name: 'Discover',
+      icon: '🔭',
+      desc: 'Explore relationships, find anomalies, generate hypotheses',
+      suggestions: [
+        { label: 'Cross-Domain Synthesis', prompt: 'Explore potential relationships between topological quantum field theory and error-correcting codes in neural networks.' },
+        { label: 'Unexplained Patterns', prompt: 'What are the most compelling unexplained observations in recent high-energy astrophysics that challenge standard models?' },
+        { label: 'Hypothesis Generator', prompt: 'Generate 3 falsifiable hypotheses to explain why certain transformer attention heads develop induction capabilities abruptly.' }
+      ]
+    }
+  };
 
   // --- Clean Precision Vector SVGs ---
   const ICONS = {
@@ -79,7 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- Vylex Atlas Intelligence Models (Default: vylex/auto) ---
   const FREE_MODELS = [
     {
-      id: 'openrouter/free', // We keep the internal ID identical so backend still works
+      id: 'openrouter/free',
       name: 'Atlas Default Engine',
       badge: 'AUTO FREE',
       isFree: true,
@@ -88,19 +165,19 @@ document.addEventListener('DOMContentLoaded', () => {
     },
     {
       id: 'stealth/ox-alpha',
-      name: 'Atlas Alpha',
+      name: 'Atlas Reasoning Core',
       badge: '1.05M FREE',
       isFree: true,
       context: '1,048,576 tokens',
-      desc: 'Advanced reasoning model designed for coding, sustained agentic work, and long-horizon software engineering.'
+      desc: 'Advanced reasoning model for deep mathematical derivation, multi-step proofs, and sustained investigative work.'
     },
     {
       id: 'nvidia/nemotron-3-ultra-550b-a55b:free',
-      name: 'Atlas Ultra (MoE)',
+      name: 'Atlas Research Engine',
       badge: '1M FREE',
       isFree: true,
       context: '1,000,000 tokens',
-      desc: 'Frontier-reasoning orchestration engine optimized for deep research and complex architecture planning.'
+      desc: 'Frontier-scale MoE model optimized for scientific research, hypothesis formation, and complex architecture planning.'
     },
     {
       id: 'poolside/laguna-s-2.1:free',
@@ -108,23 +185,23 @@ document.addEventListener('DOMContentLoaded', () => {
       badge: '262K FREE',
       isFree: true,
       context: '262,144 tokens',
-      desc: 'Specialized coding agent model scoring highly on terminal-based agentic software engineering benchmarks.'
+      desc: 'Specialized systems engineering model for code generation, debugging, architecture analysis, and terminal-based workflows.'
     },
     {
       id: 'cohere/north-mini-code:free',
-      name: 'Atlas Mini Code',
+      name: 'Atlas Compute Engine',
       badge: '256K FREE',
       isFree: true,
       context: '256,000 tokens',
-      desc: 'Optimized, fast-inference MoE engine for rapid code generation, SWE tasks, and terminal workflows.'
+      desc: 'Fast-inference MoE engine for rapid computation, data analysis, and iterative experimental workflows.'
     },
     {
       id: 'z-ai/glm-5.2:free',
-      name: 'Atlas Project Lead',
+      name: 'Atlas Systems Engine',
       badge: '256K FREE',
       isFree: true,
       context: '256,000 tokens',
-      desc: 'Large-scale reasoning model suited for project-level software engineering and multi-step automation.'
+      desc: 'Large-scale reasoning model for systems engineering, constraint analysis, and multi-step design verification.'
     },
     {
       id: 'google/gemma-4-26b-a4b-it:free',
@@ -132,7 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
       badge: '262K FREE',
       isFree: true,
       context: '262,144 tokens',
-      desc: 'Instruction-tuned core model with native function calling and configurable thinking mode.'
+      desc: 'Instruction-tuned core model with native tool calling, configurable thinking depth, and broad scientific knowledge.'
     }
   ];
 
@@ -171,6 +248,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const scrollToBottomBtn = document.getElementById('scrollToBottomBtn');
   const welcomeScreen = document.getElementById('welcomeScreen');
   const dynamicTimeGreeting = document.getElementById('dynamicTimeGreeting');
+  const modeSelectorGrid = document.getElementById('modeSelectorGrid');
+  const activeModeBanner = document.getElementById('activeModeBanner');
+  const activeModeTag = document.getElementById('activeModeTag');
+  const activeModeDesc = document.getElementById('activeModeDesc');
+  const suggestionPillsContainer = document.getElementById('suggestionPillsContainer');
   const bannerModelTitle = document.getElementById('bannerModelTitle');
   const bannerModelDesc = document.getElementById('bannerModelDesc');
   const bannerModelSvg = document.getElementById('bannerModelSvg');
@@ -220,30 +302,37 @@ document.addEventListener('DOMContentLoaded', () => {
   const presetPills = document.querySelectorAll('.preset-pill');
   const systemPromptDrawerBtn = document.getElementById('systemPromptDrawerBtn');
 
-  // Presets
+  // Persona Presets for Domain Intelligence
   const PERSONA_PRESETS = {
-    fullstack: 'You are an elite full-stack software engineer and architect. Provide clean, modular, production-ready code with robust error handling, modern patterns, and clear architectural explanations.',
-    architect: 'You are a principal enterprise system architect. Focus on high-level system design, scalability, distributed resilience, microservices, cloud patterns, and trade-off analysis.',
+    scientist: 'You are a rigorous scientific researcher. Apply the scientific method to every problem. Form hypotheses, gather evidence, test rigorously, and always quantify your uncertainty. Distinguish clearly between what is established, what is probable, and what is speculative.',
+    mathematician: 'You are a mathematician. Approach every problem with mathematical rigor. Provide formal definitions, state theorems precisely, prove claims step by step, and verify results.',
+    engineer: 'You are a principal systems engineer. Focus on architecture, scalability, reliability, and operational excellence. Always present trade-offs, identify failure modes, and consider cost.',
+    builder: 'You are an elite full-stack software engineer and architect. Provide clean, modular, production-ready code with robust error handling, modern patterns, and clear architectural explanations.',
     reasoner: 'You are a rigorous frontier reasoning AI. Break down all problems step-by-step with structured logical analysis, deep mathematical rigor, and explicit chain-of-thought verification.',
-    concise: 'You are an ultra-concise senior engineer. Output direct, optimal code and solutions with minimal preamble or conversational filler.'
+    concise: 'You are an ultra-concise expert. Output direct, optimal answers and solutions with minimal preamble or conversational filler.'
   };
+
+  // Migration from legacy omni_sessions to atlas_investigations
+  const savedInvestigations = localStorage.getItem('atlas_investigations') || localStorage.getItem('omni_sessions') || '[]';
 
   let state = {
     theme: localStorage.getItem('omni_theme') || 'vylex',
     currentModel: localStorage.getItem('omni_model') || 'openrouter/free',
     models: FREE_MODELS,
-    systemPrompt: localStorage.getItem('omni_sys_prompt') || PERSONA_PRESETS.fullstack,
-    activePreset: localStorage.getItem('omni_preset') || 'fullstack',
+    activeMode: localStorage.getItem('atlas_mode') || 'research',
+    systemPrompt: localStorage.getItem('omni_sys_prompt') || PERSONA_PRESETS.scientist,
+    activePreset: localStorage.getItem('omni_preset') || 'scientist',
     temperature: parseFloat(localStorage.getItem('omni_temp') || '0.7'),
     isDeepReasoning: true,
     isWebSearch: localStorage.getItem('omni_web_search') === 'true',
-    sessions: JSON.parse(localStorage.getItem('omni_sessions') || '[]'),
+    sessions: JSON.parse(savedInvestigations),
     activeSessionId: null,
     isGenerating: false,
     abortController: null,
     activeArtifact: null,
     lastUserPrompt: ''
   };
+
 
   // --- Rich Callout Alert Icons & Definitions ---
   const CALLOUT_ICONS = {

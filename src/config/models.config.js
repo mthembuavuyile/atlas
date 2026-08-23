@@ -1,5 +1,6 @@
 /**
  * Atlas Curated Intelligence Models
+ * Scientific reasoning, mathematical intelligence, and technical problem-solving.
  * 100% Free - Zero paid credits required.
  */
 const CURATED_MODELS = [
@@ -7,57 +8,64 @@ const CURATED_MODELS = [
     id: 'openrouter/free',
     name: 'Atlas Default Engine',
     badge: 'AUTO FREE',
-    description: 'Smart auto-router that automatically selects from available high-performance models based on task requirements.',
+    description: 'Smart auto-router that selects the optimal reasoning model based on problem domain and complexity.',
     isFree: true,
-    context: 'Dynamic context'
+    context: 'Dynamic context',
+    bestFor: ['research', 'solve', 'build', 'engineer', 'experiment', 'reason', 'discover']
   },
   {
     id: 'stealth/ox-alpha',
-    name: 'Atlas Alpha',
+    name: 'Atlas Reasoning Core',
     badge: '1.05M FREE',
-    description: 'Advanced reasoning model designed for coding, sustained agentic work, and long-horizon software engineering.',
+    description: 'Advanced reasoning model for deep mathematical derivation, multi-step proofs, and sustained investigative work.',
     isFree: true,
-    context: '1,048,576 tokens'
+    context: '1,048,576 tokens',
+    bestFor: ['reason', 'solve', 'build']
   },
   {
     id: 'nvidia/nemotron-3-ultra-550b-a55b:free',
-    name: 'Atlas Ultra (MoE)',
+    name: 'Atlas Research Engine',
     badge: '1M FREE',
-    description: 'Frontier-reasoning orchestration engine optimized for deep research and complex architecture planning.',
+    description: 'Frontier-scale MoE model optimized for scientific research, hypothesis formation, and complex architecture planning.',
     isFree: true,
-    context: '1,000,000 tokens'
+    context: '1,000,000 tokens',
+    bestFor: ['research', 'discover', 'engineer']
   },
   {
     id: 'poolside/laguna-s-2.1:free',
     name: 'Atlas Code Engine',
     badge: '262K FREE',
-    description: 'Specialized coding agent model scoring highly on terminal-based agentic software engineering benchmarks.',
+    description: 'Specialized systems engineering model for code generation, debugging, architecture analysis, and terminal-based workflows.',
     isFree: true,
-    context: '262,144 tokens'
+    context: '262,144 tokens',
+    bestFor: ['build', 'experiment']
   },
   {
     id: 'cohere/north-mini-code:free',
-    name: 'Atlas Mini Code',
+    name: 'Atlas Compute Engine',
     badge: '256K FREE',
-    description: 'Optimized, fast-inference MoE engine for rapid code generation, SWE tasks, and terminal workflows.',
+    description: 'Fast-inference MoE engine for rapid computation, data analysis, and iterative experimental workflows.',
     isFree: true,
-    context: '256,000 tokens'
+    context: '256,000 tokens',
+    bestFor: ['experiment', 'build', 'solve']
   },
   {
     id: 'z-ai/glm-5.2:free',
-    name: 'Atlas Project Lead',
+    name: 'Atlas Systems Engine',
     badge: '256K FREE',
-    description: 'Large-scale reasoning model suited for project-level software engineering and multi-step automation.',
+    description: 'Large-scale reasoning model for systems engineering, constraint analysis, and multi-step design verification.',
     isFree: true,
-    context: '256,000 tokens'
+    context: '256,000 tokens',
+    bestFor: ['engineer', 'reason']
   },
   {
     id: 'google/gemma-4-26b-a4b-it:free',
     name: 'Atlas Core',
     badge: '262K FREE',
-    description: 'Instruction-tuned core model with native function calling and configurable thinking mode.',
+    description: 'Instruction-tuned core model with native tool calling, configurable thinking depth, and broad scientific knowledge.',
     isFree: true,
-    context: '262,144 tokens'
+    context: '262,144 tokens',
+    bestFor: ['research', 'solve', 'reason']
   }
 ];
 

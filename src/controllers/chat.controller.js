@@ -6,18 +6,45 @@ const env = require('../config/env');
 const {
   SYSTEM_PROMPT_FULL,
   SYSTEM_PROMPT_TITLE,
+  INVESTIGATION_MODES,
+  CHALLENGE_INSTRUCTION,
   API_IDENTITY,
   APP,
 } = require('../config/identity');
 
 class ChatController {
+  /**
+   * Build the mode-aware system prompt.
+   * If a mode is specified, prepend the mode-specific reasoning instructions
+   * before the base Atlas identity prompt.
+   */
+  buildSystemPrompt(mode, customSystemPrompt) {
+    const parts = [];
+
+    // 1. Mode-specific reasoning instructions (if active)
+    if (mode && INVESTIGATION_MODES[mode]) {
+      parts.push(INVESTIGATION_MODES[mode].prompt);
+    }
+
+    // 2. Custom user system prompt OR the default full prompt
+    if (customSystemPrompt && customSystemPrompt.trim()) {
+      parts.push(customSystemPrompt.trim());
+    } else {
+      parts.push(SYSTEM_PROMPT_FULL);
+    }
+
+    return parts.join('\n\n');
+  }
+
   async handleChat(req, res) {
     const {
       messages = [],
       model = env.DEFAULT_MODEL,
       stream = true,
       temperature = 0.7,
-      webSearch = false
+      webSearch = false,
+      mode = null,
+      systemPrompt: customSystemPrompt = null
     } = req.body;
 
     try {
@@ -27,7 +54,7 @@ class ChatController {
       if (!hasSystemMessage) {
         normalizedMessages.unshift({
           role: 'system',
-          content: SYSTEM_PROMPT_FULL
+          content: this.buildSystemPrompt(mode, customSystemPrompt)
         });
       }
 
@@ -113,6 +140,9 @@ class ChatController {
             const args = JSON.parse(toolCallBuffer.join(''));
             let widgetResult;
             
+            // Send tool execution start event to frontend for Action Card visibility
+            res.write(`data: ${JSON.stringify({ __tool_start__: { name: toolName, args } })}\n\n`);
+
             switch (toolName) {
               case 'get_weather': widgetResult = await widgetService.getWeather(args.city); break;
               case 'get_crypto_price': widgetResult = await widgetService.getCryptoPrice(args.coin); break;
@@ -131,6 +161,9 @@ class ChatController {
 
             // Send widget data to frontend via a special SSE event
             res.write(`data: {"__widget__": ${JSON.stringify({ type: widgetResult.type, data: widgetResult.data })}}\n\n`);
+
+            // Send tool completion event for Action Card
+            res.write(`data: ${JSON.stringify({ __tool_done__: { name: toolName, success: !widgetResult.error } })}\n\n`);
 
             // Append tool interaction to history and recall AI for explanation
             normalizedMessages.push({
@@ -173,7 +206,7 @@ class ChatController {
 
         return res.end();
       } else {
-        // Non-streaming logic (simplified for now, mostly streaming is used)
+        // Non-streaming logic
         const data = await openRouterResponse.json();
         return res.json(data);
       }
@@ -233,11 +266,13 @@ class ChatController {
       message: `${APP.name} API is ready. Send a POST request with messages payload.`,
       ...API_IDENTITY,
       defaultModel: env.DEFAULT_MODEL,
+      availableModes: Object.keys(INVESTIGATION_MODES),
       examplePayload: {
         model: env.DEFAULT_MODEL,
-        messages: [{ role: 'user', content: `Hello ${APP.name}!` }],
+        messages: [{ role: 'user', content: `Investigate the computational complexity of matrix multiplication algorithms.` }],
         stream: true,
-        webSearch: false
+        webSearch: false,
+        mode: 'research'
       }
     });
   }
