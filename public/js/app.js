@@ -11,31 +11,39 @@ document.addEventListener('DOMContentLoaded', () => {
     ? ''
     : 'http://localhost:3000';
 
-  // Comprehensive Reasoning & Transformer Processing Verbs
-  const REASONING_VERBS = [
-    'Cogitating',
-    'Contemplating',
-    'Deliberating',
-    'Pondering',
-    'Ruminating',
-    'Musing',
-    'Inferring',
-    'Deciphering',
-    'Cerebrating',
-    'Ideating',
-    'Mulling',
-    'Considering',
-    'Deconstructing',
-    'Synthesizing',
-    'Tokenizing Context',
-    'Projecting Embeddings',
-    'Computing Self-Attention',
-    'Traversing Vector Graph',
-    'Sampling Token Probabilities',
+  // Deep Reasoning & Cognitive Architecture Verbs (for Chat Response Bubble)
+  const THOUGHT_VERBS = [
     'Extrapolating Latent Space',
-    'Decoding Representations',
     'Formulating Architectural Proof',
-    'Validating Reasoning Constraints'
+    'Deconstructing Logical Constraints',
+    'Computing Self-Attention Vectors',
+    'Evaluating Algorithmic Trade-offs',
+    'Synthesizing Structural Proof',
+    'Traversing Semantic Knowledge Graph',
+    'Validating Edge Case Invariants',
+    'Deriving Formal Proof Steps',
+    'Refining Abstract Syntax Trees',
+    'Decomposing Distributed Topologies',
+    'Optimizing Execution Complexity',
+    'Reconstructing Context Dependency',
+    'Verifying Type Soundness & Contracts',
+    'Resolving Multi-Step Deductions'
+  ];
+
+  // Real-Time Token Generation & Telemetry Verbs (for Input Bar Streaming Indicator)
+  const STREAMING_VERBS = [
+    'Streaming Token Pipeline',
+    'Decoding Vector Embeddings',
+    'Sampling Token Probabilities',
+    'Transmitting SSE Chunks',
+    'Broadcasting Model Output',
+    'Pipelining Frontier Inference',
+    'Synchronizing Stream Buffer',
+    'Rendering Markdown AST',
+    'Synthesizing Response Stream',
+    'Parsing Delimiter Stream',
+    'Optimizing Throughput Rate',
+    'Flushing Telemetry Stream'
   ];
 
   // --- Clean Precision Vector SVGs ---
@@ -555,19 +563,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // --- ANIMATED REASONING VERB ENGINE ---
-  function startVerbAnimation(element, prefix = '', suffix = '...') {
-    let index = Math.floor(Math.random() * REASONING_VERBS.length);
-    element.textContent = `${prefix}${REASONING_VERBS[index]}${suffix}`;
+  // --- ANIMATED REASONING & STREAMING VERB ENGINE ---
+  function startVerbAnimation(element, verbs = THOUGHT_VERBS, prefix = '', suffix = '...') {
+    let index = Math.floor(Math.random() * verbs.length);
+    element.textContent = `${prefix}${verbs[index]}${suffix}`;
 
     const timer = setInterval(() => {
-      index = (index + 1) % REASONING_VERBS.length;
+      index = (index + 1) % verbs.length;
       element.style.opacity = '0.35';
       setTimeout(() => {
-        element.textContent = `${prefix}${REASONING_VERBS[index]}${suffix}`;
+        element.textContent = `${prefix}${verbs[index]}${suffix}`;
         element.style.opacity = '1';
       }, 150);
-    }, 1350);
+    }, 1400);
 
     return () => clearInterval(timer);
   }
@@ -716,10 +724,10 @@ document.addEventListener('DOMContentLoaded', () => {
         <span class="active-thought-spark">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg>
         </span>
-        <span class="active-thought-word">Cogitating...</span>
+        <span class="active-thought-word">Extrapolating Latent Space...</span>
       `;
       thoughtWord = thoughtBanner.querySelector('.active-thought-word');
-      stopThoughtAnim = startVerbAnimation(thoughtWord, '', '...');
+      stopThoughtAnim = startVerbAnimation(thoughtWord, THOUGHT_VERBS, '', '...');
       wrapper.appendChild(thoughtBanner);
     }
 
@@ -981,7 +989,7 @@ document.addEventListener('DOMContentLoaded', () => {
       streamingIndicator.style.display = 'flex';
       const textElem = streamingIndicator.querySelector('.indicator-text');
       if (textElem) {
-        stopFloatingAnim = startVerbAnimation(textElem, '', '...');
+        stopFloatingAnim = startVerbAnimation(textElem, STREAMING_VERBS, '', '...');
       }
     }
 
