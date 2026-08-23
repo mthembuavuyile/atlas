@@ -827,9 +827,67 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
+  function unescapeStringContent(str) {
+    if (!str) return '';
+    return str
+      .replace(/\\n/g, '\n')
+      .replace(/\\r/g, '\r')
+      .replace(/\\t/g, '\t')
+      .replace(/\\'/g, "'")
+      .replace(/\\"/g, '"')
+      .replace(/\\\\/g, '\\');
+  }
+
+  function cleanAndTransformToolCalls(raw) {
+    if (!raw) return '';
+    let text = raw;
+
+    // 1. Convert completed tool calls: <|tool_call_start|>[write(filepath='...', content='...')]<|tool_call_end|>
+    text = text.replace(/<\|tool_call_start\|>\s*\[?write\(\s*filepath=['"]([^'"]+)['"]\s*,\s*content=(['"])([\s\S]*?)\2\s*\)?\]?\s*<\|tool_call_end\|>/gi, (match, filepath, quote, content) => {
+      const ext = filepath.split('.').pop() || 'text';
+      return `\n\n**File:** \`${filepath}\`\n\`\`\`${ext}\n${unescapeStringContent(content)}\n\`\`\`\n\n`;
+    });
+
+    // 2. Convert raw [write(filepath='...', content='...')]
+    text = text.replace(/\[write\(\s*filepath=['"]([^'"]+)['"]\s*,\s*content=(['"])([\s\S]*?)\2\s*\)\]/gi, (match, filepath, quote, content) => {
+      const ext = filepath.split('.').pop() || 'text';
+      return `\n\n**File:** \`${filepath}\`\n\`\`\`${ext}\n${unescapeStringContent(content)}\n\`\`\`\n\n`;
+    });
+
+    // 3. Convert in-progress streaming write calls: <|tool_call_start|>[write(filepath='...', content='...
+    text = text.replace(/<\|tool_call_start\|>\s*\[?write\(\s*filepath=['"]([^'"]+)['"]\s*,\s*content=['"]?([\s\S]*)/gi, (match, filepath, content) => {
+      let cleanContent = content.replace(/['"]\s*\)?\]?\s*(<\|tool_call_end\|>)?\s*$/i, '');
+      const ext = filepath.split('.').pop() || 'text';
+      return `\n\n**File:** \`${filepath}\`\n\`\`\`${ext}\n${unescapeStringContent(cleanContent)}\n\`\`\`\n\n`;
+    });
+
+    // 4. Handle other tool calls like [execute(command='...')]
+    text = text.replace(/<\|tool_call_start\|>\s*\[?(\w+)\(([\s\S]*?)\)\]?\s*<\|tool_call_end\|>/gi, (match, toolName, args) => {
+      return `\n\n*Tool: \`${toolName}\`*\n\`\`\`bash\n${unescapeStringContent(args)}\n\`\`\`\n\n`;
+    });
+
+    // 5. Clean stray special tokens, delimiters, and trailing fragments
+    text = text
+      .replace(/<\|tool_call_start\|>/gi, '')
+      .replace(/<\|tool_call_end\|>/gi, '')
+      .replace(/<\|im_start\|>/gi, '')
+      .replace(/<\|im_end\|>/gi, '')
+      .replace(/<\|endoftext\|>/gi, '')
+      .replace(/<\|plugin\|>/gi, '')
+      .replace(/<\|startoftext\|>/gi, '')
+      .replace(/<tool_call>/gi, '')
+      .replace(/<\/tool_call>/gi, '')
+      .replace(/\s*'\)\]<\|tool_call_end\|>/gi, '')
+      .replace(/\s*"\)\]<\|tool_call_end\|>/gi, '')
+      .replace(/['"]\s*\)\s*\]\s*$/g, '');
+
+    return text;
+  }
+
   function parseMarkdownSafely(raw) {
     if (!raw) return '<span class="pulse-dot"></span>';
-    let html = window.marked ? marked.parse(raw) : raw;
+    const cleaned = cleanAndTransformToolCalls(raw);
+    let html = window.marked ? marked.parse(cleaned) : cleaned;
     if (window.DOMPurify) html = DOMPurify.sanitize(html);
     return html;
   }
@@ -993,7 +1051,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    const ATLAS_IDENTITY = 'You are Atlas, a senior software engineering partner and systems architect built by Vylex Technologies (https://vylex.co.za). You specialize in production-grade code, distributed system design, refactoring, specs, and logical verification. When asked who you are or who built you, always state that you are Atlas, a developer assistant made by Vylex Technologies. ';
+    const ATLAS_IDENTITY = 'You are Atlas, a senior software engineering partner and systems architect built by Vylex Technologies (https://vylex.co.za). You specialize in production-grade code, distributed system design, refactoring, specs, and logical verification. When asked who you are or who built you, always state that you are Atlas, a developer assistant made by Vylex Technologies. Format all code responses using standard Markdown fenced code blocks (```html ... ```). Do NOT output pseudo tool calls like <|tool_call_start|>, <|tool_call_end|>, [write(...)], or [execute(...)]. Output direct, clean conversational text and standard code blocks.';
     const payloadMessages = [];
     const fullSystemPrompt = ATLAS_IDENTITY + (state.systemPrompt || '');
     payloadMessages.push({ role: 'system', content: fullSystemPrompt });
@@ -1094,6 +1152,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (stopThoughtAnim) stopThoughtAnim();
       if (thoughtBanner) thoughtBanner.style.display = 'none';
 
+      accumulatedContent = cleanAndTransformToolCalls(accumulatedContent);
       session.messages.push({
         role: 'assistant',
         content: accumulatedContent,
