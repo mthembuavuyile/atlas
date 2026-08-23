@@ -464,10 +464,12 @@ document.addEventListener('DOMContentLoaded', () => {
     updateDynamicGreeting();
     renderModelOptions();
     syncModelDisplay(state.currentModel);
+    syncModeDisplay(state.activeMode);
     loadSavedSettings();
     initSessionManager();
     await checkBackendHealth();
     setupEventListeners();
+    setupModeSelector();
   }
 
   // --- THEME CONTROLLER ---
@@ -481,6 +483,65 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // --- MODE CONTROLLER (7 Investigation Modes) ---
+  function setupModeSelector() {
+    if (!modeSelectorGrid) return;
+
+    modeSelectorGrid.querySelectorAll('.mode-card-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        const modeId = pill.getAttribute('data-mode');
+        selectMode(modeId);
+      });
+    });
+  }
+
+  function selectMode(modeId) {
+    if (!INVESTIGATION_MODES[modeId]) return;
+    state.activeMode = modeId;
+    localStorage.setItem('atlas_mode', modeId);
+    syncModeDisplay(modeId);
+
+    // If an active session exists and is empty, update its mode
+    const session = getActiveSession();
+    if (session && session.messages.length === 0) {
+      session.mode = modeId;
+      saveSessions();
+    }
+  }
+
+  function syncModeDisplay(modeId) {
+    const mode = INVESTIGATION_MODES[modeId] || INVESTIGATION_MODES.research;
+
+    // Update active pill in grid
+    if (modeSelectorGrid) {
+      modeSelectorGrid.querySelectorAll('.mode-card-pill').forEach(pill => {
+        pill.classList.toggle('active', pill.getAttribute('data-mode') === mode.id);
+      });
+    }
+
+    // Update active banner
+    if (activeModeTag) activeModeTag.textContent = `${mode.icon} Mode: ${mode.name}`;
+    if (activeModeDesc) activeModeDesc.textContent = mode.desc;
+    if (activePromptLabel) activePromptLabel.textContent = `Mode: ${mode.name}`;
+
+    // Update suggestion pills
+    if (suggestionPillsContainer && mode.suggestions) {
+      suggestionPillsContainer.innerHTML = '';
+      mode.suggestions.forEach(item => {
+        const btn = document.createElement('button');
+        btn.className = 'prompt-card suggestion-pill';
+        btn.setAttribute('data-prompt', item.prompt);
+        btn.textContent = item.label;
+        btn.addEventListener('click', () => {
+          messageInput.value = item.prompt;
+          autoResizeTextarea();
+          messageInput.focus();
+        });
+        suggestionPillsContainer.appendChild(btn);
+      });
+    }
+  }
+
   // --- DYNAMIC GREETING ---
   function updateDynamicGreeting() {
     if (!dynamicTimeGreeting) return;
@@ -489,7 +550,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (hour >= 5 && hour < 12) greeting = 'Good morning';
     else if (hour >= 12 && hour < 17) greeting = 'Good afternoon';
     else if (hour >= 22 || hour < 5) greeting = 'Good night';
-    dynamicTimeGreeting.textContent = `${greeting}, Developer`;
+    dynamicTimeGreeting.textContent = `${greeting} — Research Environment`;
   }
 
   // --- BACKEND HEALTH & MODELS ---
@@ -578,7 +639,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // --- SESSION & HISTORY MANAGEMENT ---
+  // --- INVESTIGATION & HISTORY MANAGEMENT ---
   function initSessionManager() {
     if (state.sessions.length === 0) {
       startNewSession();
@@ -590,8 +651,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function startNewSession() {
     const newSession = {
-      id: 'session_' + Date.now(),
-      title: 'New Session',
+      id: 'inv_' + Date.now(),
+      title: 'New Investigation',
+      mode: state.activeMode,
       timestamp: Date.now(),
       messages: [],
       model: state.currentModel,
@@ -613,6 +675,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!session) return;
 
     state.activeSessionId = session.id;
+    if (session.mode && INVESTIGATION_MODES[session.mode]) {
+      state.activeMode = session.mode;
+      syncModeDisplay(session.mode);
+    }
+
     messagesContainer.innerHTML = '';
 
     if (session.messages.length === 0) {
@@ -633,8 +700,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function saveSessions() {
-    localStorage.setItem('omni_sessions', JSON.stringify(state.sessions));
+    localStorage.setItem('atlas_investigations', JSON.stringify(state.sessions));
+    localStorage.setItem('omni_sessions', JSON.stringify(state.sessions)); // backward compat
   }
+
 
   function renderHistoryTree(filterQuery = '') {
     if (!historyListToday || !historyListYesterday || !historyListPrevious) return;
@@ -1072,6 +1141,55 @@ document.addEventListener('DOMContentLoaded', () => {
     bubble.appendChild(bar);
   }
 
+  // --- ACTION CARDS & EXECUTION LAYER ---
+  function renderActionCard({ title, description, status = 'automatic', steps = [], code = '', actionLabel = 'View Output', onAction = null }) {
+    const card = document.createElement('div');
+    card.className = 'atlas-action-card';
+
+    const statusLabels = { automatic: 'Executed Automatically', approval: 'Approval Required', never: 'Action Blocked' };
+
+    card.innerHTML = `
+      <div class="action-card-header">
+        <div class="action-card-title-group">
+          <div class="action-card-icon">${ICONS.code}</div>
+          <h4 class="action-card-title">${escapeHtml(title)}</h4>
+        </div>
+        <div class="action-status-pill ${status}">
+          <span class="action-status-dot"></span>
+          <span>${statusLabels[status] || status}</span>
+        </div>
+      </div>
+      <div class="action-card-body">
+        <div class="action-card-desc">${escapeHtml(description)}</div>
+        ${steps && steps.length > 0 ? `
+          <div class="action-steps-checklist">
+            ${steps.map(s => `
+              <div class="action-step-row ${s.status || 'done'}">
+                <span>${s.status === 'running' ? '⏳' : s.status === 'pending' ? '○' : '✓'}</span>
+                <span>${escapeHtml(s.text)}</span>
+              </div>
+            `).join('')}
+          </div>
+        ` : ''}
+        ${code ? `<pre class="action-code-preview"><code>${escapeHtml(code)}</code></pre>` : ''}
+      </div>
+      <div class="action-card-footer">
+        ${status === 'approval' ? `
+          <button type="button" class="action-card-btn secondary cancel-action-btn">Cancel</button>
+        ` : ''}
+        <button type="button" class="action-card-btn ${status === 'automatic' ? 'primary' : status === 'approval' ? 'success' : 'secondary'} execute-action-btn">
+          ${escapeHtml(actionLabel)}
+        </button>
+      </div>
+    `;
+
+    if (onAction) {
+      card.querySelector('.execute-action-btn')?.addEventListener('click', onAction);
+    }
+
+    return card;
+  }
+
   // --- MESSAGE RENDERING ---
   function renderMessageItem(role, content = '', reasoning = '', shouldScroll = true) {
     if (welcomeScreen && welcomeScreen.parentNode) {
@@ -1100,7 +1218,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <span class="active-thought-spark">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg>
         </span>
-        <span class="active-thought-word">Extrapolating Latent Space...</span>
+        <span class="active-thought-word">Formulating Hypothesis Space...</span>
       `;
       thoughtWord = thoughtBanner.querySelector('.active-thought-word');
       stopThoughtAnim = startVerbAnimation(thoughtWord, THOUGHT_VERBS, '', '...');
@@ -1163,6 +1281,10 @@ document.addEventListener('DOMContentLoaded', () => {
           <span>Copy</span>
         </button>
         ${role === 'assistant' ? `
+          <button class="msg-action-btn challenge-msg-btn" title="Challenge this reasoning & hypotheses">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="12 8 8 12 12 16 12 13 16 13 16 11 12 11 12 8"></polygon></svg>
+            <span>Challenge</span>
+          </button>
           <button class="msg-action-btn speak-msg-btn" title="Read aloud">
             ${ICONS.speaker}
             <span>Speak</span>
@@ -1179,6 +1301,14 @@ document.addEventListener('DOMContentLoaded', () => {
           btn.innerHTML = `${ICONS.copy} <span>Copy</span>`;
         }, 2000);
       });
+    });
+
+    meta.querySelector('.challenge-msg-btn')?.addEventListener('click', () => {
+      const challengePrompt = `Challenge this analysis: Expose hidden assumptions, identify contradicting evidence or edge cases, state alternative hypotheses, and propose an experiment or verification method to test it.`;
+      messageInput.value = challengePrompt;
+      autoResizeTextarea();
+      messageInput.focus();
+      chatForm.dispatchEvent(new Event('submit'));
     });
 
     meta.querySelector('.speak-msg-btn')?.addEventListener('click', () => {
@@ -1202,6 +1332,7 @@ document.addEventListener('DOMContentLoaded', () => {
       reasoningToggleBtn
     };
   }
+
 
   function unescapeStringContent(str) {
     if (!str) return '';
@@ -1577,10 +1708,10 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    const ATLAS_IDENTITY = 'You are Atlas, a senior software engineering partner and systems architect built by Vylex Technologies (https://vylex.co.za). You specialize in production-grade code, distributed system design, refactoring, specs, and logical verification. When asked who you are or who built you, always state that you are Atlas, a developer assistant made by Vylex Technologies. Format all code responses using standard Markdown fenced code blocks (```html ... ```). Do NOT output pseudo tool calls like <|tool_call_start|>, <|tool_call_end|>, [write(...)], or [execute(...)]. Output direct, clean conversational text and standard code blocks.';
     const payloadMessages = [];
-    const fullSystemPrompt = ATLAS_IDENTITY + (state.systemPrompt || '');
-    payloadMessages.push({ role: 'system', content: fullSystemPrompt });
+    if (state.systemPrompt && state.systemPrompt.trim()) {
+      payloadMessages.push({ role: 'system', content: state.systemPrompt.trim() });
+    }
     session.messages.forEach(m => payloadMessages.push({ role: m.role, content: m.content }));
 
     let accumulatedContent = '';
@@ -1600,6 +1731,8 @@ document.addEventListener('DOMContentLoaded', () => {
           model: state.currentModel,
           messages: payloadMessages,
           stream: true,
+          mode: state.activeMode,
+          systemPrompt: state.systemPrompt,
           temperature: state.temperature,
           webSearch: state.isWebSearch
         })
@@ -1632,6 +1765,44 @@ document.addEventListener('DOMContentLoaded', () => {
           try {
             const parsed = JSON.parse(dataStr);
             
+            // Handle tool execution start event -> render Action Card
+            if (parsed.__tool_start__) {
+              const toolInfo = parsed.__tool_start__;
+              const toolNamePretty = (toolInfo.name || 'tool').replace(/_/g, ' ').toUpperCase();
+              const actionCard = renderActionCard({
+                title: `Execute: ${toolNamePretty}`,
+                description: `Executing real-time tool with parameters: ${JSON.stringify(toolInfo.args || {})}`,
+                status: 'automatic',
+                steps: [
+                  { text: 'Validated input parameters', status: 'done' },
+                  { text: `Executing ${toolInfo.name}`, status: 'running' }
+                ],
+                actionLabel: 'Executing...'
+              });
+              bubble.appendChild(actionCard);
+              scrollToBottom(false);
+              continue;
+            }
+
+            // Handle tool execution completion event
+            if (parsed.__tool_done__) {
+              const lastActionCard = bubble.querySelector('.atlas-action-card:last-child');
+              if (lastActionCard) {
+                const stepRow = lastActionCard.querySelector('.action-step-row.running');
+                if (stepRow) {
+                  stepRow.classList.remove('running');
+                  stepRow.classList.add('done');
+                  stepRow.innerHTML = `<span>✓</span><span>Execution completed successfully</span>`;
+                }
+                const actionBtn = lastActionCard.querySelector('.execute-action-btn');
+                if (actionBtn) {
+                  actionBtn.textContent = 'Completed';
+                  actionBtn.disabled = true;
+                }
+              }
+              continue;
+            }
+
             // Handle injected widget rendering
             if (parsed.__widget__) {
                 if (window.atlasRenderWidget) {
@@ -1962,7 +2133,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     resetModalPromptBtn?.addEventListener('click', () => {
-      customSystemPrompt.value = PERSONA_PRESETS.fullstack;
+      customSystemPrompt.value = PERSONA_PRESETS.scientist;
     });
 
     temperatureSlider?.addEventListener('input', (e) => {
@@ -1977,8 +2148,8 @@ document.addEventListener('DOMContentLoaded', () => {
       localStorage.setItem('omni_temp', state.temperature.toString());
 
       if (activePromptLabel) {
-        const name = state.activePreset === 'fullstack' ? 'Full-Stack' : state.activePreset === 'architect' ? 'Architect' : state.activePreset === 'reasoner' ? 'Deep Thinker' : 'Concise';
-        activePromptLabel.textContent = `System: ${name}`;
+        const mode = INVESTIGATION_MODES[state.activeMode] || INVESTIGATION_MODES.research;
+        activePromptLabel.textContent = `Mode: ${mode.name}`;
       }
 
       systemPromptModal.classList.remove('open');
@@ -2038,8 +2209,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function loadSavedSettings() {
     if (activePromptLabel) {
-      const name = state.activePreset === 'fullstack' ? 'Full-Stack' : state.activePreset === 'architect' ? 'Architect' : state.activePreset === 'reasoner' ? 'Deep Thinker' : 'Concise';
-      activePromptLabel.textContent = `System: ${name}`;
+      const mode = INVESTIGATION_MODES[state.activeMode] || INVESTIGATION_MODES.research;
+      activePromptLabel.textContent = `Mode: ${mode.name}`;
     }
     syncWebSearchUI();
   }
