@@ -4,6 +4,7 @@ const router = express.Router();
 const chatController = require('../controllers/chat.controller');
 const modelsController = require('../controllers/models.controller');
 const healthController = require('../controllers/health.controller');
+const toolController = require('../controllers/tool.controller');
 
 // Chat endpoints
 router.get('/chat', (req, res) => chatController.getChatInfo(req, res));
@@ -15,5 +16,8 @@ router.get('/models', (req, res) => modelsController.getModels(req, res));
 
 // Health endpoint
 router.get('/health', (req, res) => healthController.getHealth(req, res));
+
+// Tool endpoint
+router.post('/tool/execute', (req, res) => toolController.execute(req, res));
 
 module.exports = router;

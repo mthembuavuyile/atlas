@@ -1720,6 +1720,117 @@ html, body {
 .primary-modal-btn:hover { background: var(--accent-hover); }
 
 /* --------------------------------------------------------------------------
+   AGENT MODE UI
+   -------------------------------------------------------------------------- */
+
+.agent-activity-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 16px;
+  gap: 16px;
+  background: var(--bg-app);
+}
+
+.agent-section-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Checklist Styles */
+.agent-task-checklist {
+  flex: 0 0 auto;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.task-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.task-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.85rem;
+  color: var(--text-main);
+  padding: 6px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.task-item.placeholder {
+  color: var(--text-subtle);
+  font-style: italic;
+}
+
+.task-item .status-icon {
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.task-item.pending .status-icon { color: var(--text-subtle); }
+.task-item.running {
+  background: var(--message-user-bg);
+  border: 1px solid var(--message-user-border);
+}
+.task-item.running .status-icon {
+  color: var(--accent-primary);
+  animation: pulse-glow 2s infinite;
+}
+.task-item.completed .status-icon { color: #10b981; }
+
+@keyframes pulse-glow {
+  0% { filter: drop-shadow(0 0 2px var(--accent-primary)); }
+  50% { filter: drop-shadow(0 0 8px var(--accent-primary)); }
+  100% { filter: drop-shadow(0 0 2px var(--accent-primary)); }
+}
+
+/* Terminal Feed Styles */
+.agent-terminal-feed {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.terminal-output {
+  flex: 1 1 auto;
+  background: var(--bg-code);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.75rem;
+  overflow-y: auto;
+  color: #a3a3a3;
+  line-height: 1.6;
+}
+
+.terminal-line {
+  margin-bottom: 4px;
+  word-break: break-all;
+}
+.terminal-line.system { color: #60a5fa; font-weight: 600; }
+.terminal-line.command { color: var(--accent-primary); }
+.terminal-line.output { color: #d4d4d4; }
+.terminal-line.error { color: #f87171; }
+
+/* --------------------------------------------------------------------------
    RESPONSIVE BREAKPOINTS
    -------------------------------------------------------------------------- */
 

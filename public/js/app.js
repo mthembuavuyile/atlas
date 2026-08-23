@@ -7,8 +7,8 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-  const API_BASE = (window.location.protocol.startsWith('http') && window.location.port === '3000')
-    ? ''
+  const API_BASE = (window.location.protocol.startsWith('http'))
+    ? window.location.origin
     : 'http://localhost:3000';
 
   // Deep Reasoning & Cognitive Architecture Verbs (for Chat Response Bubble)
@@ -884,6 +884,110 @@ document.addEventListener('DOMContentLoaded', () => {
     return text;
   }
 
+  // --- AGENT TOOL EXECUTION ENGINE ---
+  const executedToolCalls = new Set();
+  
+  function updateAgentUI(type, message, status = 'success') {
+    const terminalOutput = document.getElementById('terminalOutput');
+    const agentTaskList = document.getElementById('agentTaskList');
+    const artifactsCanvasPanel = document.getElementById('artifactsCanvasPanel');
+    const toggleCanvasBtn = document.getElementById('toggleCanvasBtn');
+    
+    if (!terminalOutput || !agentTaskList) return;
+
+    // Auto-open canvas to Agent Activity tab
+    artifactsCanvasPanel.classList.add('open');
+    toggleCanvasBtn.classList.add('active');
+    switchCanvasTab('agent');
+
+    // Remove placeholder task if it exists
+    const placeholder = agentTaskList.querySelector('.placeholder');
+    if (placeholder) placeholder.remove();
+
+    if (type === 'task') {
+      const li = document.createElement('li');
+      li.className = `task-item running`;
+      li.innerHTML = `
+        <span class="status-icon">${ICONS.canvas}</span>
+        <span>${escapeHtml(message)}</span>
+      `;
+      agentTaskList.appendChild(li);
+    } else if (type === 'terminal') {
+      const line = document.createElement('div');
+      line.className = `terminal-line ${status}`;
+      line.textContent = message;
+      terminalOutput.appendChild(line);
+      terminalOutput.scrollTop = terminalOutput.scrollHeight;
+      
+      // Update the last running task to completed/error
+      const lastTask = agentTaskList.lastElementChild;
+      if (lastTask && lastTask.classList.contains('running')) {
+        lastTask.classList.remove('running');
+        lastTask.classList.add(status === 'error' ? 'pending' : 'completed');
+        const iconSpan = lastTask.querySelector('.status-icon');
+        if (iconSpan) {
+          iconSpan.innerHTML = status === 'error' ? ICONS.alert : ICONS.check;
+        }
+      }
+    }
+  }
+
+  async function executeAgentTools(content) {
+    if (!content) return;
+    
+    const regex = /<\|tool_call_start\|>\s*\[?(\w+)\(([\s\S]*?)\)\]?\s*<\|tool_call_end\|>/gi;
+    let match;
+    
+    while ((match = regex.exec(content)) !== null) {
+      const fullMatch = match[0];
+      const toolName = match[1];
+      const argsStr = match[2];
+      
+      if (executedToolCalls.has(fullMatch)) continue;
+      executedToolCalls.add(fullMatch);
+      
+      // Try to parse arguments
+      const args = {};
+      try {
+        const filepathMatch = argsStr.match(/filepath=['"]([^'"]+)['"]/);
+        if (filepathMatch) args.filepath = filepathMatch[1];
+        
+        const contentMatch = argsStr.match(/content=(['"])([\s\S]*?)\1/);
+        if (contentMatch) args.content = unescapeStringContent(contentMatch[2]);
+        
+        const commandMatch = argsStr.match(/command=['"]([^'"]+)['"]/);
+        if (commandMatch) args.command = unescapeStringContent(commandMatch[1]);
+      } catch (e) {
+        console.warn('Failed to parse tool arguments:', e);
+      }
+      
+      let endpointToolName = toolName;
+      if (toolName === 'write') endpointToolName = 'write_file';
+      if (toolName === 'execute') endpointToolName = 'execute_command';
+      if (toolName === 'read') endpointToolName = 'read_file';
+
+      updateAgentUI('task', `Executing ${toolName}...`);
+      updateAgentUI('terminal', `> ${toolName} ${JSON.stringify(args).slice(0, 100)}...`, 'command');
+      
+      try {
+        const res = await fetch(`${API_BASE}/api/tool/execute`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tool: endpointToolName, args })
+        });
+        
+        const data = await res.json();
+        if (data.status === 'success') {
+          updateAgentUI('terminal', JSON.stringify(data.data), 'output');
+        } else {
+          updateAgentUI('terminal', data.error || 'Execution failed', 'error');
+        }
+      } catch (err) {
+        updateAgentUI('terminal', `Error: ${err.message}`, 'error');
+      }
+    }
+  }
+
   function parseMarkdownSafely(raw) {
     if (!raw) return '<span class="pulse-dot"></span>';
     const cleaned = cleanAndTransformToolCalls(raw);
@@ -1135,6 +1239,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
               bubble.innerHTML = parseMarkdownSafely(accumulatedContent);
               enhanceCodeBlocks(bubble);
+              
+              // Incrementally execute fully formed tools
+              await executeAgentTools(accumulatedContent);
             }
 
             scrollToBottom();

@@ -391,6 +391,10 @@
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
           <span>Document</span>
         </button>
+        <button class="canvas-tab" data-tab="agent">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
+          <span>Agent Activity</span>
+        </button>
       </div>
 
       <!-- Canvas Body -->
@@ -409,6 +413,24 @@
 
         <div class="canvas-pane" id="canvasMarkdownPane">
           <div class="markdown-preview-body" id="canvasMarkdownContent"></div>
+        </div>
+
+        <div class="canvas-pane" id="canvasAgentPane">
+          <div class="agent-activity-container">
+            <div class="agent-task-checklist" id="agentTaskChecklist">
+              <h4 class="agent-section-title">Current Objective</h4>
+              <ul class="task-list" id="agentTaskList">
+                <li class="task-item placeholder">Waiting for agent tasks...</li>
+              </ul>
+            </div>
+            
+            <div class="agent-terminal-feed" id="agentTerminalFeed">
+              <h4 class="agent-section-title">Execution Log</h4>
+              <div class="terminal-output" id="terminalOutput">
+                <div class="terminal-line system">Atlas Agent System Initialized.</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </aside>
