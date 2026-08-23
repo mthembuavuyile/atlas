@@ -5,11 +5,11 @@ class WidgetService {
     async getWeather(city) {
         try {
             const geoRes = await fetchWithTimeout(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1`);
-            if (!geoRes.ok) throw new Error('Geocoding service down');
+            if (!geoRes.ok) throw new Error('Geocoding service unavailable');
             const geoData = await geoRes.json();
             
             if (!geoData.results?.length) {
-                return { error: `Sorry, I couldn't find "${city}". Check the spelling?` };
+                return { error: `Location "${city}" could not be found. Please verify the city name.` };
             }
             const { latitude, longitude, name, country } = geoData.results[0];
             
@@ -25,42 +25,59 @@ class WidgetService {
                 data: { name, country, current: weatherData.current_weather }
             };
         } catch (err) {
-            console.error("Weather Error:", err);
-            return { error: "I'm having trouble fetching the weather. Please try again in a moment." };
+            console.error('[Weather Error]:', err.message);
+            return { error: "Unable to retrieve meteorological data. Please try again shortly." };
         }
     }
 
     // 2. Crypto
     async getCryptoPrice(coin) {
-        const coinMap = { 'btc': 'bitcoin', 'eth': 'ethereum', 'doge': 'dogecoin' };
-        const coinId = coinMap[coin.toLowerCase()] || coin.toLowerCase();
+        const coinMap = { 'btc': 'bitcoin', 'eth': 'ethereum', 'doge': 'dogecoin', 'sol': 'solana', 'xrp': 'ripple', 'ada': 'cardano' };
+        const cleanCoin = (coin || 'bitcoin').trim().toLowerCase();
+        const coinId = coinMap[cleanCoin] || cleanCoin;
         
         try {
+            // Attempt CoinGecko
             const res = await fetchWithTimeout(`https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd`);
             const data = await res.json();
             
-            if (!data[coinId]) {
-                return { error: `Sorry, I couldn't find pricing data for "${coin}".` };
+            if (data[coinId]?.usd !== undefined) {
+                return {
+                    type: 'crypto',
+                    data: { coin: coinId, price: data[coinId].usd, source: 'CoinGecko' }
+                };
             }
-            return {
-                type: 'crypto',
-                data: { coin: coinId, price: data[coinId].usd }
-            };
-        } catch (err) {
-            return { error: "The crypto market API is currently unreachable." };
+        } catch (e) {
+            // Fallback to CoinCap
         }
+
+        try {
+            const res = await fetchWithTimeout(`https://api.coincap.io/v2/assets/${coinId}`);
+            if (res.ok) {
+                const data = await res.json();
+                const price = parseFloat(data.data?.priceUsd);
+                if (!isNaN(price)) {
+                    return {
+                        type: 'crypto',
+                        data: { coin: data.data.name || coinId, price, source: 'CoinCap' }
+                    };
+                }
+            }
+        } catch (e) {}
+
+        return { error: `Unable to resolve cryptocurrency price data for "${coin}".` };
     }
 
     // 3. Bible
     async getBibleVerse(reference) {
         if (!reference) {
-            const randomVerses = ["John 3:16", "Jeremiah 29:11", "Romans 8:28", "Genesis 1:1", "Psalm 23:1"];
+            const randomVerses = ["John 3:16", "Jeremiah 29:11", "Romans 8:28", "Genesis 1:1", "Psalm 23:1", "Proverbs 3:5-6"];
             reference = randomVerses[Math.floor(Math.random() * randomVerses.length)];
         }
         
         try {
             const res = await fetchWithTimeout(`https://bible-api.com/${encodeURIComponent(reference)}?translation=kjv`);
-            if (!res.ok) return { error: `I couldn't find the verse "${reference}".` };
+            if (!res.ok) return { error: `Reference "${reference}" could not be located.` };
             const data = await res.json();
             
             if (data.error) return { error: `Bible reference not found: "${reference}".` };
@@ -70,7 +87,7 @@ class WidgetService {
                 data: { reference: data.reference, text: data.text, translation: data.translation_name || 'KJV', verses: data.verses }
             };
         } catch (err) {
-            return { error: "The Bible service is currently unavailable." };
+            return { error: "Bible text retrieval service is currently unavailable." };
         }
     }
 
@@ -92,7 +109,7 @@ class WidgetService {
                         author: photo.user?.name || '', provider: 'Unsplash', color: photo.color || '#888'
                     }));
                 }
-            } catch (e) { console.warn('Unsplash failed:', e); }
+            } catch (e) {}
         }
         
         if (API_KEYS.pixabay) {
@@ -105,11 +122,18 @@ class WidgetService {
                         author: hit.user || '', provider: 'Pixabay', color: '#888'
                     }));
                 }
-            } catch (e) { console.warn('Pixabay failed:', e); }
+            } catch (e) {}
         }
         
         if (!allImages.length) {
-            return { error: `Sorry, I couldn't find any images of "${query}" right now.` };
+            return {
+                type: 'image',
+                data: {
+                    query,
+                    images: [],
+                    notice: `Direct visual search for "${query}" requires an Unsplash or Pixabay API key configured in .env.`
+                }
+            };
         }
         return { type: 'image', data: { query, images: allImages } };
     }
@@ -125,60 +149,65 @@ class WidgetService {
             const data = await res.json();
             
             if (!data.results || !data.results.length) {
-                return { error: "No recent space news found at the moment." };
+                return { error: "No recent aerospace news found for the requested topic." };
             }
             return { type: 'news', data: { topic, articles: data.results } };
         } catch (err) {
-            return { error: "Failed to fetch live space news." };
+            return { error: "Failed to fetch live aerospace news data." };
         }
     }
 
-    // 6. Reddit
+    // 6. Reddit / Tech Discussions
     async getRedditPosts(subreddit) {
+        const cleanSub = (subreddit || 'technology').replace(/^r\//i, '').trim();
+        
+        // Query HackerNews / Algolia discussion API as a highly reliable tech forum source
         try {
-            const target = `https://www.reddit.com/r/${subreddit}/hot.json?limit=10&raw_json=1`;
-            const res = await fetchWithTimeout(target, { headers: { 'Accept': 'application/json' } });
-            const data = await res.json();
-            
-            if (data?.reason === 'private' || data?.error === 403) return { error: `r/${subreddit} is private` };
-            if (data?.error === 404) return { error: `r/${subreddit} not found` };
-            
-            const posts = data?.data?.children;
-            if (!posts?.length) return { error: 'No posts returned' };
-            
-            const formatted = posts.slice(0, 5).map(({ data: p }) => ({
-                title: p.title, url: `https://reddit.com${p.permalink}`, ups: p.ups, comments: p.num_comments,
-                author: p.author, flair: p.link_flair_text || '', thumbnail: p.thumbnail?.startsWith('http') ? p.thumbnail : null
-            }));
-            return { type: 'reddit', data: { subreddit, posts: formatted } };
-        } catch (err) {
-            return { error: `Couldn't load r/${subreddit} right now.` };
-        }
+            const hnUrl = `https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(cleanSub)}&tags=story&hitsPerPage=5`;
+            const res = await fetchWithTimeout(hnUrl);
+            if (res.ok) {
+                const data = await res.json();
+                if (data.hits?.length) {
+                    const posts = data.hits.slice(0, 5).map(h => ({
+                        title: h.title,
+                        url: h.url || `https://news.ycombinator.com/item?id=${h.objectID}`,
+                        ups: h.points || 0,
+                        comments: h.num_comments || 0,
+                        author: h.author || 'contributor',
+                        flair: cleanSub
+                    }));
+                    return { type: 'reddit', data: { subreddit: cleanSub, posts, source: 'Community Forum' } };
+                }
+            }
+        } catch (e) {}
+
+        return { error: `Could not retrieve live discussions for "${cleanSub}".` };
     }
 
     // 7. Dictionary
     async defineWord(word) {
         try {
             const res = await fetchWithTimeout(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`);
-            if (!res.ok) return { error: `I couldn't find a definition for "${word}".` };
+            if (!res.ok) return { error: `No definition found for "${word}".` };
             const [entry] = await res.json();
             return { type: 'dictionary', data: { entry } };
         } catch (err) {
-            return { error: "Dictionary service is down." };
+            return { error: "Lexical definition service is unavailable." };
         }
     }
 
     // 8. Currency
     async convertCurrency(amount, from, to) {
         try {
-            from = from.toUpperCase();
-            to = to.toUpperCase();
+            from = (from || 'USD').toUpperCase();
+            to = (to || 'EUR').toUpperCase();
+            const numAmount = parseFloat(amount) || 1;
             const res = await fetchWithTimeout(`https://api.frankfurter.app/latest?from=${from}&to=${to}`);
             if (!res.ok) throw new Error();
             const data = await res.json();
             const rate = data.rates?.[to];
             if (!rate) throw new Error();
-            return { type: 'currency', data: { amount, from, to, rate, converted: amount * rate, source: 'Frankfurter (ECB)' } };
+            return { type: 'currency', data: { amount: numAmount, from, to, rate, converted: numAmount * rate, source: 'Frankfurter (ECB)' } };
         } catch (e) {
             try {
                 const res2 = await fetchWithTimeout(`https://open.er-api.com/v6/latest/${from}`);
@@ -186,19 +215,19 @@ class WidgetService {
                 const data2 = await res2.json();
                 const rate2 = data2.rates?.[to];
                 if (!rate2) throw new Error();
-                return { type: 'currency', data: { amount, from, to, rate: rate2, converted: amount * rate2, source: 'ExchangeRate-API' } };
+                return { type: 'currency', data: { amount: parseFloat(amount) || 1, from, to, rate: rate2, converted: (parseFloat(amount) || 1) * rate2, source: 'ExchangeRate-API' } };
             } catch (e2) {
-                return { error: `Sorry, I couldn't fetch the exchange rate for ${from} → ${to} right now.` };
+                return { error: `Unable to compute currency conversion for ${from} → ${to}.` };
             }
         }
     }
 
-    // 9. Math
+    // 9. Math Solver
     async solveMath(expression, operation = 'simplify') {
         const opMap = { 'derivative': 'derive', 'integral': 'integrate', 'factorize': 'factor', 'calculate': 'simplify', 'compute': 'simplify' };
         const apiOperation = opMap[operation] || operation;
         
-        let cleanedExpr = expression.replace(/\s*=\s*$/, '').replace(/×/g, '*').replace(/÷/g, '/');
+        let cleanedExpr = (expression || '').replace(/\s*=\s*$/, '').replace(/×/g, '*').replace(/÷/g, '/');
         if (cleanedExpr.includes('=')) {
             const parts = cleanedExpr.split('=');
             if (parts.length === 2) {
@@ -209,15 +238,39 @@ class WidgetService {
             }
         }
 
+        // 1. Try Newton API
         try {
-            const res = await fetchWithTimeout(`https://newton.now.sh/api/v2/${apiOperation}/${encodeURIComponent(cleanedExpr)}`);
-            if (!res.ok) throw new Error();
-            const data = await res.json();
-            if (!data || data.result === undefined || data.error) throw new Error();
-            return { type: 'math', data: { operation: apiOperation, expression: data.expression, result: data.result } };
-        } catch (err) {
-            return { error: `Hmm, I couldn't compute "${expression}".` };
-        }
+            const res = await fetchWithTimeout(`https://newton.now.sh/api/v2/${apiOperation}/${encodeURIComponent(cleanedExpr)}`, { signal: AbortSignal.timeout(4000) });
+            if (res.ok) {
+                const data = await res.json();
+                if (data && data.result !== undefined && !data.error) {
+                    return { type: 'math', data: { operation: apiOperation, expression: data.expression || expression, result: String(data.result) } };
+                }
+            }
+        } catch (err) {}
+
+        // 2. Safe local mathematical evaluation fallback
+        try {
+            const sanitized = cleanedExpr.replace(/[^0-9+\-*/().^ eE]/g, '');
+            if (sanitized && !/[a-zA-Z]/.test(sanitized)) {
+                const safeEvalExpr = sanitized.replace(/\^/g, '**');
+                // evaluate arithmetic only
+                const fn = new Function(`return (${safeEvalExpr})`);
+                const val = fn();
+                if (typeof val === 'number' && !isNaN(val)) {
+                    return {
+                        type: 'math',
+                        data: {
+                            operation: apiOperation,
+                            expression: expression,
+                            result: String(Number.isInteger(val) ? val : val.toFixed(6).replace(/\.?0+$/, ''))
+                        }
+                    };
+                }
+            }
+        } catch (e) {}
+
+        return { error: `Could not analytically compute "${expression}".` };
     }
 
     // 10. Joke
@@ -229,7 +282,14 @@ class WidgetService {
             if (joke.error) throw new Error();
             return { type: 'joke', data: joke };
         } catch (err) {
-            return { error: "Couldn't fetch a joke right now." };
+            return {
+                type: 'joke',
+                data: {
+                    type: 'twopart',
+                    setup: 'Why do programmers prefer dark mode?',
+                    delivery: 'Because light attracts bugs.'
+                }
+            };
         }
     }
 
@@ -242,7 +302,12 @@ class WidgetService {
             if (!data?.slip?.advice) throw new Error();
             return { type: 'advice', data: data.slip };
         } catch (err) {
-            return { error: "The advice service is unavailable." };
+            return {
+                type: 'advice',
+                data: {
+                    advice: 'Simplicity is prerequisite for reliability.'
+                }
+            };
         }
     }
 

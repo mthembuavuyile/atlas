@@ -1,16 +1,16 @@
-import { createWidgetShell, escapeHtml } from './widget-utils.js';
+import { createWidgetShell, escapeHtml, WIDGET_ICONS } from './widget-utils.js';
 
 export function renderBibleWidget(data) {
     if (data.error) return `<div class="atlas-widget error">${escapeHtml(data.error)}</div>`;
 
     const content = `
         <blockquote class="atlas-bible-verse">
-            "${escapeHtml(data.text.trim())}"
+            "${escapeHtml(data.text ? data.text.trim() : '')}"
         </blockquote>
-        <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 12px; text-align: right;">
-            — ${escapeHtml(data.reference)} (${escapeHtml(data.translation)})
+        <div class="bible-reference-footer">
+            — ${escapeHtml(data.reference || '')} <span class="widget-badge">${escapeHtml(data.translation || 'KJV')}</span>
         </div>
     `;
 
-    return createWidgetShell('bible', '<i class="fa-solid fa-book-bible"></i>', 'Bible Verse', content);
+    return createWidgetShell('bible', WIDGET_ICONS.bible, 'Textual Reference', content);
 }

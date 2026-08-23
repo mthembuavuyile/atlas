@@ -4,8 +4,6 @@
  * THE SINGLE SOURCE OF TRUTH for every identity-related string
  * in the Atlas codebase — system prompts, API responses, CLI
  * banners, health payloads, and env defaults.
- *
- * Import what you need; never hardcode identity strings elsewhere.
  */
 
 // ── Founder ──────────────────────────────────────────────────
@@ -76,15 +74,12 @@ const APP = {
 };
 
 // ── Investigation Modes ──────────────────────────────────────
-// Atlas operates in domain-specific modes that shape its reasoning
-// approach. Each mode has a system prompt prefix and behavioral
-// instructions that fundamentally change how Atlas thinks.
 
 const INVESTIGATION_MODES = {
   research: {
     id: 'research',
     name: 'Research',
-    icon: '🔬',
+    icon: 'research',
     description: 'Literature synthesis, evidence evaluation, hypothesis formation, research maps',
     prompt: [
       'You are in RESEARCH mode. You are a scientific research intelligence.',
@@ -102,7 +97,7 @@ const INVESTIGATION_MODES = {
   solve: {
     id: 'solve',
     name: 'Solve',
-    icon: '🧮',
+    icon: 'solve',
     description: 'Step-by-step derivation, calculation, verification, alternative solutions',
     prompt: [
       'You are in SOLVE mode. You are a mathematical reasoning engine.',
@@ -121,7 +116,7 @@ const INVESTIGATION_MODES = {
   build: {
     id: 'build',
     name: 'Build',
-    icon: '💻',
+    icon: 'build',
     description: 'Architecture reasoning, code generation, debugging, testing, systems engineering',
     prompt: [
       'You are in BUILD mode. You are a systems engineering and programming intelligence.',
@@ -139,7 +134,7 @@ const INVESTIGATION_MODES = {
   engineer: {
     id: 'engineer',
     name: 'Engineer',
-    icon: '⚙️',
+    icon: 'engineer',
     description: 'Systems constraints, scalability analysis, failure modes, cost analysis',
     prompt: [
       'You are in ENGINEER mode. You are a systems engineering and technical design intelligence.',
@@ -159,7 +154,7 @@ const INVESTIGATION_MODES = {
   experiment: {
     id: 'experiment',
     name: 'Experiment',
-    icon: '🧪',
+    icon: 'experiment',
     description: 'Data analysis, model fitting, hypothesis testing, visualization',
     prompt: [
       'You are in EXPERIMENT mode. You are a computational laboratory intelligence.',
@@ -179,7 +174,7 @@ const INVESTIGATION_MODES = {
   reason: {
     id: 'reason',
     name: 'Reason',
-    icon: '🧠',
+    icon: 'reason',
     description: 'Multi-step logical decomposition, assumption identification, proof strategy',
     prompt: [
       'You are in REASON mode. You are a deep reasoning and logical analysis intelligence.',
@@ -198,7 +193,7 @@ const INVESTIGATION_MODES = {
   discover: {
     id: 'discover',
     name: 'Discover',
-    icon: '🔭',
+    icon: 'discover',
     description: 'Explore relationships, find anomalies, generate hypotheses',
     prompt: [
       'You are in DISCOVER mode. You are a discovery and exploration intelligence.',
@@ -222,9 +217,6 @@ const INVESTIGATION_MODES = {
 
 // ── System Prompts ───────────────────────────────────────────
 
-/**
- * Challenge My Thinking — core behavioral instruction embedded in all modes.
- */
 const CHALLENGE_INSTRUCTION = [
   'IMPORTANT BEHAVIORAL DIRECTIVE — CHALLENGE MY THINKING:',
   'When a user presents a hypothesis, claim, or design decision, do NOT simply agree.',
@@ -238,9 +230,6 @@ const CHALLENGE_INSTRUCTION = [
   'Be a scientific thinking partner, not a yes-machine.',
 ].join(' ');
 
-/**
- * FULL system prompt — used for main chat completions.
- */
 const SYSTEM_PROMPT_FULL = [
   `You are Atlas, an AI reasoning and execution engine built by ${COMPANY.tradingAs} (${COMPANY.website}).`,
   `${APP.tagline}. ${APP.subtitle}.`,
@@ -258,21 +247,14 @@ const SYSTEM_PROMPT_FULL = [
   CHALLENGE_INSTRUCTION,
 ].join(' ');
 
-/**
- * COMPACT system prompt — used for lightweight tasks
- */
 const SYSTEM_PROMPT_COMPACT = [
   `You are Atlas, an AI reasoning engine by ${COMPANY.tradingAs} (${COMPANY.website}), founded by ${FOUNDER.name}.`,
   `You are an expert scientific reasoning, mathematical, and engineering intelligence.`,
   `You investigate problems, reason rigorously, and provide structured, verified answers.`,
 ].join(' ');
 
-/**
- * TITLE-ONLY system prompt — purpose-built for the /api/title endpoint.
- */
 const SYSTEM_PROMPT_TITLE = 'You are an expert title summarizer for a scientific intelligence platform. Generate a concise, natural, informative 3 to 6 word title for a user investigation starting with the provided message. Prefer technical and precise language. Output ONLY the plain text title without quotes, markdown, periods, or conversational preamble.';
 
-// Keep backward-compatible alias
 const ATLAS_SYSTEM_IDENTITY = SYSTEM_PROMPT_FULL;
 
 // ── Persona Presets ──────────────────────────────────────────
@@ -280,7 +262,7 @@ const ATLAS_SYSTEM_IDENTITY = SYSTEM_PROMPT_FULL;
 const PERSONA_PRESETS = {
   scientist: {
     name: 'Scientific Researcher',
-    description: 'Rigorous scientific method: hypothesis → evidence → analysis → conclusions with uncertainty quantified',
+    description: 'Rigorous scientific method: hypothesis -> evidence -> analysis -> conclusions with uncertainty quantified',
     prompt: 'You are a rigorous scientific researcher. Apply the scientific method to every problem. Form hypotheses, gather evidence, test rigorously, and always quantify your uncertainty. Distinguish clearly between what is established, what is probable, and what is speculative.',
   },
   mathematician: {
@@ -325,9 +307,9 @@ const API_IDENTITY = {
 // ── CLI Display Strings ──────────────────────────────────────
 
 const CLI_BANNER = {
-  title: `   ◆ Atlas — ${APP.tagline}`,
-  website: `   🌐 ${COMPANY.website}`,
-  commands: `   💡 Commands: "/exit" to quit, "/clear" to reset`,
+  title: `   [Atlas] ${APP.tagline}`,
+  website: `   Web: ${COMPANY.website}`,
+  commands: `   Commands: "/exit" to quit, "/clear" to reset`,
 };
 
 const CLI_PROMPT_USER = '\x1b[36mYou > \x1b[0m';
@@ -337,13 +319,13 @@ const CLI_PROMPT_ATLAS = '\x1b[32m\nAtlas > \x1b[0m';
 
 function buildServerBanner(port, defaultModel, hasApiKey) {
   return [
-    '╔══════════════════════════════════════════════════╗',
-    `║  ◆ ${APP.shortTitle.padEnd(44)}║`,
-    `║  ◆ ${APP.tagline.padEnd(44)}║`,
-    `║  ◆ Server: http://localhost:${String(port).padEnd(20)}║`,
-    `║  ◆ Model:  ${defaultModel.padEnd(37)}║`,
-    `║  ◆ API Key: ${(hasApiKey ? 'Configured ✔' : 'Missing ✘').padEnd(36)}║`,
-    '╚══════════════════════════════════════════════════╝',
+    '==================================================',
+    `   ${APP.shortTitle.padEnd(46)}`,
+    `   ${APP.tagline.padEnd(46)}`,
+    `   Server:  http://localhost:${String(port).padEnd(20)}`,
+    `   Model:   ${defaultModel.padEnd(37)}`,
+    `   API Key: ${(hasApiKey ? '[Configured]' : '[Missing]').padEnd(37)}`,
+    '==================================================',
   ].join('\n');
 }
 

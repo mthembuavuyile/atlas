@@ -7,7 +7,6 @@ const {
   SYSTEM_PROMPT_FULL,
   SYSTEM_PROMPT_TITLE,
   INVESTIGATION_MODES,
-  CHALLENGE_INSTRUCTION,
   API_IDENTITY,
   APP,
 } = require('../config/identity');
@@ -99,48 +98,56 @@ class ChatController {
         let isToolCall = false;
         let toolCallId = '';
         let toolName = '';
+        let sseBuffer = '';
 
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
           
           const chunk = decoder.decode(value, { stream: true });
-          
-          // Check if this chunk indicates a tool call
-          if (chunk.includes('"tool_calls"')) {
-            isToolCall = true;
-          }
+          sseBuffer += chunk;
+          const lines = sseBuffer.split('\n');
+          sseBuffer = lines.pop() || '';
 
-          if (isToolCall) {
-            // Accumulate tool call chunks
-            const lines = chunk.split('\n');
-            for (const line of lines) {
-              if (line.startsWith('data: ') && line !== 'data: [DONE]') {
-                try {
-                  const data = JSON.parse(line.slice(6));
-                  const delta = data.choices[0]?.delta;
-                  if (delta?.tool_calls) {
-                    const tc = delta.tool_calls[0];
-                    if (tc.id) toolCallId = tc.id;
-                    if (tc.function?.name) toolName = tc.function.name;
-                    if (tc.function?.arguments) toolCallBuffer.push(tc.function.arguments);
-                  }
-                } catch (e) {}
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed || !trimmed.startsWith('data:')) continue;
+            const dataStr = trimmed.replace(/^data:\s*/, '');
+            if (dataStr === '[DONE]') continue;
+
+            try {
+              const data = JSON.parse(dataStr);
+              const delta = data.choices?.[0]?.delta;
+              if (delta?.tool_calls && Array.isArray(delta.tool_calls)) {
+                isToolCall = true;
+                const tc = delta.tool_calls[0];
+                if (tc.id) toolCallId = tc.id;
+                if (tc.function?.name) toolName = tc.function.name;
+                if (tc.function?.arguments) toolCallBuffer.push(tc.function.arguments);
+              } else if (!isToolCall) {
+                res.write(`data: ${dataStr}\n\n`);
+              }
+            } catch (e) {
+              if (!isToolCall) {
+                res.write(`${line}\n\n`);
               }
             }
-          } else {
-            // Normal text chunk, stream directly to client
-            res.write(chunk);
           }
         }
 
         if (isToolCall && toolName) {
-          // Execute the tool
           try {
-            const args = JSON.parse(toolCallBuffer.join(''));
+            const rawArgsStr = toolCallBuffer.join('').trim();
+            let args = {};
+            if (rawArgsStr) {
+              try {
+                args = JSON.parse(rawArgsStr);
+              } catch (e) {
+                args = {};
+              }
+            }
+
             let widgetResult;
-            
-            // Send tool execution start event to frontend for Action Card visibility
             res.write(`data: ${JSON.stringify({ __tool_start__: { name: toolName, args } })}\n\n`);
 
             switch (toolName) {
@@ -159,21 +166,19 @@ class ChatController {
               default: widgetResult = { error: `Unknown tool: ${toolName}` };
             }
 
-            // Send widget data to frontend via a special SSE event
-            res.write(`data: {"__widget__": ${JSON.stringify({ type: widgetResult.type, data: widgetResult.data })}}\n\n`);
-
-            // Send tool completion event for Action Card
+            // Send widget payload to client
+            res.write(`data: ${JSON.stringify({ __widget__: { type: widgetResult.type, data: widgetResult.data, error: widgetResult.error } })}\n\n`);
             res.write(`data: ${JSON.stringify({ __tool_done__: { name: toolName, success: !widgetResult.error } })}\n\n`);
 
-            // Append tool interaction to history and recall AI for explanation
+            // Second pass for assistant reasoning
             normalizedMessages.push({
               role: 'assistant',
               content: null,
-              tool_calls: [{ id: toolCallId, type: 'function', function: { name: toolName, arguments: JSON.stringify(args) } }]
+              tool_calls: [{ id: toolCallId || 'call_0', type: 'function', function: { name: toolName, arguments: JSON.stringify(args) } }]
             });
             normalizedMessages.push({
               role: 'tool',
-              tool_call_id: toolCallId,
+              tool_call_id: toolCallId || 'call_0',
               name: toolName,
               content: JSON.stringify(widgetResult)
             });
@@ -189,24 +194,18 @@ class ChatController {
             const reader2 = secondPass.body.getReader();
             while (true) {
               const { done, value } = await reader2.read();
-              if (done) {
-                res.write('data: [DONE]\n\n');
-                break;
-              }
+              if (done) break;
               res.write(decoder.decode(value, { stream: true }));
             }
           } catch (e) {
-            console.error("Tool execution failed:", e);
-            res.write(`data: {"error": "Tool execution failed"}\n\n`);
-            res.write('data: [DONE]\n\n');
+            console.error("[ChatController Tool Error]:", e);
+            res.write(`data: ${JSON.stringify({ error: "Tool execution encountered an unexpected issue." })}\n\n`);
           }
-        } else {
-            res.write('data: [DONE]\n\n');
         }
 
+        res.write('data: [DONE]\n\n');
         return res.end();
       } else {
-        // Non-streaming logic
         const data = await openRouterResponse.json();
         return res.json(data);
       }
@@ -249,7 +248,7 @@ class ChatController {
 
       const data = await openRouterResponse.json();
       const rawTitle = data.choices?.[0]?.message?.content || '';
-      const cleanTitle = rawTitle.replace(/["*\`_#]/g, '').trim();
+      const cleanTitle = rawTitle.replace(/["*`_#]/g, '').trim();
 
       return res.json({
         title: cleanTitle || message.slice(0, 32)
@@ -263,13 +262,13 @@ class ChatController {
 
   getChatInfo(req, res) {
     res.json({
-      message: `${APP.name} API is ready. Send a POST request with messages payload.`,
+      message: `${APP.name} API is operational. Send POST requests to /api/chat.`,
       ...API_IDENTITY,
       defaultModel: env.DEFAULT_MODEL,
       availableModes: Object.keys(INVESTIGATION_MODES),
       examplePayload: {
         model: env.DEFAULT_MODEL,
-        messages: [{ role: 'user', content: `Investigate the computational complexity of matrix multiplication algorithms.` }],
+        messages: [{ role: 'user', content: 'Investigate computational complexity of matrix multiplication.' }],
         stream: true,
         webSearch: false,
         mode: 'research'
