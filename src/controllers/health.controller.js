@@ -1,5 +1,6 @@
 const env = require('../config/env');
 const openrouterService = require('../services/openrouter.service');
+const { API_IDENTITY } = require('../config/identity');
 
 class HealthController {
   /**
@@ -8,9 +9,7 @@ class HealthController {
   getHealth(req, res) {
     res.json({
       status: 'ok',
-      service: 'Atlas by Vylex Technologies',
-      founder: 'Avuyile Mthembu',
-      founderWebsite: 'https://avuyilemthembu.co.za',
+      ...API_IDENTITY,
       hasApiKey: openrouterService.hasApiKey(),
       defaultModel: env.DEFAULT_MODEL,
       uptimeSeconds: Math.floor(process.uptime()),

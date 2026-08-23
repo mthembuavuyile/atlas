@@ -4,6 +4,7 @@ const path = require('path');
 const env = require('./config/env');
 const routes = require('./routes');
 const openrouterService = require('./services/openrouter.service');
+const { buildServerBanner } = require('./config/identity');
 
 const app = express();
 
@@ -63,12 +64,7 @@ const PORT = env.PORT;
 
 function startServer(port) {
   const server = app.listen(port, () => {
-    console.log('╔══════════════════════════════════════════════════╗');
-    console.log(`║  ◆ Atlas by Vylex Technologies                  ║`);
-    console.log(`║  ◆ Server: http://localhost:${port}                 ║`);
-    console.log(`║  ◆ Model:  ${env.DEFAULT_MODEL.padEnd(37)}║`);
-    console.log(`║  ◆ API Key: ${openrouterService.hasApiKey() ? 'Configured ✔' : 'Missing ✘'}                        ║`);
-    console.log('╚══════════════════════════════════════════════════╝');
+    console.log(buildServerBanner(port, env.DEFAULT_MODEL, openrouterService.hasApiKey()));
   });
 
   server.on('error', (err) => {

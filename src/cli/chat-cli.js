@@ -2,6 +2,13 @@
 const readline = require('readline');
 const env = require('../config/env');
 const openrouterService = require('../services/openrouter.service');
+const {
+  SYSTEM_PROMPT_COMPACT,
+  CLI_BANNER,
+  CLI_PROMPT_USER,
+  CLI_PROMPT_ATLAS,
+  COMPANY,
+} = require('../config/identity');
 
 if (!openrouterService.hasApiKey()) {
   console.error('\x1b[31m%s\x1b[0m', '❌ Error: OPENROUTER_API_KEY is missing. Set it in your .env file.');
@@ -11,30 +18,22 @@ if (!openrouterService.hasApiKey()) {
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
-  prompt: '\x1b[36mYou > \x1b[0m'
+  prompt: CLI_PROMPT_USER
 });
-
-const ATLAS_SYSTEM_PROMPT = [
-  'You are Atlas, a powerful AI assistant created by Vylex Technologies (https://vylex.co.za).',
-  'Vylex Technologies was founded by Avuyile Mthembu (https://avuyilemthembu.co.za), who holds a Diploma in Systems Development from Boston City Campus.',
-  'When asked who you are, who made you, who built you, or about Vylex and its founder, always state that you are Atlas, built by Vylex Technologies, founded by Avuyile Mthembu (avuyilemthembu.co.za), a systems development professional qualified from Boston City Campus.',
-  'You are an expert AI software engineer, reasoning assistant, and problem solver.',
-  'You provide clear, accurate, and well-structured responses.'
-].join(' ');
 
 const conversation = [
   {
     role: 'system',
-    content: ATLAS_SYSTEM_PROMPT
+    content: SYSTEM_PROMPT_COMPACT
   }
 ];
 
 console.clear();
 console.log('\x1b[35m%s\x1b[0m', '══════════════════════════════════════════════════════');
-console.log('\x1b[35m%s\x1b[0m', '   ◆ Atlas Terminal — Vylex Technologies              ');
+console.log('\x1b[35m%s\x1b[0m', CLI_BANNER.title);
 console.log('\x1b[35m%s\x1b[0m', `   ⚡ Model: ${env.DEFAULT_MODEL}`);
-console.log('\x1b[35m%s\x1b[0m', '   🌐 vylex.co.za                                     ');
-console.log('\x1b[35m%s\x1b[0m', '   💡 Commands: "/exit" to quit, "/clear" to reset     ');
+console.log('\x1b[35m%s\x1b[0m', CLI_BANNER.website);
+console.log('\x1b[35m%s\x1b[0m', CLI_BANNER.commands);
 console.log('\x1b[35m%s\x1b[0m', '══════════════════════════════════════════════════════\n');
 
 rl.prompt();
@@ -61,14 +60,14 @@ rl.on('line', async (line) => {
   }
 
   conversation.push({ role: 'user', content: input });
-  process.stdout.write('\x1b[32m\nAtlas > \x1b[0m');
+  process.stdout.write(CLI_PROMPT_ATLAS);
 
   try {
     const response = await openrouterService.createChatCompletion({
       messages: conversation,
       model: env.DEFAULT_MODEL,
       stream: true,
-      referer: env.APP_URL || 'https://vylex.co.za'
+      referer: env.APP_URL
     });
 
     const reader = response.body.getReader();

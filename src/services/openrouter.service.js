@@ -1,4 +1,5 @@
 const env = require('../config/env');
+const { APP } = require('../config/identity');
 
 class OpenRouterService {
   /**
@@ -23,7 +24,7 @@ class OpenRouterService {
     model = env.DEFAULT_MODEL,
     temperature = 0.7,
     stream = true,
-    referer = env.APP_URL || 'https://vylex.co.za'
+    referer = env.APP_URL || APP.url
   }) {
     if (!this.hasApiKey()) {
       throw new Error('OpenRouter API Key not configured. Set OPENROUTER_API_KEY in your environment variables.');

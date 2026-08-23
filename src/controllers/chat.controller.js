@@ -1,7 +1,11 @@
 const openrouterService = require('../services/openrouter.service');
 const env = require('../config/env');
-
-const ATLAS_DEFAULT_SYSTEM_PROMPT = 'You are Atlas, an intelligent AI developer workspace and systems architecture assistant created by Vylex Technologies (https://vylex.co.za). Vylex Technologies was founded by Avuyile Mthembu (https://avuyilemthembu.co.za), who holds a Diploma in Systems Development from Boston City Campus. When asked about your identity, creator, Vylex Technologies, or founder Avuyile Mthembu, always state clearly and accurately that you are Atlas, built by Vylex Technologies, founded by Avuyile Mthembu (avuyilemthembu.co.za), a systems development professional qualified from Boston City Campus.';
+const {
+  SYSTEM_PROMPT_FULL,
+  SYSTEM_PROMPT_TITLE,
+  API_IDENTITY,
+  APP,
+} = require('../config/identity');
 
 class ChatController {
   /**
@@ -17,7 +21,7 @@ class ChatController {
       if (!hasSystemMessage) {
         normalizedMessages.unshift({
           role: 'system',
-          content: ATLAS_DEFAULT_SYSTEM_PROMPT
+          content: SYSTEM_PROMPT_FULL
         });
       }
 
@@ -77,7 +81,7 @@ class ChatController {
       const promptMessages = [
         {
           role: 'system',
-          content: 'You are an expert title summarizer. Generate a concise, natural, informative 3 to 5 word title for a user conversation starting with the provided message. Output ONLY the plain text title without quotes, markdown, periods, or conversational preamble.'
+          content: SYSTEM_PROMPT_TITLE
         },
         {
           role: 'user',
@@ -113,16 +117,12 @@ class ChatController {
    */
   getChatInfo(req, res) {
     res.json({
-      message: 'Atlas API is ready. Send a POST request with messages payload.',
-      service: 'Atlas by Vylex Technologies',
-      website: 'https://vylex.co.za',
-      founder: 'Avuyile Mthembu',
-      founderWebsite: 'https://avuyilemthembu.co.za',
-      founderEducation: 'Diploma in Systems Development from Boston City Campus',
+      message: `${APP.name} API is ready. Send a POST request with messages payload.`,
+      ...API_IDENTITY,
       defaultModel: env.DEFAULT_MODEL,
       examplePayload: {
         model: env.DEFAULT_MODEL,
-        messages: [{ role: 'user', content: 'Hello Atlas!' }],
+        messages: [{ role: 'user', content: `Hello ${APP.name}!` }],
         stream: true
       }
     });

@@ -1,12 +1,14 @@
 require('dotenv').config();
 
+const { APP, COMPANY } = require('./identity');
+
 const env = {
   PORT: process.env.PORT || 3000,
   OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY || '',
   DEFAULT_MODEL: process.env.OPENROUTER_MODEL || 'openrouter/free',
   OPENROUTER_BASE_URL: process.env.OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1',
-  APP_TITLE: 'Atlas by Vylex Technologies',
-  APP_URL: process.env.APP_URL || 'https://vylex.co.za'
+  APP_TITLE: APP.shortTitle,
+  APP_URL: process.env.APP_URL || COMPANY.website
 };
 
 // Startup validation
