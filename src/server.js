@@ -58,15 +58,30 @@ app.use((req, res) => {
   });
 });
 
-// 7. Start HTTP Server
+// 7. Start HTTP Server with graceful port handling
 const PORT = env.PORT;
-app.listen(PORT, () => {
-  console.log('╔══════════════════════════════════════════════════╗');
-  console.log(`║  ◆ Atlas by Vylex Technologies                  ║`);
-  console.log(`║  ◆ Server: http://localhost:${PORT}                 ║`);
-  console.log(`║  ◆ Model:  ${env.DEFAULT_MODEL.padEnd(37)}║`);
-  console.log(`║  ◆ API Key: ${openrouterService.hasApiKey() ? 'Configured ✔' : 'Missing ✘'}                        ║`);
-  console.log('╚══════════════════════════════════════════════════╝');
-});
+
+function startServer(port) {
+  const server = app.listen(port, () => {
+    console.log('╔══════════════════════════════════════════════════╗');
+    console.log(`║  ◆ Atlas by Vylex Technologies                  ║`);
+    console.log(`║  ◆ Server: http://localhost:${port}                 ║`);
+    console.log(`║  ◆ Model:  ${env.DEFAULT_MODEL.padEnd(37)}║`);
+    console.log(`║  ◆ API Key: ${openrouterService.hasApiKey() ? 'Configured ✔' : 'Missing ✘'}                        ║`);
+    console.log('╚══════════════════════════════════════════════════╝');
+  });
+
+  server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      console.warn(`⚠️  Port ${port} is already in use. Trying port ${port + 1}...`);
+      startServer(port + 1);
+    } else {
+      console.error('Server error:', err);
+      process.exit(1);
+    }
+  });
+}
+
+startServer(Number(PORT));
 
 module.exports = app;

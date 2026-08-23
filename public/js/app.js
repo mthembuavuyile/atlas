@@ -218,7 +218,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   let state = {
-    theme: localStorage.getItem('omni_theme') || 'gemini',
+    theme: localStorage.getItem('omni_theme') || 'vylex',
     currentModel: localStorage.getItem('omni_model') || 'openrouter/free',
     models: FREE_MODELS,
     systemPrompt: localStorage.getItem('omni_sys_prompt') || PERSONA_PRESETS.fullstack,

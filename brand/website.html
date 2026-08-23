@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vylex Website Guidelines | Building Web Pages</title>
+  <meta name="description" content="Official website development guidelines for vylex.co.za — covering page architecture, Tailwind CSS design tokens, reusable web components, and SEO standards.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    :root {
+      --navy:      #051B38;
+      --orange:    #FBA919;
+      --orange-dark:#D97706;
+      --lnavy:     #0A2E5C;
+      --slate:     #E2E8F0;
+      --sdark:     #64748B;
+      --white:     #FFFFFF;
+      --bg:        #F8FAFC;
+      --card-r:    18px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--navy);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    
+    /* Header (Half Light Mode) */
+    .global-header {
+      background: rgba(255, 255, 255, 0.95);
+      border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+      padding: 14px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 2px 10px rgba(5, 27, 56, 0.03);
+    }
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--navy);
+      font-weight: 800;
+      font-size: 1.25rem;
+    }
+    
+    .mobile-toggle {
+      display: none;
+      background: var(--navy);
+      color: var(--orange);
+      border: none;
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .header-nav { display: flex; align-items: center; gap: 8px; }
+    .h-link {
+      color: var(--sdark);
+      font-size: 0.83rem;
+      font-weight: 700;
+      text-decoration: none;
+      padding: 9px 16px;
+      border-radius: 10px;
+      transition: all 0.2s;
+    }
+    .h-link:hover { color: var(--navy); background: rgba(5, 27, 56, 0.05); }
+    .h-link.active { color: var(--navy); background: #FFF7ED; border: 1px solid #FFEDD5; }
+    .h-link.active i { color: var(--orange-dark); }
+
+    /* Hero (Half Light Mode) */
+    .page-hero {
+      background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 60%, #EEF2F6 100%);
+      color: var(--navy);
+      padding: 56px 24px 70px;
+      border-bottom: 1px solid var(--slate);
+    }
+    .hero-container { max-width: 1200px; margin: 0 auto; }
+    .badge {
+      display: inline-block;
+      background: #FFF7ED;
+      color: var(--orange-dark);
+      border: 1px solid #FFEDD5;
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      padding: 6px 16px;
+      border-radius: 100px;
+      margin-bottom: 16px;
+    }
+    .page-title { font-size: clamp(2rem, 4vw, 3.2rem); font-weight: 800; letter-spacing: -1px; margin-bottom: 14px; color: var(--navy); }
+    .page-desc { font-size: 1.05rem; color: var(--sdark); max-width: 700px; }
+
+    /* Layout */
+    .container { max-width: 1200px; margin: 0 auto; padding: 50px 24px 100px; }
+    .sec { margin-bottom: 60px; }
+    .sec-tag { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; color: var(--orange-dark); margin-bottom: 8px; }
+    .sec-title { font-size: 1.8rem; font-weight: 800; color: var(--navy); margin-bottom: 14px; }
+    .sec-body { font-size: 0.98rem; color: var(--sdark); max-width: 750px; margin-bottom: 24px; }
+
+    /* Code Block */
+    .code-block {
+      background: #0F172A;
+      color: #F8FAFC;
+      border-radius: 14px;
+      padding: 24px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      overflow-x: auto;
+      border: 1px solid #1E293B;
+      margin-bottom: 24px;
+    }
+
+    .code-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #94A3B8;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Live Preview Box */
+    .preview-box {
+      background: #fff;
+      border: 1px solid var(--slate);
+      border-radius: 16px;
+      padding: 28px;
+      margin-bottom: 20px;
+    }
+
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+    
+    .card {
+      background: #fff;
+      border: 1px solid var(--slate);
+      border-radius: 16px;
+      padding: 24px;
+    }
+
+    .check-list { list-style: none; }
+    .check-list li { margin-bottom: 10px; display: flex; gap: 10px; font-size: 0.9rem; }
+    .check-list i { color: #10B981; margin-top: 3px; }
+
+    footer { background: var(--navy); color: #fff; padding: 40px 24px; text-align: center; font-size: 0.82rem; color: rgba(255,255,255,0.6); }
+
+    @media (max-width: 768px) {
+      .global-header { padding: 12px 16px; }
+      .mobile-toggle { display: flex; }
+      .header-nav {
+        display: none;
+        flex-direction: column;
+        width: 100%;
+        margin-top: 14px;
+        padding-top: 14px;
+        border-top: 1px solid var(--slate);
+        gap: 8px;
+      }
+      .header-nav.open { display: flex; }
+      .h-link { width: 100%; padding: 10px 14px; }
+      .container { padding: 32px 16px 80px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="global-header">
+    <div class="header-inner">
+      <a href="/brand/index.html" class="brand-logo">
+        <svg width="26" height="26" viewBox="0 0 100 100">
+          <path fill="#FBA919" d="M20 10 L50 70 L80 10 L100 10 L50 100 L0 10 Z"/>
+          <rect fill="#FBA919" x="42" y="10" width="16" height="30"/>
+        </svg>
+        <span>vylex<em style="color:var(--orange);font-style:normal;">.</em></span>
+      </a>
+
+      <button class="mobile-toggle" id="menu-toggle" aria-label="Toggle navigation menu">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+
+      <nav class="header-nav" id="header-nav">
+        <a href="/brand/index.html" class="h-link"><i class="fa-solid fa-compass"></i> Brand Hub</a>
+        <a href="/brand/website.html" class="h-link active"><i class="fa-solid fa-globe"></i> Website Guide</a>
+        <a href="/brand/projects.html" class="h-link"><i class="fa-solid fa-code"></i> Projects &amp; Software</a>
+        <a href="/brand/creative.html" class="h-link"><i class="fa-solid fa-palette"></i> Creative &amp; Social</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="page-hero">
+    <div class="hero-container">
+      <span class="badge">Website Guidelines</span>
+      <h1 class="page-title">Building Pages for Vylex.co.za</h1>
+      <p class="page-desc">
+        A complete technical and visual specification for engineers and designers building new pages or sections on the official Vylex website.
+      </p>
+    </div>
+  </section>
+
+  <!-- MAIN -->
+  <main class="container">
+
+    <!-- 01 ARCHITECTURE -->
+    <section class="sec">
+      <div class="sec-tag">01 — Page Architecture</div>
+      <h2 class="sec-title">Standard Page Layout Structure</h2>
+      <p class="sec-body">
+        Every page on <code>vylex.co.za</code> follows a strict semantic hierarchy. This ensures predictable user navigation, fast page loads, and uniform accessibility across mobile and desktop devices.
+      </p>
+
+      <div class="code-block">
+        <div class="code-title"><span>HTML Layout Blueprint</span><span>vylex-page-template.html</span></div>
+<pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+  &lt;title&gt;[Page Title] | Vylex Technologies&lt;/title&gt;
+  &lt;meta name="description" content="[Compelling meta description matching brand voice]"&gt;
+  
+  &lt;!-- Tailwind CSS &amp; Font Awesome --&gt;
+  &lt;script src="https://cdn.tailwindcss.com"&gt;&lt;/script&gt;
+  &lt;link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"&gt;
+&lt;/head&gt;
+&lt;body class="bg-gray-50 text-brand-navy font-sans antialiased"&gt;
+
+  &lt;!-- 1. Global Navigation Header --&gt;
+  &lt;div id="header-placeholder"&gt;&lt;/div&gt;
+
+  &lt;!-- 2. Hero Section --&gt;
+  &lt;section class="relative pt-32 pb-20 bg-brand-navy text-white overflow-hidden"&gt;
+    &lt;div class="max-w-7xl mx-auto px-6 text-center"&gt;
+      &lt;h1 class="text-4xl lg:text-6xl font-extrabold mb-6"&gt;[Page H1 Title]&lt;/h1&gt;
+      &lt;p class="text-xl text-gray-300 max-w-2xl mx-auto mb-8"&gt;[Sub-headline]&lt;/p&gt;
+    &lt;/div&gt;
+  &lt;/section&gt;
+
+  &lt;!-- 3. Main Content Sections --&gt;
+  &lt;main class="max-w-7xl mx-auto px-6 py-20"&gt;
+    &lt;!-- Feature Grids / Pain Point Blocks / Details --&gt;
+  &lt;/main&gt;
+
+  &lt;!-- 4. Global Footer --&gt;
+  &lt;div id="footer-placeholder"&gt;&lt;/div&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+      </div>
+    </section>
+
+    <!-- 02 TAILWIND & CSS TOKENS -->
+    <section class="sec">
+      <div class="sec-tag">02 — Design Tokens</div>
+      <h2 class="sec-title">Tailwind CSS Classes &amp; Variables</h2>
+      <p class="sec-body">
+        Use these standard Tailwind configuration tokens and custom utility classes across all website HTML pages:
+      </p>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3 style="font-size:1.05rem;font-weight:800;margin-bottom:12px;color:var(--navy);">Color Tokens</h3>
+          <ul class="check-list">
+            <li><i class="fa-solid fa-check"></i> <code>bg-brand-navy</code> (#051B38) — Main dark headers &amp; hero sections</li>
+            <li><i class="fa-solid fa-check"></i> <code>bg-brand-orange</code> (#FBA919) — High priority CTA buttons &amp; badges</li>
+            <li><i class="fa-solid fa-check"></i> <code>text-brand-orange</code> (#FBA919) — Highlighted text spans &amp; icons</li>
+            <li><i class="fa-solid fa-check"></i> <code>border-brand-orange</code> (#FBA919) — Focus rings &amp; active borders</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3 style="font-size:1.05rem;font-weight:800;margin-bottom:12px;color:var(--navy);">UI &amp; Utility Tokens</h3>
+          <ul class="check-list">
+            <li><i class="fa-solid fa-check"></i> <code>rounded-2xl</code> (16px - 18px) — Card corners</li>
+            <li><i class="fa-solid fa-check"></i> <code>shadow-xl hover:-translate-y-1</code> — Hover lift animation for cards</li>
+            <li><i class="fa-solid fa-check"></i> <code>focus-ring</code> — Accessible outline glow for interactive elements</li>
+            <li><i class="fa-solid fa-check"></i> <code>backdrop-blur-md</code> — Glassmorphic modal &amp; navigation bar overlays</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 03 PRE-BUILT COMPONENTS -->
+    <section class="sec">
+      <div class="sec-tag">03 — Reusable Components</div>
+      <h2 class="sec-title">Standard Website UI Components</h2>
+      <p class="sec-body">
+        Interactive preview and copyable code for primary website UI blocks:
+      </p>
+
+      <!-- Component 1: Primary Action Button -->
+      <h3 style="font-size:1.05rem;font-weight:800;margin-bottom:12px;">Primary CTA Button</h3>
+      <div class="preview-box">
+        <button style="background:#FBA919;color:#051B38;font-weight:800;padding:14px 28px;border-radius:12px;border:none;cursor:pointer;font-size:0.92rem;display:inline-flex;align-items:center;gap:10px;box-shadow:0 10px 20px rgba(251,169,25,0.25);">
+          Schedule Free Strategy Call <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </div>
+
+      <div class="code-block">
+        <div class="code-title"><span>CTA Button Code</span><span>HTML</span></div>
+<pre><code>&lt;a href="/contact" class="px-8 py-4 bg-brand-orange text-brand-navy font-extrabold rounded-xl hover:bg-white transition-all shadow-lg shadow-orange-500/20 inline-flex items-center gap-3"&gt;
+  Schedule Free Strategy Call &lt;i class="fa-solid fa-arrow-right"&gt;&lt;/i&gt;
+&lt;/a&gt;</code></pre>
+      </div>
+
+      <!-- Component 2: Feature Card -->
+      <h3 style="font-size:1.05rem;font-weight:800;margin-bottom:12px;margin-top:28px;">Feature Grid Card</h3>
+      <div class="preview-box">
+        <div style="background:#fff;border:1px solid #E2E8F0;border-radius:18px;padding:28px;max-width:380px;box-shadow:0 10px 24px rgba(5,27,56,0.06);">
+          <div style="width:48px;height:48px;border-radius:12px;background:#051B38;color:#FBA919;display:flex;align-items:center;justify-content:center;font-size:1.2rem;margin-bottom:18px;">
+            <i class="fa-solid fa-gears"></i>
+          </div>
+          <h4 style="font-size:1.15rem;font-weight:800;color:#051B38;margin-bottom:8px;">Workflow Automation</h4>
+          <p style="font-size:0.88rem;color:#64748B;line-height:1.6;">Eliminate repetitive manual tasks with custom software integration tailored to your operations.</p>
+        </div>
+      </div>
+
+      <div class="code-block">
+        <div class="code-title"><span>Feature Card HTML</span><span>HTML</span></div>
+<pre><code>&lt;div class="p-8 rounded-2xl border border-gray-100 bg-white shadow-lg shadow-gray-200/50 hover:border-brand-orange transition-all hover:-translate-y-1"&gt;
+  &lt;div class="w-12 h-12 bg-brand-navy rounded-xl flex items-center justify-center text-brand-orange text-xl mb-6"&gt;
+    &lt;i class="fa-solid fa-gears"&gt;&lt;/i&gt;
+  &lt;/div&gt;
+  &lt;h3 class="text-xl font-bold text-brand-navy mb-3"&gt;Workflow Automation&lt;/h3&gt;
+  &lt;p class="text-gray-600 text-sm leading-relaxed"&gt;Eliminate repetitive manual tasks with custom software integration.&lt;/p&gt;
+&lt;/div&gt;</code></pre>
+      </div>
+
+    </section>
+
+    <!-- 04 SEO & ACCESSIBILITY CHECKLIST -->
+    <section class="sec">
+      <div class="sec-tag">04 — Verification</div>
+      <h2 class="sec-title">SEO &amp; Quality Checklist</h2>
+      <div class="card">
+        <ul class="check-list">
+          <li><i class="fa-solid fa-circle-check"></i> <strong>Single H1 Tag</strong>: Every page must have exactly one <code>&lt;h1&gt;</code> element in the hero section.</li>
+          <li><i class="fa-solid fa-circle-check"></i> <strong>Meta Description</strong>: High-impact summary under 160 characters.</li>
+          <li><i class="fa-solid fa-circle-check"></i> <strong>Unique IDs</strong>: Ensure all interactive buttons, inputs, and sections have unique IDs for automated testing.</li>
+          <li><i class="fa-solid fa-circle-check"></i> <strong>WCAG AA Contrast</strong>: Text on Vylex Orange background must use Vylex Navy (<code>#051B38</code>) text, never white.</li>
+        </ul>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="brand-footer">
+    <div class="footer-inner">
+      <a href="/" class="brand-logo" style="color:#fff;">
+        <svg width="28" height="28" viewBox="0 0 100 100">
+          <path fill="#FBA919" d="M20 10 L50 70 L80 10 L100 10 L50 100 L0 10 Z"/>
+          <rect fill="#FBA919" x="42" y="10" width="16" height="30"/>
+        </svg>
+        <span>vylex<span style="color:#FBA919;">.</span></span>
+      </a>
+      <div class="foot-text">
+        © 2026 Vylex (Pty) Ltd t/a Vylex Technologies — Website Guidelines<br>
+        Brand System &amp; Design Architecture inquiries: <strong>brand@vylex.co.za</strong>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const menuToggle = document.getElementById('menu-toggle');
+    const headerNav = document.getElementById('header-nav');
+
+    if (menuToggle && headerNav) {
+      menuToggle.addEventListener('click', () => {
+        headerNav.classList.toggle('open');
+        const icon = menuToggle.querySelector('i');
+        if (icon) {
+          icon.className = headerNav.classList.contains('open') ? 'fa-solid fa-xmark' : 'fa-solid fa-bars';
+        }
+      });
+    }
+  </script>
+
+</body>
+</html>

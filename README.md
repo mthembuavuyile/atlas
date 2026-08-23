@@ -13,7 +13,7 @@ A premium multi-model AI chat workspace with real-time SSE streaming, chain-of-t
 - **Chain-of-Thought Inspector** — Structured `<think>` tag reasoning display
 - **Artifacts Canvas** — Split-screen code viewer with syntax highlighting & live HTML preview
 - **Auto-Naming** — AI-generated conversation titles (Claude/ChatGPT style)
-- **Three Visual Themes** — Gemini Slate, Claude Obsidian, ChatGPT Carbon
+- **Three Visual Themes** — Vylex, Obsidian, Carbon
 - **System Persona Presets** — Full-Stack, Architect, Deep Thinker, Concise Coder
 - **File Attachments** — Drag & drop code files into prompts
 - **Export** — Download conversations as Markdown or JSON

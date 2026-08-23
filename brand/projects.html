@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vylex Project &amp; Software Guidelines | Product UI System</title>
+  <meta name="description" content="Official UI design system and engineering guidelines for building Vylex software products, SaaS applications, custom business tools, and client dashboards.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    :root {
+      --navy:   #051B38;
+      --orange: #FBA919;
+      --orange-dark:#D97706;
+      --lnavy:  #0A2E5C;
+      --slate:  #E2E8F0;
+      --sdark:  #64748B;
+      --white:  #FFFFFF;
+      --bg:     #F8FAFC;
+      --red:    #EF4444;
+      --green:  #10B981;
+      --r:      18px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--navy);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    
+    .global-header {
+      background: rgba(255, 255, 255, 0.95);
+      border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+      padding: 14px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 2px 10px rgba(5, 27, 56, 0.03);
+    }
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--navy);
+      font-weight: 800;
+      font-size: 1.25rem;
+    }
+
+    .mobile-toggle {
+      display: none;
+      background: var(--navy);
+      color: var(--orange);
+      border: none;
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .header-nav { display: flex; align-items: center; gap: 8px; }
+    .h-link {
+      color: var(--sdark);
+      font-size: 0.83rem;
+      font-weight: 700;
+      text-decoration: none;
+      padding: 9px 16px;
+      border-radius: 10px;
+      transition: all 0.2s;
+    }
+    .h-link:hover { color: var(--navy); background: rgba(5, 27, 56, 0.05); }
+    .h-link.active { color: var(--navy); background: #FFF7ED; border: 1px solid #FFEDD5; }
+    .h-link.active i { color: var(--orange-dark); }
+
+    .page-hero {
+      background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 60%, #EEF2F6 100%);
+      color: var(--navy);
+      padding: 56px 24px 70px;
+      border-bottom: 1px solid var(--slate);
+    }
+    .hero-container { max-width: 1200px; margin: 0 auto; }
+    .badge {
+      display: inline-block;
+      background: #FFF7ED;
+      color: var(--orange-dark);
+      border: 1px solid #FFEDD5;
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      padding: 6px 16px;
+      border-radius: 100px;
+      margin-bottom: 16px;
+    }
+    .page-title { font-size: clamp(2rem, 4vw, 3.2rem); font-weight: 800; letter-spacing: -1px; margin-bottom: 14px; color: var(--navy); }
+    .page-desc { font-size: 1.05rem; color: var(--sdark); max-width: 700px; }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 50px 24px 100px; }
+    .sec { margin-bottom: 60px; scroll-margin-top: 100px; }
+    .sec-tag { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; color: var(--orange-dark); margin-bottom: 8px; }
+    .sec-title { font-size: 1.8rem; font-weight: 800; color: var(--navy); margin-bottom: 14px; }
+    .sec-body { font-size: 0.98rem; color: var(--sdark); max-width: 750px; margin-bottom: 24px; }
+
+    .card {
+      background: #fff;
+      border: 1px solid var(--slate);
+      border-radius: var(--r);
+      padding: 28px;
+      margin-bottom: 20px;
+    }
+
+    .btn-group { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 16px; }
+    .btn {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 700;
+      font-size: 0.88rem;
+      padding: 12px 20px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-primary { background: var(--orange); color: var(--navy); }
+    .btn-primary:hover { background: #e09612; }
+    .btn-navy { background: var(--navy); color: #fff; }
+    .btn-navy:hover { background: var(--lnavy); }
+    .btn-secondary { background: var(--bg); color: var(--navy); border: 1px solid var(--slate); }
+    .btn-secondary:hover { background: var(--slate); }
+    .btn-danger { background: #FEF2F2; color: var(--red); border: 1px solid #FCA5A5; }
+    .btn-danger:hover { background: var(--red); color: #fff; }
+
+    .badge-group { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .p-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 100px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    .p-badge-dot { width: 6px; height: 6px; border-radius: 50%; }
+    
+    .b-orange { background: rgba(251, 169, 25, 0.15); color: #B47300; }
+    .b-orange .p-badge-dot { background: #B47300; }
+    .b-green { background: #ECFDF5; color: #047857; }
+    .b-green .p-badge-dot { background: #047857; }
+    .b-red { background: #FEF2F2; color: #B91C1C; }
+    .b-red .p-badge-dot { background: #B91C1C; }
+    .b-navy { background: rgba(5, 27, 56, 0.08); color: var(--navy); }
+    .b-navy .p-badge-dot { background: var(--navy); }
+
+    .alert {
+      padding: 14px 18px;
+      border-radius: 12px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      font-size: 0.88rem;
+      margin-bottom: 12px;
+    }
+    .alert-icon { font-size: 1rem; }
+    .a-info { background: #F0F9FF; border: 1px solid #BAE6FD; color: #0369A1; }
+    .a-success { background: #ECFDF5; border: 1px solid #A7F3D0; color: #047857; }
+    .a-warning { background: #FFFBEB; border: 1px solid #FDE68A; color: #B45309; }
+    .a-error { background: #FEF2F2; border: 1px solid #FCA5A5; color: #B91C1C; }
+
+    .form-group { margin-bottom: 16px; max-width: 440px; }
+    .form-label { display: block; font-size: 0.8rem; font-weight: 700; color: var(--navy); margin-bottom: 6px; }
+    .form-input {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: 1px solid var(--slate);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.88rem;
+      outline: none;
+      transition: border 0.2s;
+    }
+    .form-input:focus { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(251, 169, 25, 0.2); }
+    .form-hint { font-size: 0.75rem; color: var(--sdark); margin-top: 4px; }
+
+    .motion-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+    .m-card {
+      background: var(--bg);
+      border: 1px solid var(--slate);
+      border-radius: 12px;
+      padding: 18px;
+    }
+    .m-title { font-size: 0.82rem; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+    .m-val { font-family: 'Fira Code', monospace; font-size: 0.78rem; color: var(--orange-dark); margin-bottom: 6px; }
+    .m-desc { font-size: 0.76rem; color: var(--sdark); }
+
+    footer { background: var(--navy); color: #fff; padding: 40px 24px; text-align: center; font-size: 0.82rem; color: rgba(255,255,255,0.6); }
+
+    @media (max-width: 768px) {
+      .global-header { padding: 12px 16px; }
+      .mobile-toggle { display: flex; }
+      .header-nav {
+        display: none;
+        flex-direction: column;
+        width: 100%;
+        margin-top: 14px;
+        padding-top: 14px;
+        border-top: 1px solid var(--slate);
+        gap: 8px;
+      }
+      .header-nav.open { display: flex; }
+      .h-link { width: 100%; padding: 10px 14px; }
+      .container { padding: 32px 16px 80px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="global-header">
+    <div class="header-inner">
+      <a href="/brand/index.html" class="brand-logo">
+        <svg width="26" height="26" viewBox="0 0 100 100">
+          <path fill="#FBA919" d="M20 10 L50 70 L80 10 L100 10 L50 100 L0 10 Z"/>
+          <rect fill="#FBA919" x="42" y="10" width="16" height="30"/>
+        </svg>
+        <span>vylex<em style="color:var(--orange);font-style:normal;">.</em></span>
+      </a>
+
+      <button class="mobile-toggle" id="menu-toggle" aria-label="Toggle navigation menu">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+
+      <nav class="header-nav" id="header-nav">
+        <a href="/brand/index.html" class="h-link"><i class="fa-solid fa-compass"></i> Brand Hub</a>
+        <a href="/brand/website.html" class="h-link"><i class="fa-solid fa-globe"></i> Website Guide</a>
+        <a href="/brand/projects.html" class="h-link active"><i class="fa-solid fa-code"></i> Projects &amp; Software</a>
+        <a href="/brand/creative.html" class="h-link"><i class="fa-solid fa-palette"></i> Creative &amp; Social</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="page-hero">
+    <div class="hero-container">
+      <span class="badge">Software Engineering</span>
+      <h1 class="page-title">Project &amp; SaaS Application UI Guidelines</h1>
+      <p class="page-desc">
+        Comprehensive UI patterns, component standards, and design variables for engineering software applications, client platforms, and internal business systems.
+      </p>
+    </div>
+  </section>
+
+  <main class="container">
+
+    <!-- 01 DESIGN TOKENS -->
+    <section class="sec">
+      <div class="sec-tag">01 — CSS Variables</div>
+      <h2 class="sec-title">Core Application Design Tokens</h2>
+      <p class="sec-body">
+        All software projects built under Vylex must include these CSS custom properties in the root style file:
+      </p>
+      
+      <div class="card" style="background:#0F172A;color:#F8FAFC;font-family:'Fira Code',monospace;font-size:0.85rem;line-height:1.7;">
+        <div style="color:#94A3B8;margin-bottom:10px;">/* Vylex Product UI CSS Variables */</div>
+        <div>:root {</div>
+        <div style="padding-left:20px;"><span style="color:#FBA919;">--navy:</span> #051B38; <span style="color:#64748B;">/* Primary dark surface &amp; app background */</span></div>
+        <div style="padding-left:20px;"><span style="color:#FBA919;">--orange:</span> #FBA919; <span style="color:#64748B;">/* Accent &amp; primary active elements */</span></div>
+        <div style="padding-left:20px;"><span style="color:#FBA919;">--lnavy:</span> #0A2E5C; <span style="color:#64748B;">/* Secondary dark surface / hover states */</span></div>
+        <div style="padding-left:20px;"><span style="color:#FBA919;">--slate:</span> #E2E8F0; <span style="color:#64748B;">/* Input outlines &amp; table borders */</span></div>
+        <div style="padding-left:20px;"><span style="color:#FBA919;">--sdark:</span> #64748B; <span style="color:#64748B;">/* Muted secondary body text */</span></div>
+        <div style="padding-left:20px;"><span style="color:#FBA919;">--green:</span> #10B981; <span style="color:#64748B;">/* Success badges &amp; online status */</span></div>
+        <div style="padding-left:20px;"><span style="color:#FBA919;">--red:</span> #EF4444; <span style="color:#64748B;">/* Error states &amp; destructive actions */</span></div>
+        <div style="padding-left:20px;"><span style="color:#FBA919;">--r:</span> 18px; <span style="color:#64748B;">/* Standard card border-radius */</span></div>
+        <div>}</div>
+      </div>
+    </section>
+
+    <!-- 02 UI COMPONENTS -->
+    <section class="sec">
+      <div class="sec-tag">02 — UI Library</div>
+      <h2 class="sec-title">Standard Application Components</h2>
+
+      <div class="card">
+        <h3 style="font-size:1.05rem;font-weight:800;margin-bottom:14px;">1. Button System</h3>
+        <div class="btn-group">
+          <button class="btn btn-primary"><i class="fa-solid fa-play"></i> Execute Process</button>
+          <button class="btn btn-navy"><i class="fa-solid fa-plus"></i> New Project</button>
+          <button class="btn btn-secondary"><i class="fa-solid fa-download"></i> Export Data</button>
+          <button class="btn btn-danger"><i class="fa-solid fa-trash"></i> Delete Instance</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="font-size:1.05rem;font-weight:800;margin-bottom:14px;">2. Status Badges</h3>
+        <div class="badge-group">
+          <span class="p-badge b-green"><span class="p-badge-dot"></span> System Live</span>
+          <span class="p-badge b-orange"><span class="p-badge-dot"></span> In Progress</span>
+          <span class="p-badge b-navy"><span class="p-badge-dot"></span> Draft</span>
+          <span class="p-badge b-red"><span class="p-badge-dot"></span> Build Failed</span>
+          <span class="p-badge b-orange">Beta v2.4</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="font-size:1.05rem;font-weight:800;margin-bottom:14px;">3. Application Alerts</h3>
+        <div class="alert a-info">
+          <div class="alert-icon"><i class="fa-solid fa-circle-info"></i></div>
+          <div><strong>Scheduled Maintenance:</strong> Server maintenance scheduled for Sunday at 02:00 SAST.</div>
+        </div>
+        <div class="alert a-success">
+          <div class="alert-icon"><i class="fa-solid fa-circle-check"></i></div>
+          <div><strong>Deployment Complete:</strong> Software build #4092 is live on AWS SA-East.</div>
+        </div>
+        <div class="alert a-warning">
+          <div class="alert-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+          <div><strong>Quota Warning:</strong> API consumption reached 85% of monthly allocation.</div>
+        </div>
+        <div class="alert a-error">
+          <div class="alert-icon"><i class="fa-solid fa-circle-xmark"></i></div>
+          <div><strong>Connection Timeout:</strong> Failed to communicate with payment gateway endpoint.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="font-size:1.05rem;font-weight:800;margin-bottom:14px;">4. Form Inputs &amp; Validation</h3>
+        <div class="form-group">
+          <label class="form-label">Client API Endpoint</label>
+          <input type="text" class="form-input" value="https://api.vylex.co.za/v1/projects">
+          <div class="form-hint">Must begin with https://</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 03 MOTION -->
+    <section class="sec">
+      <div class="sec-tag">03 — Motion System</div>
+      <h2 class="sec-title">Transitions &amp; Micro-Animations</h2>
+      <p class="sec-body">
+        All transitions must feel crisp, intentional, and performant. Never use bouncy or distracting animations in production software tools.
+      </p>
+
+      <div class="motion-grid">
+        <div class="m-card">
+          <div class="m-title">Default State Change</div>
+          <div class="m-val">200ms ease</div>
+          <div class="m-desc">Button hovers, toggle switches, link highlights.</div>
+        </div>
+        <div class="m-card">
+          <div class="m-title">Modal / Drawer Enter</div>
+          <div class="m-val">300ms ease-out</div>
+          <div class="m-desc">Slide-over panels and modal dialog appearances.</div>
+        </div>
+        <div class="m-card">
+          <div class="m-title">Dismiss / Exit</div>
+          <div class="m-val">150ms ease-in</div>
+          <div class="m-desc">Closing notifications, removing rows.</div>
+        </div>
+        <div class="m-card">
+          <div class="m-title">Card Lift Interaction</div>
+          <div class="m-val">translateY(-4px)</div>
+          <div class="m-desc">Interactive dashboard metric card hover.</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="brand-footer">
+    <div class="footer-inner">
+      <a href="/" class="brand-logo" style="color:#fff;">
+        <svg width="28" height="28" viewBox="0 0 100 100">
+          <path fill="#FBA919" d="M20 10 L50 70 L80 10 L100 10 L50 100 L0 10 Z"/>
+          <rect fill="#FBA919" x="42" y="10" width="16" height="30"/>
+        </svg>
+        <span>vylex<span style="color:#FBA919;">.</span></span>
+      </a>
+      <div class="foot-text">
+        © 2026 Vylex (Pty) Ltd t/a Vylex Technologies — Project &amp; SaaS Guidelines<br>
+        Brand System &amp; Design Architecture inquiries: <strong>brand@vylex.co.za</strong>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const menuToggle = document.getElementById('menu-toggle');
+    const headerNav = document.getElementById('header-nav');
+
+    if (menuToggle && headerNav) {
+      menuToggle.addEventListener('click', () => {
+        headerNav.classList.toggle('open');
+        const icon = menuToggle.querySelector('i');
+        if (icon) {
+          icon.className = headerNav.classList.contains('open') ? 'fa-solid fa-xmark' : 'fa-solid fa-bars';
+        }
+      });
+    }
+  </script>
+
+</body>
+</html>

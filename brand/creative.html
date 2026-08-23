@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vylex Creative &amp; Social Guidelines | Marketing &amp; Visual Design Blueprint</title>
+  <meta name="description"
+    content="Official creative design standards and social media blueprints for Vylex Technologies — governing Instagram, LinkedIn, X/Twitter assets, QR code rules, and marketing templates.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=Fira+Code:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --navy: #051B38;
+      --orange: #FBA919;
+      --orange-dark: #D97706;
+      --lnavy: #0A2E5C;
+      --slate: #E2E8F0;
+      --sdark: #64748B;
+      --white: #FFFFFF;
+      --bg: #F8FAFC;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--navy);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .global-header {
+      background: rgba(255, 255, 255, 0.95);
+      border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+      padding: 14px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 2px 10px rgba(5, 27, 56, 0.03);
+    }
+
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--navy);
+      font-weight: 800;
+      font-size: 1.25rem;
+    }
+
+    .mobile-toggle {
+      display: none;
+      background: var(--navy);
+      color: var(--orange);
+      border: none;
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .header-nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .h-link {
+      color: var(--sdark);
+      font-size: 0.83rem;
+      font-weight: 700;
+      text-decoration: none;
+      padding: 9px 16px;
+      border-radius: 10px;
+      transition: all 0.2s;
+    }
+
+    .h-link:hover {
+      color: var(--navy);
+      background: rgba(5, 27, 56, 0.05);
+    }
+
+    .h-link.active {
+      color: var(--navy);
+      background: #FFF7ED;
+      border: 1px solid #FFEDD5;
+    }
+
+    .h-link.active i {
+      color: var(--orange-dark);
+    }
+
+    .page-hero {
+      background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 60%, #EEF2F6 100%);
+      color: var(--navy);
+      padding: 56px 24px 70px;
+      border-bottom: 1px solid var(--slate);
+    }
+
+    .hero-container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .badge {
+      display: inline-block;
+      background: #FFF7ED;
+      color: var(--orange-dark);
+      border: 1px solid #FFEDD5;
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      padding: 6px 16px;
+      border-radius: 100px;
+      margin-bottom: 16px;
+    }
+
+    .page-title {
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      font-weight: 800;
+      letter-spacing: -1px;
+      margin-bottom: 14px;
+      color: var(--navy);
+    }
+
+    .page-desc {
+      font-size: 1.05rem;
+      color: var(--sdark);
+      max-width: 700px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 50px 24px 100px;
+    }
+
+    .sec {
+      margin-bottom: 60px;
+    }
+
+    .sec-tag {
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--orange-dark);
+      margin-bottom: 8px;
+    }
+
+    .sec-title {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--navy);
+      margin-bottom: 14px;
+    }
+
+    .sec-body {
+      font-size: 0.98rem;
+      color: var(--sdark);
+      max-width: 750px;
+      margin-bottom: 24px;
+    }
+
+    .post-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+    }
+
+    .social-card {
+      aspect-ratio: 1/1;
+      border-radius: 18px;
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 12px 32px rgba(5, 27, 56, 0.06);
+      border: 1px solid var(--slate);
+    }
+
+    .social-card.navy {
+      background: var(--navy);
+      color: #fff;
+    }
+
+    .social-card.white {
+      background: #fff;
+      color: var(--navy);
+    }
+
+    .social-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    .social-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 800;
+      font-size: 1.05rem;
+    }
+
+    .social-tag {
+      font-size: 0.68rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--orange);
+    }
+
+    .social-headline {
+      font-size: 1.4rem;
+      font-weight: 800;
+      line-height: 1.25;
+      letter-spacing: -0.5px;
+      margin-bottom: 10px;
+    }
+
+    .social-sub {
+      font-size: 0.85rem;
+      opacity: 0.8;
+      line-height: 1.5;
+    }
+
+    .social-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      padding-top: 14px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .social-card.white .social-bottom {
+      border-top-color: var(--slate);
+    }
+
+    .social-cta {
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--orange);
+    }
+
+    .social-card.white .social-cta {
+      color: var(--navy);
+    }
+
+    .ratio-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--slate);
+    }
+
+    .ratio-table th,
+    .ratio-table td {
+      padding: 14px 18px;
+      text-align: left;
+      border-bottom: 1px solid var(--slate);
+      font-size: 0.88rem;
+    }
+
+    .ratio-table th {
+      background: var(--navy);
+      color: #fff;
+      font-weight: 700;
+    }
+
+    .ratio-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    footer {
+      background: var(--navy);
+      color: #fff;
+      padding: 40px 24px;
+      text-align: center;
+      font-size: 0.82rem;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    @media (max-width: 768px) {
+      .global-header {
+        padding: 12px 16px;
+      }
+
+      .mobile-toggle {
+        display: flex;
+      }
+
+      .header-nav {
+        display: none;
+        flex-direction: column;
+        width: 100%;
+        margin-top: 14px;
+        padding-top: 14px;
+        border-top: 1px solid var(--slate);
+        gap: 8px;
+      }
+
+      .header-nav.open {
+        display: flex;
+      }
+
+      .h-link {
+        width: 100%;
+        padding: 10px 14px;
+      }
+
+      .container {
+        padding: 32px 16px 80px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header class="global-header">
+    <div class="header-inner">
+      <a href="/brand/index.html" class="brand-logo">
+        <svg width="26" height="26" viewBox="0 0 100 100">
+          <path fill="#FBA919" d="M20 10 L50 70 L80 10 L100 10 L50 100 L0 10 Z" />
+          <rect fill="#FBA919" x="42" y="10" width="16" height="30" />
+        </svg>
+        <span>vylex<em style="color:var(--orange);font-style:normal;">.</em></span>
+      </a>
+
+      <button class="mobile-toggle" id="menu-toggle" aria-label="Toggle navigation menu">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+
+      <nav class="header-nav" id="header-nav">
+        <a href="/brand/index.html" class="h-link"><i class="fa-solid fa-compass"></i> Brand Hub</a>
+        <a href="/brand/website.html" class="h-link"><i class="fa-solid fa-globe"></i> Website Guide</a>
+        <a href="/brand/projects.html" class="h-link"><i class="fa-solid fa-code"></i> Projects &amp; Software</a>
+        <a href="/brand/creative.html" class="h-link active"><i class="fa-solid fa-palette"></i> Creative &amp;
+          Social</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="page-hero">
+    <div class="hero-container">
+      <span class="badge">Creative &amp; Marketing</span>
+      <h1 class="page-title">Social Media &amp; Creative Blueprints</h1>
+      <p class="page-desc">
+        Visual design templates, aspect ratio specifications, logo placement rules, and export requirements for
+        marketing campaigns, LinkedIn, Instagram, X/Twitter, and print media.
+      </p>
+    </div>
+  </section>
+
+  <main class="container">
+
+    <!-- 01 ASPECT RATIOS & SPECS -->
+    <section class="sec">
+      <div class="sec-tag">01 — Aspect Ratios</div>
+      <h2 class="sec-title">Social Platform Specifications</h2>
+      <p class="sec-body">
+        Always format creative assets according to target platform dimensions:
+      </p>
+
+      <div style="overflow-x:auto;">
+        <table class="ratio-table">
+          <thead>
+            <tr>
+              <th>Platform</th>
+              <th>Format / Placement</th>
+              <th>Aspect Ratio</th>
+              <th>Pixel Dimensions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Instagram / LinkedIn</strong></td>
+              <td>Square Post Card</td>
+              <td>1:1</td>
+              <td>1080 × 1080 px</td>
+            </tr>
+            <tr>
+              <td><strong>Instagram Feed</strong></td>
+              <td>Portrait Card</td>
+              <td>4:5</td>
+              <td>1080 × 1350 px</td>
+            </tr>
+            <tr>
+              <td><strong>LinkedIn / Facebook</strong></td>
+              <td>Landscape Banner / Link Preview</td>
+              <td>16:9</td>
+              <td>1200 × 675 px</td>
+            </tr>
+            <tr>
+              <td><strong>Instagram Story / Reels</strong></td>
+              <td>Full Vertical</td>
+              <td>9:16</td>
+              <td>1080 × 1920 px</td>
+            </tr>
+            <tr>
+              <td><strong>Twitter / X</strong></td>
+              <td>Header Banner</td>
+              <td>3:1</td>
+              <td>1500 × 500 px</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 02 LIVE POST TEMPLATES -->
+    <section class="sec">
+      <div class="sec-tag">02 — Post Blueprints</div>
+      <h2 class="sec-title">Approved Post Card Layouts</h2>
+      <p class="sec-body">
+        Rendered examples of official Vylex social post blueprints:
+      </p>
+
+      <div class="post-grid">
+
+        <!-- Post Template 1: Dark Service Spotlight -->
+        <div class="social-card navy">
+          <div class="social-top">
+            <div class="social-logo">
+              <svg width="22" height="22" viewBox="0 0 100 100">
+                <path fill="#FBA919" d="M20 10 L50 70 L80 10 L100 10 L50 100 L0 10 Z" />
+                <rect fill="#FBA919" x="42" y="10" width="16" height="30" />
+              </svg>
+              <span>vylex<em style="color:var(--orange);font-style:normal;">.</em></span>
+            </div>
+            <span class="social-tag">Service Spotlight</span>
+          </div>
+
+          <div>
+            <h3 class="social-headline">Stop trading time for manual business work.</h3>
+            <p class="social-sub">Custom workflow automation &amp; enterprise SaaS built for South African businesses.
+            </p>
+          </div>
+
+          <div class="social-bottom">
+            <span class="social-cta">Learn More →</span>
+            <span style="font-size:0.75rem;opacity:0.6;">vylex.co.za</span>
+          </div>
+        </div>
+
+        <!-- Post Template 2: Light Product Highlight -->
+        <div class="social-card white">
+          <div class="social-top">
+            <div class="social-logo">
+              <svg width="22" height="22" viewBox="0 0 100 100">
+                <path fill="#FBA919" d="M20 10 L50 70 L80 10 L100 10 L50 100 L0 10 Z" />
+                <rect fill="#FBA919" x="42" y="10" width="16" height="30" />
+              </svg>
+              <span>vylex<em style="color:var(--orange);font-style:normal;">.</em></span>
+            </div>
+            <span class="social-tag">Product Feature</span>
+          </div>
+
+          <div>
+            <h3 class="social-headline" style="color:var(--navy);">Instant QR Code Generator</h3>
+            <p class="social-sub" style="color:var(--sdark);">Generate branded, high-resolution vector QR codes in
+              seconds. Free to use.</p>
+          </div>
+
+          <div class="social-bottom">
+            <span class="social-cta">Try Free Tool →</span>
+            <span style="font-size:0.75rem;color:var(--sdark);">vylex.co.za/qr</span>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- 03 ASSET EXPORT & QR CODE -->
+    <section class="sec">
+      <div class="sec-tag">03 — Export Standards</div>
+      <h2 class="sec-title">Asset Export Specs &amp; QR Code Rules</h2>
+      <div class="post-grid">
+        <div class="social-card white" style="aspect-ratio:auto;padding:24px;">
+          <h3 style="font-weight:800;font-size:1.05rem;margin-bottom:12px;">Digital Export Specs</h3>
+          <ul style="list-style:none;font-size:0.86rem;color:var(--sdark);line-height:1.8;">
+            <li>• Format: PNG-24 (Graphics) or WebP (Photos)</li>
+            <li>• Color Space: sRGB</li>
+            <li>• Resolution: 72 DPI (Screen)</li>
+            <li>• Scale: 2x export for retina screens</li>
+          </ul>
+        </div>
+
+        <div class="social-card white" style="aspect-ratio:auto;padding:24px;">
+          <h3 style="font-weight:800;font-size:1.05rem;margin-bottom:12px;">Branded QR Code Specs</h3>
+          <ul style="list-style:none;font-size:0.86rem;color:var(--sdark);line-height:1.8;">
+            <li>• Module Color: Vylex Navy (<code>#051B38</code>)</li>
+            <li>• Foreground Accent: Vylex Orange (<code>#FBA919</code>)</li>
+            <li>• Quiet Zone: Minimum 4 modules margin</li>
+            <li>• Error Correction: Level M (15%) or H (30%)</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="brand-footer">
+    <div class="footer-inner">
+      <a href="/" class="brand-logo" style="color:#fff;">
+        <svg width="28" height="28" viewBox="0 0 100 100">
+          <path fill="#FBA919" d="M20 10 L50 70 L80 10 L100 10 L50 100 L0 10 Z" />
+          <rect fill="#FBA919" x="42" y="10" width="16" height="30" />
+        </svg>
+        <span>vylex<span style="color:#FBA919;">.</span></span>
+      </a>
+      <div class="foot-text">
+        © 2026 Vylex (Pty) Ltd t/a Vylex Technologies — Creative &amp; Social Media Guidelines<br>
+        Brand System &amp; Design Architecture inquiries: <strong>brand@vylex.co.za</strong>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const menuToggle = document.getElementById('menu-toggle');
+    const headerNav = document.getElementById('header-nav');
+
+    if (menuToggle && headerNav) {
+      menuToggle.addEventListener('click', () => {
+        headerNav.classList.toggle('open');
+        const icon = menuToggle.querySelector('i');
+        if (icon) {
+          icon.className = headerNav.classList.contains('open') ? 'fa-solid fa-xmark' : 'fa-solid fa-bars';
+        }
+      });
+    }
+  </script>
+
+</body>
+
+</html>

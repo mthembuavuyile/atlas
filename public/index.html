@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="gemini">
+<html lang="en" data-theme="vylex">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
   <title>Atlas — AI by Vylex Technologies</title>
   <meta name="description" content="Atlas is a premium multi-model AI workspace by Vylex Technologies. Real-time SSE streaming, frontier reasoning, and artifact rendering. vylex.co.za">
 
-  <!-- Google Fonts: Outfit, Plus Jakarta Sans, Lora, JetBrains Mono -->
+  <!-- Google Fonts: DM Sans, Outfit, Plus Jakarta Sans, Lora, JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800;1,9..40,400&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <!-- Highlight.js for code syntax highlighting -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css" id="hljsTheme">
@@ -31,10 +31,9 @@
       <div class="sidebar-header">
         <div class="brand">
           <div class="brand-mark">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-              <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
-              <polyline points="2 17 12 22 22 17"></polyline>
-              <polyline points="2 12 12 17 22 12"></polyline>
+            <svg width="18" height="18" viewBox="0 0 100 100">
+              <path fill="currentColor" d="M20 10 L50 70 L80 10 L100 10 L50 100 L0 10 Z"/>
+              <rect fill="currentColor" x="42" y="10" width="16" height="30"/>
             </svg>
           </div>
           <div class="brand-info">
@@ -148,19 +147,19 @@
         </div>
 
         <div class="nav-right">
-          <!-- Theme Switcher (Gemini, Claude, ChatGPT) -->
+          <!-- Theme Switcher (Vylex, Obsidian, Carbon) -->
           <div class="theme-switcher-group" title="Select Visual Archetype">
-            <button class="theme-btn active" data-theme-val="gemini" title="Gemini Slate (Deep Navy & Technical Precision)">
-              <span class="theme-dot dot-gemini"></span>
-              <span class="theme-label">Gemini</span>
+            <button class="theme-btn active" data-theme-val="vylex" title="Vylex Classic (Corporate Navy & Warm Orange)">
+              <span class="theme-dot dot-vylex"></span>
+              <span class="theme-label">Vylex</span>
             </button>
-            <button class="theme-btn" data-theme-val="claude" title="Claude Obsidian (Warm Espresso & Editorial Serif)">
-              <span class="theme-dot dot-claude"></span>
-              <span class="theme-label">Claude</span>
+            <button class="theme-btn" data-theme-val="obsidian" title="Obsidian (Warm Espresso & Editorial Serif)">
+              <span class="theme-dot dot-obsidian"></span>
+              <span class="theme-label">Obsidian</span>
             </button>
-            <button class="theme-btn" data-theme-val="chatgpt" title="ChatGPT Carbon (Minimalist Charcoal & Emerald)">
-              <span class="theme-dot dot-chatgpt"></span>
-              <span class="theme-label">ChatGPT</span>
+            <button class="theme-btn" data-theme-val="carbon" title="Carbon (Minimalist Charcoal & Emerald)">
+              <span class="theme-dot dot-carbon"></span>
+              <span class="theme-label">Carbon</span>
             </button>
           </div>
 
@@ -209,11 +208,13 @@
 
       <!-- MESSAGES FEED AREA -->
       <div class="messages-container" id="messagesContainer">
-        <!-- Technical Workspace Welcome Screen -->
+        <!-- Ultra-Minimal Welcome Screen -->
         <div class="welcome-screen" id="welcomeScreen">
-          <div class="hero-tech-label">
-            <span class="tech-dot"></span>
-            <span>Atlas AI · Vylex Technologies</span>
+          <div class="welcome-brand-logo">
+            <svg width="48" height="48" viewBox="0 0 100 100">
+              <path fill="var(--accent-primary)" d="M20 10 L50 70 L80 10 L100 10 L50 100 L0 10 Z"/>
+              <rect fill="var(--accent-primary)" x="42" y="10" width="16" height="30"/>
+            </svg>
           </div>
 
           <h1 class="welcome-heading">
@@ -221,76 +222,16 @@
           </h1>
           
           <p class="welcome-subtitle">
-            Engineered with real-time SSE streaming, <strong>1,048,576-token context window</strong>, structured chain-of-thought inspector, and side-by-side artifact rendering.
+            Atlas is a professional multi-model AI workspace for reasoning, systems architecture, and live artifact rendering, built by Vylex Technologies.
           </p>
 
-          <!-- Model Telemetry Card -->
-          <div class="model-banner-card" id="welcomeModelBanner">
-            <div class="banner-left">
-              <div class="banner-model-icon" id="bannerModelSvg">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>
-              </div>
-              <div>
-                <div class="banner-title" id="bannerModelTitle">openrouter/free</div>
-                <div class="banner-subtitle" id="bannerModelDesc">Smart free router with automatic dynamic model selection and reasoning support.</div>
-              </div>
-            </div>
-            <div class="banner-badge-free">AUTO ROUTER • FREE</div>
-          </div>
-
-          <!-- Structured Prompt Categories -->
-          <div class="prompt-category-bar">
-            <button class="cat-tab active" data-category="all">All Modules</button>
-            <button class="cat-tab" data-category="code">Architecture & Code</button>
-            <button class="cat-tab" data-category="reasoning">Logical Decomposition</button>
-            <button class="cat-tab" data-category="systems">Distributed Systems</button>
-            <button class="cat-tab" data-category="specs">Technical Specs</button>
-          </div>
-
-          <!-- Discovery Grid -->
-          <div class="discovery-grid" id="discoveryGrid">
-            <div class="prompt-card" data-cat="reasoning" data-prompt="Deconstruct the mathematical trade-offs between dense frontier reasoning architectures and mixture-of-experts (MoE) for multi-step agentic planning.">
-              <div class="card-icon-svg">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg>
-              </div>
-              <div class="card-title">Frontier Reasoning Trade-offs</div>
-              <div class="card-desc">Mathematical and architectural analysis of multi-step chain-of-thought verification.</div>
-              <div class="card-arrow">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-              </div>
-            </div>
-
-            <div class="prompt-card" data-cat="code" data-prompt="Write a production-grade resilient Node.js SSE streaming server with backpressure management, heartbeat disconnect detection, and health checks.">
-              <div class="card-icon-svg">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
-              </div>
-              <div class="card-title">Resilient Streaming Backend</div>
-              <div class="card-desc">Production Node.js service with backpressure handling and telemetry metrics.</div>
-              <div class="card-arrow">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-              </div>
-            </div>
-
-            <div class="prompt-card" data-cat="systems" data-prompt="Design an enterprise software architecture for an autonomous pair-programming agent with sandboxed code execution and artifact synchronization.">
-              <div class="card-icon-svg">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
-              </div>
-              <div class="card-title">Autonomous Agent Architecture</div>
-              <div class="card-desc">System blueprint for sandboxing, AST analysis, and bi-directional diffing.</div>
-              <div class="card-arrow">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-              </div>
-            </div>
-
-            <div class="prompt-card" data-cat="specs" data-prompt="Synthesize a comprehensive engineering specification for low-latency multi-canvas spatial user interfaces in developer tools.">
-              <div class="card-icon-svg">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-              </div>
-              <div class="card-title">Spatial UI Engineering Spec</div>
-              <div class="card-desc">Formal specification for multi-pane state synchronization and artifact inspectors.</div>
-              <div class="card-arrow">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-              </div>
+          <!-- Minimal Suggestions -->
+          <div class="welcome-suggestions">
+            <span class="suggestion-label">Suggested Workflows</span>
+            <div class="suggestion-pills">
+              <button class="prompt-card suggestion-pill" data-prompt="Analyze the mathematical trade-offs between dense reasoning models and MoE architectures.">MoE Reasoning Trade-offs</button>
+              <button class="prompt-card suggestion-pill" data-prompt="Write a production-grade Node.js SSE streaming server with backpressure management.">Node.js SSE Server</button>
+              <button class="prompt-card suggestion-pill" data-prompt="Design an enterprise software architecture for an autonomous pair-programming agent with sandboxed execution.">Autonomous Agent Sandbox</button>
             </div>
           </div>
         </div>

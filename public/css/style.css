@@ -7,19 +7,19 @@
    THEME DEFINITIONS & DESIGN TOKENS
    -------------------------------------------------------------------------- */
 
-:root, [data-theme="gemini"] {
-  --bg-app: #090d16;
-  --bg-sidebar: #0d1322;
-  --bg-card: #111827;
-  --bg-card-hover: #172238;
-  --bg-composer: #0e1526;
-  --bg-canvas: #0b101d;
-  --bg-code: #070b13;
+:root, [data-theme="vylex"] {
+  --bg-app: #051B38;
+  --bg-sidebar: #031227;
+  --bg-card: #0A2E5C;
+  --bg-card-hover: #0E3D7A;
+  --bg-composer: #0A2E5C;
+  --bg-canvas: #031227;
+  --bg-code: #020B18;
   
-  --accent-primary: #3b82f6;
-  --accent-secondary: #60a5fa;
-  --accent-solid: #2563eb;
-  --accent-hover: #1d4ed8;
+  --accent-primary: #FBA919;
+  --accent-secondary: #FBBF24;
+  --accent-solid: #FBA919;
+  --accent-hover: #D97706;
 
   --text-main: #f8fafc;
   --text-secondary: #cbd5e1;
@@ -28,19 +28,20 @@
   
   --border-subtle: rgba(255, 255, 255, 0.08);
   --border-medium: rgba(255, 255, 255, 0.15);
-  --border-active: #3b82f6;
+  --border-active: #FBA919;
 
-  --message-user-bg: #1e293b;
-  --message-user-border: rgba(255, 255, 255, 0.12);
-  --message-ai-bg: #0f172a;
-  --message-ai-border: rgba(255, 255, 255, 0.07);
+  --message-user-bg: #0A2E5C;
+  --message-user-border: rgba(251, 169, 25, 0.12);
+  --message-ai-bg: #051B38;
+  --message-ai-border: rgba(255, 255, 255, 0.05);
 
-  --font-display: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
-  --pill-active-bg: rgba(59, 130, 246, 0.16);
-  --pill-active-text: #60a5fa;
+  --font-display: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --pill-active-bg: rgba(251, 169, 25, 0.16);
+  --pill-active-text: #FBA919;
 }
 
-[data-theme="claude"] {
+[data-theme="obsidian"] {
   --bg-app: #141311;
   --bg-sidebar: #1a1815;
   --bg-card: #23201c;
@@ -69,11 +70,12 @@
   --message-ai-border: rgba(245, 239, 230, 0.08);
 
   --font-display: 'Lora', Georgia, serif;
+  --font-body: 'Lora', Georgia, serif;
   --pill-active-bg: rgba(200, 100, 70, 0.18);
   --pill-active-text: #e07a5f;
 }
 
-[data-theme="chatgpt"] {
+[data-theme="carbon"] {
   --bg-app: #0f0f0f;
   --bg-sidebar: #171717;
   --bg-card: #212121;
@@ -102,6 +104,7 @@
   --message-ai-border: rgba(255, 255, 255, 0.07);
 
   --font-display: 'Outfit', sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --pill-active-bg: rgba(16, 163, 127, 0.18);
   --pill-active-text: #10a37f;
 }
@@ -679,9 +682,9 @@ html, body {
   flex-shrink: 0;
 }
 
-.dot-gemini { background: #38bdf8; }
-.dot-claude { background: #e07a5f; }
-.dot-chatgpt { background: #10a37f; }
+.dot-vylex { background: #FBA919; }
+.dot-obsidian { background: #e07a5f; }
+.dot-carbon { background: #10a37f; }
 
 .session-metric-badge {
   height: 32px;
@@ -836,166 +839,71 @@ html, body {
 
 .welcome-subtitle strong { color: var(--text-secondary); }
 
-/* Model Telemetry Banner Card */
-.model-banner-card {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: 8px;
-  padding: 12px 14px;
+/* Minimal Welcome Screen Branding & Suggestions */
+.welcome-brand-logo {
+  margin-top: 30px;
   margin-bottom: 20px;
-  text-align: left;
-  gap: 14px;
-}
-
-.banner-left {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-  flex: 1;
-}
-
-.banner-model-icon {
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--border-subtle);
-  display: flex;
-  align-items: center;
   justify-content: center;
-  color: var(--pill-active-text);
-  flex-shrink: 0;
-}
-
-.banner-title {
-  font-size: 0.86rem;
-  font-weight: 700;
-  color: var(--text-main);
-  font-family: 'JetBrains Mono', monospace;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.banner-subtitle {
-  font-size: 0.72rem;
-  color: var(--text-muted);
-  margin-top: 2px;
-  line-height: 1.4;
-}
-
-.banner-badge-free {
-  display: inline-flex;
   align-items: center;
-  font-size: 0.65rem;
-  font-weight: 700;
-  padding: 4px 8px;
-  border-radius: 4px;
-  background: var(--pill-active-bg);
-  color: var(--pill-active-text);
-  border: 1px solid var(--border-active);
-  letter-spacing: 0.04em;
-  white-space: nowrap;
-  font-family: 'JetBrains Mono', monospace;
-  flex-shrink: 0;
+  filter: drop-shadow(0 0 12px rgba(251, 169, 25, 0.15));
 }
 
-.prompt-category-bar {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 12px;
-  flex-wrap: wrap;
-  justify-content: center;
-  max-width: 100%;
+[data-theme="obsidian"] .welcome-brand-logo {
+  filter: drop-shadow(0 0 12px rgba(200, 100, 70, 0.15));
 }
 
-.cat-tab {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-muted);
-  font-size: 0.74rem;
-  font-weight: 600;
-  padding: 4px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.12s ease;
-  font-family: inherit;
-  white-space: nowrap;
+[data-theme="carbon"] .welcome-brand-logo {
+  filter: drop-shadow(0 0 12px rgba(16, 163, 127, 0.15));
 }
 
-.cat-tab:hover { background: rgba(255, 255, 255, 0.06); color: var(--text-main); }
-.cat-tab.active {
-  background: var(--pill-active-bg);
-  color: var(--pill-active-text);
-  border-color: var(--border-active);
-}
-
-.discovery-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-  width: 100%;
-}
-
-.prompt-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: 6px;
-  padding: 12px;
-  text-align: left;
-  cursor: pointer;
-  position: relative;
-  transition: all 0.15s ease;
+.welcome-suggestions {
+  margin-top: 24px;
   display: flex;
   flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
 }
 
-.prompt-card:hover {
-  background: var(--bg-card-hover);
-  border-color: var(--border-medium);
+.suggestion-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
 }
 
-.card-icon-svg {
-  width: 26px;
-  height: 26px;
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--border-subtle);
+.suggestion-pills {
   display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.prompt-card.suggestion-pill {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: var(--font-body);
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: var(--pill-active-text);
-  margin-bottom: 8px;
+  text-align: center;
 }
 
-.card-title {
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: var(--text-main);
-  margin-bottom: 3px;
+.prompt-card.suggestion-pill:hover {
+  background: var(--pill-active-bg);
+  color: var(--accent-primary);
+  border-color: var(--border-active);
+  transform: translateY(-1px);
 }
-
-.card-desc {
-  font-size: 0.72rem;
-  color: var(--text-muted);
-  line-height: 1.4;
-  margin-bottom: 6px;
-}
-
-.card-arrow {
-  margin-top: auto;
-  align-self: flex-end;
-  color: var(--text-subtle);
-  display: flex;
-  align-items: center;
-}
-
-.prompt-card:hover .card-arrow { color: var(--pill-active-text); }
 
 /* --------------------------------------------------------------------------
    CHAT MESSAGES THREAD & ANIMATED REASONING
@@ -1042,6 +950,7 @@ html, body {
   line-height: 1.6;
   word-break: break-word;
   position: relative;
+  font-family: var(--font-body);
 }
 
 .message-row.user .message-bubble {
@@ -1196,6 +1105,18 @@ html, body {
 .message-bubble p:last-child { margin-bottom: 0; }
 .message-bubble ul, .message-bubble ol { padding-left: 18px; margin-bottom: 8px; }
 .message-bubble li { margin-bottom: 2px; }
+
+.message-bubble a {
+  color: var(--accent-secondary);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  transition: color 0.15s ease;
+}
+
+.message-bubble a:hover {
+  color: var(--accent-primary);
+}
 
 .message-bubble pre {
   margin: 10px 0;
@@ -1413,7 +1334,7 @@ html, body {
   max-height: 150px;
   resize: none;
   outline: none;
-  font-family: inherit;
+  font-family: var(--font-body);
   padding: 5px 2px;
 }
 
