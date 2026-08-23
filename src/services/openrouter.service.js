@@ -59,7 +59,7 @@ class OpenRouterService {
       } catch (e) {
         errorJson = { message: errorText };
       }
-      const message = errorJson.error?.message || errorJson.message || `OpenRouter API error (${response.status})`;
+      const message = errorJson.error?.message || errorJson.message || `Atlas Engine API error (${response.status})`;
 
       // Graceful fallback to the guaranteed auto-free router if a specific model is offline or rate-limited
       if (model !== 'openrouter/free') {

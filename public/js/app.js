@@ -76,51 +76,51 @@ document.addEventListener('DOMContentLoaded', () => {
     return ICONS.ox;
   }
 
-  // --- 100% Free OpenRouter Models (Default: openrouter/free) ---
+  // --- Vylex Atlas Intelligence Models (Default: vylex/auto) ---
   const FREE_MODELS = [
     {
-      id: 'openrouter/free',
-      name: 'Free Models Router',
+      id: 'openrouter/free', // We keep the internal ID identical so backend still works
+      name: 'Atlas Default Engine',
       badge: 'AUTO FREE',
       isFree: true,
       context: 'Dynamic context',
-      desc: 'Smart auto-router that automatically selects from available free models based on request requirements.'
+      desc: 'Smart auto-router that automatically selects from available high-performance models based on task requirements.'
     },
     {
       id: 'stealth/ox-alpha',
-      name: 'Ox Alpha',
+      name: 'Atlas Alpha',
       badge: '1.05M FREE',
       isFree: true,
       context: '1,048,576 tokens',
-      desc: 'Reasoning model designed for coding, sustained agentic work, and long-horizon software engineering.'
+      desc: 'Advanced reasoning model designed for coding, sustained agentic work, and long-horizon software engineering.'
     },
     {
       id: 'nvidia/nemotron-3-ultra-550b-a55b:free',
-      name: 'NVIDIA Nemotron 3 Ultra',
+      name: 'Atlas Ultra (MoE)',
       badge: '1M FREE',
       isFree: true,
       context: '1,000,000 tokens',
-      desc: 'Open frontier-reasoning and orchestration MoE model from NVIDIA for coding agents and deep research.'
+      desc: 'Frontier-reasoning orchestration engine optimized for deep research and complex architecture planning.'
     },
     {
       id: 'poolside/laguna-s-2.1:free',
-      name: 'Poolside Laguna S 2.1',
+      name: 'Atlas Code Engine',
       badge: '262K FREE',
       isFree: true,
       context: '262,144 tokens',
-      desc: 'Specialized 118B coding agent model scoring 70.2% on Terminal-Bench for agentic software engineering.'
+      desc: 'Specialized coding agent model scoring highly on terminal-based agentic software engineering benchmarks.'
     },
     {
       id: 'cohere/north-mini-code:free',
-      name: 'Cohere North Mini Code',
+      name: 'Atlas Mini Code',
       badge: '256K FREE',
       isFree: true,
       context: '256,000 tokens',
-      desc: 'Agentic coding MoE model optimized for code generation, SWE tasks, and terminal workflows.'
+      desc: 'Optimized, fast-inference MoE engine for rapid code generation, SWE tasks, and terminal workflows.'
     },
     {
       id: 'z-ai/glm-5.2:free',
-      name: 'Z.ai GLM 5.2',
+      name: 'Atlas Project Lead',
       badge: '256K FREE',
       isFree: true,
       context: '256,000 tokens',
@@ -128,11 +128,11 @@ document.addEventListener('DOMContentLoaded', () => {
     },
     {
       id: 'google/gemma-4-26b-a4b-it:free',
-      name: 'Google Gemma 4 26B',
+      name: 'Atlas Core',
       badge: '262K FREE',
       isFree: true,
       context: '262,144 tokens',
-      desc: 'Instruction-tuned DeepMind MoE model with native function calling and configurable thinking mode.'
+      desc: 'Instruction-tuned core model with native function calling and configurable thinking mode.'
     }
   ];
 
@@ -602,7 +602,7 @@ document.addEventListener('DOMContentLoaded', () => {
       title = 'Authentication Required (401)';
       badge = 'AUTHENTICATION REQUIRED';
       summary = 'API key is missing or unauthorized.';
-      recoveryHint = 'Configure OPENROUTER_API_KEY in your environment variables. Free-tier models still require a free key from openrouter.ai/settings/keys.';
+      recoveryHint = 'Configure your Atlas License Key in your environment variables. Free-tier usage still requires a valid license.';
     } else if (isRateLimit) {
       title = 'Free Provider Rate Limit Reached (429)';
       badge = 'CONCURRENCY THROTTLED';
