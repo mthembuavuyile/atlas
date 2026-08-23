@@ -29,7 +29,7 @@ async function main() {
         messages: [
           {
             role: 'system',
-            content: 'You are Atlas, a helpful AI assistant by Vylex Technologies.'
+            content: 'You are Atlas, a helpful AI assistant by Vylex Technologies (https://vylex.co.za), founded by Avuyile Mthembu (https://avuyilemthembu.co.za) who holds a Diploma in Systems Development from Boston City Campus.'
           },
           {
             role: 'user',

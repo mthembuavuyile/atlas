@@ -244,7 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Configure marked
   if (window.marked) {
     marked.setOptions({
-      highlight: function(code, lang) {
+      highlight: function (code, lang) {
         if (window.hljs && lang && hljs.getLanguage(lang)) {
           try {
             return hljs.highlight(code, { language: lang }).value;
@@ -582,7 +582,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function classifyError(err, hasPartialContent = false) {
     const msg = (err.message || '').toLowerCase();
-    
+
     if (!navigator.onLine || msg.includes('failed to fetch') || msg.includes('networkerror') || msg.includes('err_connection')) {
       return ERROR_TYPES.OFFLINE;
     }
@@ -1066,13 +1066,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- AGENT TOOL EXECUTION ENGINE ---
   const executedToolCalls = new Set();
-  
+
   function updateAgentUI(type, message, status = 'success') {
     const terminalOutput = document.getElementById('terminalOutput');
     const agentTaskList = document.getElementById('agentTaskList');
     const artifactsCanvasPanel = document.getElementById('artifactsCanvasPanel');
     const toggleCanvasBtn = document.getElementById('toggleCanvasBtn');
-    
+
     if (!terminalOutput || !agentTaskList) return;
 
     // Auto-open canvas to Agent Activity tab
@@ -1098,7 +1098,7 @@ document.addEventListener('DOMContentLoaded', () => {
       line.textContent = message;
       terminalOutput.appendChild(line);
       terminalOutput.scrollTop = terminalOutput.scrollHeight;
-      
+
       // Update the last running task to completed/error
       const lastTask = agentTaskList.lastElementChild;
       if (lastTask && lastTask.classList.contains('running')) {
@@ -1114,33 +1114,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function executeAgentTools(content) {
     if (!content) return;
-    
+
     const regex = /<\|tool_call_start\|>\s*\[?(\w+)\(([\s\S]*?)\)\]?\s*<\|tool_call_end\|>/gi;
     let match;
-    
+
     while ((match = regex.exec(content)) !== null) {
       const fullMatch = match[0];
       const toolName = match[1];
       const argsStr = match[2];
-      
+
       if (executedToolCalls.has(fullMatch)) continue;
       executedToolCalls.add(fullMatch);
-      
+
       // Try to parse arguments
       const args = {};
       try {
         const filepathMatch = argsStr.match(/filepath=['"]([^'"]+)['"]/);
         if (filepathMatch) args.filepath = filepathMatch[1];
-        
+
         const contentMatch = argsStr.match(/content=(['"])([\s\S]*?)\1/);
         if (contentMatch) args.content = unescapeStringContent(contentMatch[2]);
-        
+
         const commandMatch = argsStr.match(/command=['"]([^'"]+)['"]/);
         if (commandMatch) args.command = unescapeStringContent(commandMatch[1]);
       } catch (e) {
         console.warn('Failed to parse tool arguments:', e);
       }
-      
+
       let endpointToolName = toolName;
       if (toolName === 'write') endpointToolName = 'write_file';
       if (toolName === 'execute') endpointToolName = 'execute_command';
@@ -1148,14 +1148,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
       updateAgentUI('task', `Executing ${toolName}...`);
       updateAgentUI('terminal', `> ${toolName} ${JSON.stringify(args).slice(0, 100)}...`, 'command');
-      
+
       try {
         const res = await fetch(`${API_BASE}/api/tool/execute`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ tool: endpointToolName, args })
         });
-        
+
         const data = await res.json();
         if (data.status === 'success') {
           updateAgentUI('terminal', JSON.stringify(data.data), 'output');
@@ -1423,7 +1423,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 enhanceCodeBlocks(bubble);
                 lastRenderTime = now;
               }
-              
+
               // Incrementally execute fully formed tools
               await executeAgentTools(accumulatedContent);
             }
@@ -1469,7 +1469,7 @@ document.addEventListener('DOMContentLoaded', () => {
         bubble.innerHTML = parseMarkdownSafely(accumulatedContent);
         enhanceCodeBlocks(bubble);
         appendStreamCutoffBar(bubble, accumulatedContent, userText);
-        
+
         session.messages.push({
           role: 'assistant',
           content: accumulatedContent,

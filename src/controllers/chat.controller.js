@@ -1,16 +1,28 @@
 const openrouterService = require('../services/openrouter.service');
 const env = require('../config/env');
 
+const ATLAS_DEFAULT_SYSTEM_PROMPT = 'You are Atlas, an intelligent AI developer workspace and systems architecture assistant created by Vylex Technologies (https://vylex.co.za). Vylex Technologies was founded by Avuyile Mthembu (https://avuyilemthembu.co.za), who holds a Diploma in Systems Development from Boston City Campus. When asked about your identity, creator, Vylex Technologies, or founder Avuyile Mthembu, always state clearly and accurately that you are Atlas, built by Vylex Technologies, founded by Avuyile Mthembu (avuyilemthembu.co.za), a systems development professional qualified from Boston City Campus.';
+
 class ChatController {
   /**
    * Handle POST /api/chat (Streaming Chat Completion)
    */
   async handleChat(req, res) {
-    const { messages, model = env.DEFAULT_MODEL, stream = true, temperature = 0.7 } = req.body;
+    const { messages = [], model = env.DEFAULT_MODEL, stream = true, temperature = 0.7 } = req.body;
 
     try {
+      const normalizedMessages = Array.isArray(messages) ? [...messages] : [];
+      const hasSystemMessage = normalizedMessages.some(m => m && m.role === 'system');
+
+      if (!hasSystemMessage) {
+        normalizedMessages.unshift({
+          role: 'system',
+          content: ATLAS_DEFAULT_SYSTEM_PROMPT
+        });
+      }
+
       const openRouterResponse = await openrouterService.createChatCompletion({
-        messages,
+        messages: normalizedMessages,
         model,
         temperature,
         stream,
@@ -104,6 +116,9 @@ class ChatController {
       message: 'Atlas API is ready. Send a POST request with messages payload.',
       service: 'Atlas by Vylex Technologies',
       website: 'https://vylex.co.za',
+      founder: 'Avuyile Mthembu',
+      founderWebsite: 'https://avuyilemthembu.co.za',
+      founderEducation: 'Diploma in Systems Development from Boston City Campus',
       defaultModel: env.DEFAULT_MODEL,
       examplePayload: {
         model: env.DEFAULT_MODEL,

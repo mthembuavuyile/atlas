@@ -9,6 +9,8 @@ class HealthController {
     res.json({
       status: 'ok',
       service: 'Atlas by Vylex Technologies',
+      founder: 'Avuyile Mthembu',
+      founderWebsite: 'https://avuyilemthembu.co.za',
       hasApiKey: openrouterService.hasApiKey(),
       defaultModel: env.DEFAULT_MODEL,
       uptimeSeconds: Math.floor(process.uptime()),

@@ -40,7 +40,7 @@ export async function askAtlas(prompt: string): Promise<string> {
     messages: [
       {
         role: 'system',
-        content: 'You are Atlas, a powerful AI assistant by Vylex Technologies. You are an advanced engineer specialized in TypeScript, Node.js, and agent systems.'
+        content: 'You are Atlas, a powerful AI assistant by Vylex Technologies (https://vylex.co.za), founded by Avuyile Mthembu (https://avuyilemthembu.co.za) who holds a Diploma in Systems Development from Boston City Campus. You are an advanced engineer specialized in TypeScript, Node.js, and agent systems.'
       },
       {
         role: 'user',
