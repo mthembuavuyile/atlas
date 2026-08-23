@@ -1165,6 +1165,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let accumulatedReasoning = '';
     let inThinkTag = false;
     let hasReceivedFirstContent = false;
+    let lastRenderTime = 0;
 
     state.abortController = new AbortController();
 
@@ -1237,8 +1238,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (thoughtBanner) thoughtBanner.style.display = 'none';
               }
 
-              bubble.innerHTML = parseMarkdownSafely(accumulatedContent);
-              enhanceCodeBlocks(bubble);
+              const now = Date.now();
+              if (now - lastRenderTime > 60) {
+                bubble.innerHTML = parseMarkdownSafely(accumulatedContent);
+                enhanceCodeBlocks(bubble);
+                lastRenderTime = now;
+              }
               
               // Incrementally execute fully formed tools
               await executeAgentTools(accumulatedContent);

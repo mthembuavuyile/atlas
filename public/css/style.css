@@ -916,6 +916,8 @@ html, body {
   display: flex;
   gap: 10px;
   margin-bottom: 16px;
+  content-visibility: auto;
+  contain-intrinsic-size: 150px;
 }
 
 .message-row.user { flex-direction: row-reverse; }
@@ -1873,6 +1875,8 @@ html, body {
   .discovery-grid { grid-template-columns: 1fr; }
   .model-banner-card { flex-direction: column; align-items: flex-start; }
   .preset-pills-grid { grid-template-columns: 1fr; }
+  .composer-hints { display: none; }
+  #deepThinkToggleBtn { display: none; }
 
   .artifacts-canvas-panel.open {
     position: fixed;
