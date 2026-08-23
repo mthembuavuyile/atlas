@@ -1542,6 +1542,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
           try {
             const parsed = JSON.parse(dataStr);
+            
+            // Handle injected widget rendering
+            if (parsed.__widget__) {
+                if (window.atlasRenderWidget) {
+                    const widgetHtml = window.atlasRenderWidget(parsed.__widget__.type, parsed.__widget__.data);
+                    if (widgetHtml) {
+                        accumulatedContent += `\n\n${widgetHtml}\n\n`;
+                        bubble.innerHTML = parseMarkdownSafely(accumulatedContent, true);
+                        scrollToBottom(false);
+                    }
+                }
+                continue;
+            }
+            
+            if (parsed.error) {
+                 throw new Error(parsed.error);
+            }
+
             const choice = parsed.choices?.[0];
             const rawContent = choice?.delta?.content ?? choice?.delta?.text ?? choice?.text ?? '';
             const rawReasoning = choice?.delta?.reasoning ?? choice?.delta?.reasoning_content ?? choice?.delta?.thought ?? '';
@@ -1797,6 +1815,17 @@ document.addEventListener('DOMContentLoaded', () => {
         autoResizeTextarea();
         messageInput.focus();
       });
+    });
+
+    const ocrTriggerBtn = document.getElementById('ocrTriggerBtn');
+    ocrTriggerBtn?.addEventListener('click', () => {
+        document.dispatchEvent(new CustomEvent('atlas:open-ocr'));
+    });
+    
+    document.addEventListener('atlas:ocr-result', (e) => {
+        messageInput.value = (messageInput.value + '\n\n' + e.detail).trim();
+        autoResizeTextarea();
+        messageInput.focus();
     });
 
     deepThinkToggleBtn?.addEventListener('click', () => {

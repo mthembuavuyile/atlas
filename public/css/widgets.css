@@ -1,0 +1,267 @@
+/* atlas widgets */
+.atlas-widget {
+    background: var(--bg-secondary, rgba(255, 255, 255, 0.03));
+    border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+    border-radius: 12px;
+    padding: 16px;
+    margin: 12px 0;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    color: var(--text-primary, #e2e8f0);
+    font-family: 'DM Sans', sans-serif;
+    max-width: 600px;
+}
+
+.atlas-widget-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--accent, #60a5fa);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.atlas-widget-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.atlas-widget-icon svg {
+    width: 16px;
+    height: 16px;
+}
+
+.atlas-widget-body {
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+/* Weather */
+.atlas-weather-main {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+.atlas-weather-temp {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--text-primary, #fff);
+}
+.atlas-weather-desc {
+    font-size: 1.1rem;
+    color: var(--text-secondary, #94a3b8);
+}
+.atlas-weather-details {
+    display: flex;
+    gap: 16px;
+    font-size: 0.85rem;
+    color: var(--text-tertiary, #64748b);
+    border-top: 1px solid var(--border-color);
+    padding-top: 12px;
+    margin-top: 12px;
+}
+
+/* Crypto */
+.atlas-crypto-price {
+    font-size: 2rem;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    color: #10b981;
+}
+
+/* Bible */
+.atlas-bible-verse {
+    font-family: 'Lora', serif;
+    font-size: 1.1rem;
+    font-style: italic;
+    line-height: 1.6;
+    margin: 0;
+    padding-left: 12px;
+    border-left: 3px solid var(--accent);
+}
+
+/* Image Grid */
+.atlas-image-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    margin-top: 12px;
+}
+.atlas-image-item {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    aspect-ratio: 4/3;
+}
+.atlas-image-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+}
+.atlas-image-item:hover img {
+    transform: scale(1.05);
+}
+
+/* News & Reddit */
+.atlas-list-item {
+    display: flex;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+.atlas-list-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+.atlas-list-thumb {
+    width: 80px;
+    height: 80px;
+    border-radius: 6px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+.atlas-list-content h4 {
+    margin: 0 0 6px 0;
+    font-size: 0.95rem;
+    line-height: 1.4;
+}
+.atlas-list-content a {
+    color: var(--text-primary);
+    text-decoration: none;
+}
+.atlas-list-content a:hover {
+    color: var(--accent);
+    text-decoration: underline;
+}
+.atlas-list-meta {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    display: flex;
+    gap: 12px;
+}
+
+/* Dictionary */
+.atlas-dict-word {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin: 0 0 4px 0;
+}
+.atlas-dict-phonetic {
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+    margin-bottom: 12px;
+}
+.atlas-dict-meaning {
+    margin-bottom: 12px;
+}
+.atlas-dict-pos {
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+/* OCR Modal */
+.atlas-ocr-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+.atlas-ocr-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+.atlas-ocr-modal {
+    background: var(--bg-primary, #0f172a);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    width: 90%;
+    max-width: 800px;
+    height: 80vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+}
+.atlas-ocr-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.atlas-ocr-body {
+    flex: 1;
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+    overflow: hidden;
+}
+.atlas-ocr-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    border: 1px dashed var(--border-color);
+    position: relative;
+    overflow: hidden;
+}
+.atlas-ocr-video, .atlas-ocr-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    position: absolute;
+    top: 0; left: 0;
+}
+.atlas-ocr-textarea {
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    border: none;
+    padding: 16px;
+    color: var(--text-primary);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    resize: none;
+    outline: none;
+}
+.atlas-ocr-footer {
+    padding: 16px 20px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+}
+.atlas-ocr-btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: none;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+.atlas-ocr-btn.primary {
+    background: var(--accent);
+    color: #fff;
+}
+.atlas-ocr-btn:hover {
+    filter: brightness(1.2);
+}

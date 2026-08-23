@@ -46,6 +46,7 @@ class OpenRouterService {
     model = env.DEFAULT_MODEL,
     temperature = 0.7,
     stream = true,
+    tools = undefined,
     referer = env.APP_URL || APP.url,
     attemptedModels = new Set()
   }) {
@@ -63,7 +64,8 @@ class OpenRouterService {
       model,
       messages,
       temperature,
-      stream
+      stream,
+      tools
     };
 
     let response;
@@ -132,6 +134,7 @@ class OpenRouterService {
           failedModel: model,
           temperature,
           stream,
+          tools,
           referer,
           attemptedModels,
           errorMessage: message,
@@ -155,6 +158,7 @@ class OpenRouterService {
     failedModel,
     temperature,
     stream,
+    tools,
     referer,
     attemptedModels,
     errorMessage,
@@ -170,6 +174,7 @@ class OpenRouterService {
         model: nextCandidate,
         temperature,
         stream,
+        tools,
         referer,
         attemptedModels
       });

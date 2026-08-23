@@ -1,0 +1,164 @@
+const ATLAS_TOOLS = [
+  {
+    type: 'function',
+    function: {
+      name: 'get_weather',
+      description: 'Get current weather for a city or location',
+      parameters: {
+        type: 'object',
+        properties: {
+          city: { type: 'string', description: 'City name, e.g. "Durban"' }
+        },
+        required: ['city']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'get_crypto_price',
+      description: 'Get real-time cryptocurrency price',
+      parameters: {
+        type: 'object',
+        properties: {
+          coin: { type: 'string', description: 'Coin name or symbol, e.g. "bitcoin", "ETH"' }
+        },
+        required: ['coin']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'get_bible_verse',
+      description: 'Get a Bible verse. Can be a specific verse (e.g. "John 3:16") or random.',
+      parameters: {
+        type: 'object',
+        properties: {
+          reference: { type: 'string', description: 'Specific book and verse, or leave empty for a random verse.' }
+        }
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'search_images',
+      description: 'Search for images or photos of a specific subject.',
+      parameters: {
+        type: 'object',
+        properties: {
+          query: { type: 'string', description: 'What to search for, e.g. "nebula", "cat"' }
+        },
+        required: ['query']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'get_space_news',
+      description: 'Get the latest spaceflight, NASA, and astronomy news.',
+      parameters: {
+        type: 'object',
+        properties: {
+          topic: { type: 'string', description: 'Optional topic like "SpaceX", "NASA", "Mars". Leave empty for general news.' }
+        }
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'get_reddit_posts',
+      description: 'Get trending or hot posts from a specific Reddit community (subreddit).',
+      parameters: {
+        type: 'object',
+        properties: {
+          subreddit: { type: 'string', description: 'Subreddit name without r/, e.g. "technology", "news"' }
+        },
+        required: ['subreddit']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'define_word',
+      description: 'Get the dictionary definition of a word.',
+      parameters: {
+        type: 'object',
+        properties: {
+          word: { type: 'string', description: 'The word to define.' }
+        },
+        required: ['word']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'convert_currency',
+      description: 'Convert an amount from one currency to another.',
+      parameters: {
+        type: 'object',
+        properties: {
+          amount: { type: 'number', description: 'The amount to convert.' },
+          from: { type: 'string', description: '3-letter currency code to convert from, e.g. USD, EUR, ZAR.' },
+          to: { type: 'string', description: '3-letter currency code to convert to, e.g. USD, EUR, ZAR.' }
+        },
+        required: ['amount', 'from', 'to']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'solve_math',
+      description: 'Solve a mathematical equation or perform a mathematical operation (derive, integrate, simplify, factor, etc).',
+      parameters: {
+        type: 'object',
+        properties: {
+          expression: { type: 'string', description: 'The mathematical expression, e.g. "x^2 + 2x", "2x - 8 = 0"' },
+          operation: { type: 'string', description: 'The operation to perform: simplify, factor, derive, integrate, zeroes, tangent, area, cos, sin, tan, arccos, arcsin, arctan, abs, log, expand, limit, solve.' }
+        },
+        required: ['expression']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'tell_joke',
+      description: 'Tell a random joke.',
+      parameters: {
+        type: 'object',
+        properties: {}
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'give_advice',
+      description: 'Give a random piece of life advice or wisdom.',
+      parameters: {
+        type: 'object',
+        properties: {}
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'scan_ocr',
+      description: 'Open the OCR (Optical Character Recognition) modal to scan text from an image or camera.',
+      parameters: {
+        type: 'object',
+        properties: {}
+      }
+    }
+  }
+];
+
+module.exports = { ATLAS_TOOLS };

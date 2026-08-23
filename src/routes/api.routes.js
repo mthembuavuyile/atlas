@@ -5,6 +5,7 @@ const chatController = require('../controllers/chat.controller');
 const modelsController = require('../controllers/models.controller');
 const healthController = require('../controllers/health.controller');
 const toolController = require('../controllers/tool.controller');
+const widgetController = require('../controllers/widget.controller');
 
 // Security & Rate Limiting Middlewares
 const { chatLimiter, titleLimiter, toolLimiter } = require('../middleware/rateLimiter');
@@ -23,5 +24,8 @@ router.get('/health', (req, res) => healthController.getHealth(req, res));
 
 // Tool endpoint
 router.post('/tool/execute', toolLimiter, (req, res) => toolController.execute(req, res));
+
+// Widget endpoint (Nexora tools)
+router.post('/widget/execute', toolLimiter, (req, res) => widgetController.execute(req, res));
 
 module.exports = router;

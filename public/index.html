@@ -65,7 +65,15 @@
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
 
+  <!-- Tesseract.js for OCR -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
+  
+  <!-- MathJax for math rendering -->
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/widgets.css">
 </head>
 <body>
   <div class="app-layout" id="appLayout">
@@ -329,6 +337,12 @@
                 <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
               </svg>
             </button>
+            <button type="button" class="action-circle-btn" id="ocrTriggerBtn" title="Scan Text (OCR)" aria-label="Scan Text (OCR)">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242M12 12v9"></path>
+                <polyline points="8 17 12 21 16 17"></polyline>
+              </svg>
+            </button>
 
             <textarea 
               id="messageInput" 
@@ -535,6 +549,40 @@
     </div>
   </div>
 
+  <!-- OCR Modal Overlay -->
+  <div class="atlas-ocr-overlay" id="ocrModalOverlay">
+    <div class="atlas-ocr-modal">
+      <div class="atlas-ocr-header">
+        <h3 style="margin: 0; font-size: 1.2rem; color: #fff;">Optical Character Recognition</h3>
+        <button id="ocrBtnClose" class="atlas-ocr-btn">Close</button>
+      </div>
+      <div class="atlas-ocr-body">
+        <div class="atlas-ocr-panel">
+          <video id="ocrVideo" class="atlas-ocr-video" autoplay playsinline style="display: none;"></video>
+          <img id="ocrPreview" class="atlas-ocr-preview" style="display: none;" alt="OCR Preview">
+          <div style="position: absolute; bottom: 16px; left: 0; right: 0; display: flex; justify-content: center; gap: 12px; z-index: 10;">
+            <button id="ocrBtnCamera" class="atlas-ocr-btn primary">Use Camera</button>
+            <button id="ocrBtnUpload" class="atlas-ocr-btn primary">Upload Image</button>
+            <button id="ocrBtnCapture" class="atlas-ocr-btn" style="display: none; background: #fff; color: #000;">Capture</button>
+          </div>
+          <canvas id="ocrCanvas" style="display: none;"></canvas>
+        </div>
+        <div class="atlas-ocr-panel">
+          <textarea id="ocrResultText" class="atlas-ocr-textarea" placeholder="Extracted text will appear here..."></textarea>
+        </div>
+      </div>
+      <div class="atlas-ocr-footer">
+        <span style="font-size: 0.85rem; color: #94a3b8;">Supports Drag & Drop and Paste (Ctrl+V)</span>
+        <button id="ocrBtnSend" class="atlas-ocr-btn primary">Send to Chat</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/widgets/ocr-modal.js"></script>
+  <script type="module">
+    import { renderWidget } from './js/widgets/widget-renderer.js';
+    window.atlasRenderWidget = renderWidget;
+  </script>
   <script src="js/app.js"></script>
 </body>
 </html>
