@@ -25,7 +25,8 @@ function isLocalhost(ip) {
 function createRateLimiter({
   windowMs = 60 * 1000, // 1 minute window
   max = 60,              // max requests per window per IP
-  message = 'Too many requests. Please slow down and wait a moment.'
+  message = 'Too many requests. Please slow down and wait a moment.',
+  maxEntries = 50000     // Hard cap to prevent memory exhaustion under DDoS
 } = {}) {
   const requests = new Map();
 
@@ -56,6 +57,12 @@ function createRateLimiter({
         resetTime: now + windowMs
       };
       requests.set(ip, record);
+
+      // Evict oldest entries if map exceeds hard cap
+      if (requests.size > maxEntries) {
+        const firstKey = requests.keys().next().value;
+        requests.delete(firstKey);
+      }
     }
 
     record.count += 1;

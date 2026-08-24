@@ -48,6 +48,12 @@ class ChatController {
 
     try {
       let normalizedMessages = Array.isArray(messages) ? [...messages] : [];
+
+      // Validate systemPrompt length to prevent token abuse
+      if (customSystemPrompt && customSystemPrompt.length > 2000) {
+        return res.status(400).json({ error: 'System prompt exceeds maximum length of 2000 characters.' });
+      }
+
       const hasSystemMessage = normalizedMessages.some(m => m && m.role === 'system');
 
       if (!hasSystemMessage) {
@@ -100,38 +106,45 @@ class ChatController {
         let toolName = '';
         let sseBuffer = '';
 
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          
-          const chunk = decoder.decode(value, { stream: true });
-          sseBuffer += chunk;
-          const lines = sseBuffer.split('\n');
-          sseBuffer = lines.pop() || '';
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            
+            const chunk = decoder.decode(value, { stream: true });
+            sseBuffer += chunk;
+            const lines = sseBuffer.split('\n');
+            sseBuffer = lines.pop() || '';
 
-          for (const line of lines) {
-            const trimmed = line.trim();
-            if (!trimmed || !trimmed.startsWith('data:')) continue;
-            const dataStr = trimmed.replace(/^data:\s*/, '');
-            if (dataStr === '[DONE]') continue;
+            for (const line of lines) {
+              const trimmed = line.trim();
+              if (!trimmed || !trimmed.startsWith('data:')) continue;
+              const dataStr = trimmed.replace(/^data:\s*/, '');
+              if (dataStr === '[DONE]') continue;
 
-            try {
-              const data = JSON.parse(dataStr);
-              const delta = data.choices?.[0]?.delta;
-              if (delta?.tool_calls && Array.isArray(delta.tool_calls)) {
-                isToolCall = true;
-                const tc = delta.tool_calls[0];
-                if (tc.id) toolCallId = tc.id;
-                if (tc.function?.name) toolName = tc.function.name;
-                if (tc.function?.arguments) toolCallBuffer.push(tc.function.arguments);
-              } else if (!isToolCall) {
-                res.write(`data: ${dataStr}\n\n`);
-              }
-            } catch (e) {
-              if (!isToolCall) {
-                res.write(`${line}\n\n`);
+              try {
+                const data = JSON.parse(dataStr);
+                const delta = data.choices?.[0]?.delta;
+                if (delta?.tool_calls && Array.isArray(delta.tool_calls)) {
+                  isToolCall = true;
+                  const tc = delta.tool_calls[0];
+                  if (tc.id) toolCallId = tc.id;
+                  if (tc.function?.name) toolName = tc.function.name;
+                  if (tc.function?.arguments) toolCallBuffer.push(tc.function.arguments);
+                } else if (!isToolCall) {
+                  res.write(`data: ${dataStr}\n\n`);
+                }
+              } catch (e) {
+                if (!isToolCall) {
+                  res.write(`${line}\n\n`);
+                }
               }
             }
+          }
+        } catch (streamErr) {
+          console.error('[Stream Read Error]:', streamErr.message);
+          if (!res.writableEnded) {
+            res.write(`data: ${JSON.stringify({ error: 'Stream interrupted. Please try again.' })}\n\n`);
           }
         }
 

@@ -2,7 +2,7 @@
 <html lang="en" data-theme="vylex">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Atlas | Scientific Intelligence Platform by Vylex Technologies</title>
   <meta name="description" content="Atlas is a scientific intelligence and technical reasoning platform by Vylex Technologies. Form hypotheses, verify derivations, model systems, and execute computational actions.">
   <link rel="canonical" href="https://vylex.co.za">
@@ -605,17 +605,17 @@
   <div class="atlas-ocr-overlay" id="ocrModalOverlay">
     <div class="atlas-ocr-modal">
       <div class="atlas-ocr-header">
-        <h3 style="margin: 0; font-size: 1.1rem; color: #fff; font-weight: 600;">Optical Character Recognition</h3>
+        <h3 class="atlas-ocr-title">Optical Character Recognition</h3>
         <button id="ocrBtnClose" class="atlas-ocr-btn">Close</button>
       </div>
       <div class="atlas-ocr-body">
         <div class="atlas-ocr-panel">
           <video id="ocrVideo" class="atlas-ocr-video" autoplay playsinline style="display: none;"></video>
           <img id="ocrPreview" class="atlas-ocr-preview" style="display: none;" alt="OCR Preview">
-          <div style="position: absolute; bottom: 14px; left: 0; right: 0; display: flex; justify-content: center; gap: 10px; z-index: 10;">
+          <div class="atlas-ocr-action-row">
             <button id="ocrBtnCamera" class="atlas-ocr-btn primary">Use Camera</button>
             <button id="ocrBtnUpload" class="atlas-ocr-btn primary">Upload Image</button>
-            <button id="ocrBtnCapture" class="atlas-ocr-btn" style="display: none; background: #fff; color: #000;">Capture</button>
+            <button id="ocrBtnCapture" class="atlas-ocr-btn atlas-ocr-btn-capture" style="display: none;">Capture</button>
           </div>
           <canvas id="ocrCanvas" style="display: none;"></canvas>
         </div>
@@ -624,7 +624,7 @@
         </div>
       </div>
       <div class="atlas-ocr-footer">
-        <span style="font-size: 0.8rem; color: #64748b;">Supports drag & drop and clipboard paste (Ctrl+V)</span>
+        <span class="atlas-ocr-footer-hint">Supports drag & drop and clipboard paste (Ctrl+V)</span>
         <button id="ocrBtnSend" class="atlas-ocr-btn primary">Send to Investigation</button>
       </div>
     </div>

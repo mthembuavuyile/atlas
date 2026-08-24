@@ -6,14 +6,26 @@
  * @returns {Promise<Response>}
  */
 async function fetchWithTimeout(url, options = {}, timeoutMs = 10000) {
-    const controller = new AbortController();
     const timeout = options.timeoutMs || timeoutMs;
+
+    // If caller provides their own signal, use it directly (avoid creating unused controllers)
+    if (options.signal) {
+        try {
+            const response = await fetch(url, options);
+            return response;
+        } catch (err) {
+            throw err;
+        }
+    }
+
+    // Otherwise, create our own timeout-based abort controller
+    const controller = new AbortController();
     const id = setTimeout(() => controller.abort(), timeout);
 
     try {
         const response = await fetch(url, {
             ...options,
-            signal: options.signal || controller.signal
+            signal: controller.signal
         });
         return response;
     } finally {

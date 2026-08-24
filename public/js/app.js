@@ -1329,7 +1329,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function scrollToBottom(force = false) {
     if (!messagesContainer) return;
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    const distanceFromBottom = messagesContainer.scrollHeight - messagesContainer.scrollTop - messagesContainer.clientHeight;
+    // Only auto-scroll if user is near bottom (within 150px) or force is true
+    if (force || distanceFromBottom < 150) {
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
   }
 
   function exportConversation(format) {

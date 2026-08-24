@@ -439,15 +439,12 @@ class WidgetService {
             }
         } catch (err) {}
 
-        // 2. Safe local mathematical evaluation fallback
+        // 2. Safe arithmetic-only evaluation fallback (no eval/Function)
         try {
             const sanitized = cleanedExpr.replace(/[^0-9+\-*/().^ eE]/g, '');
             if (sanitized && !/[a-zA-Z]/.test(sanitized)) {
-                const safeEvalExpr = sanitized.replace(/\^/g, '**');
-                // evaluate arithmetic only
-                const fn = new Function(`return (${safeEvalExpr})`);
-                const val = fn();
-                if (typeof val === 'number' && !isNaN(val)) {
+                const val = this.safeEvaluateArithmetic(sanitized);
+                if (typeof val === 'number' && !isNaN(val) && isFinite(val)) {
                     return {
                         type: 'math',
                         data: {
@@ -499,6 +496,70 @@ class WidgetService {
                 }
             };
         }
+    }
+
+    /**
+     * Safe stack-based arithmetic evaluator (no eval/Function)
+     * Supports: +, -, *, /, ^, parentheses, unary minus
+     * @param {string} expr - Sanitized arithmetic expression
+     * @returns {number}
+     */
+    safeEvaluateArithmetic(expr) {
+        const tokens = expr.replace(/\s+/g, '').match(/(\d+\.?\d*(?:[eE][+-]?\d+)?|[+\-*/^()])/g);
+        if (!tokens) throw new Error('Invalid expression');
+        let pos = 0;
+
+        const peek = () => tokens[pos];
+        const consume = () => tokens[pos++];
+
+        const parseNumber = () => {
+            if (peek() === '(') {
+                consume(); // '('
+                const val = parseAddSub();
+                if (peek() === ')') consume();
+                return val;
+            }
+            if (peek() === '-') {
+                consume();
+                return -parseNumber();
+            }
+            if (peek() === '+') {
+                consume();
+                return parseNumber();
+            }
+            return parseFloat(consume());
+        };
+
+        const parsePower = () => {
+            let base = parseNumber();
+            while (peek() === '^') {
+                consume();
+                base = Math.pow(base, parseNumber());
+            }
+            return base;
+        };
+
+        const parseMulDiv = () => {
+            let left = parsePower();
+            while (peek() === '*' || peek() === '/') {
+                const op = consume();
+                const right = parsePower();
+                left = op === '*' ? left * right : left / right;
+            }
+            return left;
+        };
+
+        const parseAddSub = () => {
+            let left = parseMulDiv();
+            while (peek() === '+' || peek() === '-') {
+                const op = consume();
+                const right = parseMulDiv();
+                left = op === '+' ? left + right : left - right;
+            }
+            return left;
+        };
+
+        return parseAddSub();
     }
 
     // 12. OCR

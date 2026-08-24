@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
 const path = require('path');
 const env = require('./config/env');
 const routes = require('./routes');
@@ -8,7 +9,13 @@ const { buildServerBanner } = require('./config/identity');
 
 const app = express();
 
-// 1. CORS Configuration — locked to your production domain + localhost for dev
+// 1. Security Headers
+app.use(helmet({
+  contentSecurityPolicy: false, // Allow inline scripts for the frontend
+  crossOriginEmbedderPolicy: false // Allow external CDN resources
+}));
+
+// 2. CORS Configuration — locked to your production domain + localhost for dev
 const ALLOWED_ORIGINS = [
   'http://localhost:3000',
   'http://localhost:5500',
@@ -22,7 +29,8 @@ app.use(cors({
     if (!origin || ALLOWED_ORIGINS.includes(origin)) {
       callback(null, true);
     } else {
-      callback(null, true); // Allow all in early stage — tighten after launch
+      console.warn(`[CORS] Blocked request from unauthorized origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
     }
   },
   methods: ['GET', 'POST', 'OPTIONS', 'HEAD'],
@@ -59,7 +67,16 @@ app.use((req, res) => {
   });
 });
 
-// 7. Start HTTP Server with graceful port handling
+// 7. Process-level safety nets
+process.on('uncaughtException', (err) => {
+  console.error('[Fatal] Uncaught Exception:', err);
+  process.exit(1);
+});
+process.on('unhandledRejection', (reason) => {
+  console.error('[Fatal] Unhandled Rejection:', reason);
+});
+
+// 8. Start HTTP Server with graceful port handling
 const PORT = env.PORT;
 
 function startServer(port) {

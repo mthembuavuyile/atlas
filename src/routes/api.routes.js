@@ -22,8 +22,10 @@ router.get('/models', (req, res) => modelsController.getModels(req, res));
 // Health endpoint
 router.get('/health', (req, res) => healthController.getHealth(req, res));
 
-// Tool endpoint
-router.post('/tool/execute', toolLimiter, (req, res) => toolController.execute(req, res));
+// Tool endpoint — DISABLED in production to prevent remote code execution
+if (process.env.NODE_ENV !== 'production') {
+  router.post('/tool/execute', toolLimiter, (req, res) => toolController.execute(req, res));
+}
 
 // Widget endpoint (Nexora tools)
 router.post('/widget/execute', toolLimiter, (req, res) => widgetController.execute(req, res));
