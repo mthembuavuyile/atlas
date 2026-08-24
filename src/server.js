@@ -72,6 +72,20 @@ app.use((req, res) => {
   });
 });
 
+// 6.5 Global Error Handler for standardized API error responses
+app.use((err, req, res, next) => {
+  console.error('[Global Error Middleware]:', err.message || err);
+  
+  // Standardize error response
+  const statusCode = err.status || err.statusCode || 500;
+  const message = err.message || 'Internal Server Error';
+  
+  res.status(statusCode).json({
+    error: message,
+    type: 'server_error'
+  });
+});
+
 // 7. Process-level safety nets
 process.on('uncaughtException', (err) => {
   console.error('[Fatal] Uncaught Exception:', err);

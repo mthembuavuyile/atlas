@@ -1016,6 +1016,80 @@ document.addEventListener('DOMContentLoaded', () => {
 
     state.abortController = new AbortController();
 
+    // ----------------------------------------------------
+    // OFFLINE CAPABILITIES: SLASH COMMAND ROUTING
+    // ----------------------------------------------------
+    const slashMatch = prompt.match(/^\/([a-z]+)(?:\s+(.*))?/i);
+    if (slashMatch) {
+      const command = slashMatch[1].toLowerCase();
+      const arg = slashMatch[2] || '';
+      
+      let toolToCall = null;
+      let argsPayload = {};
+      
+      if (command === 'crypto') {
+        toolToCall = 'get_crypto_price';
+        argsPayload = { coin: arg || 'bitcoin' };
+      } else if (command === 'define') {
+        toolToCall = 'define_word';
+        argsPayload = { word: arg };
+      } else if (command === 'reddit') {
+        toolToCall = 'get_reddit_posts';
+        argsPayload = { subreddit: arg || 'technology' };
+      } else if (command === 'weather') {
+        toolToCall = 'get_weather';
+        argsPayload = { city: arg || 'London' };
+      }
+      
+      if (toolToCall) {
+        try {
+          const res = await fetch(`${API_BASE}/api/widget/execute`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            signal: state.abortController.signal,
+            body: JSON.stringify({ tool: toolToCall, args: argsPayload })
+          });
+          
+          if (!res.ok) throw new Error('Widget service failed');
+          const widgetResult = await res.json();
+          
+          accumulatedWidgets.push(widgetResult);
+          
+          if (window.atlasRenderWidget) {
+            const widgetHtml = window.atlasRenderWidget(widgetResult.type, widgetResult.data);
+            if (widgetHtml && widgetsContainer) {
+              const widgetBox = document.createElement('div');
+              widgetBox.className = 'widget-mount-point';
+              widgetBox.innerHTML = widgetHtml;
+              widgetsContainer.appendChild(widgetBox);
+            }
+          }
+          
+          bubble.innerHTML = parseMarkdownSafely(`Executed local command \`/${command}\`.`, false);
+          
+          session.messages.push({
+            role: 'assistant',
+            content: `Executed local command \`/${command}\`.`,
+            widgets: accumulatedWidgets
+          });
+          session.updatedAt = new Date().toISOString();
+          saveSessions();
+          updateSessionMetrics();
+          
+          state.isGenerating = false;
+          if (stopGenerationBtn) stopGenerationBtn.style.display = 'none';
+          if (sendBtn) sendBtn.style.display = 'flex';
+          if (streamingIndicator) streamingIndicator.style.display = 'none';
+          scrollToBottom(true);
+          return; // Skip LLM call entirely
+        } catch (err) {
+           // Fall through to standard error handler
+           throw err;
+        }
+      }
+    }
+    // ----------------------------------------------------
+
     try {
       const response = await fetch(`${API_BASE}/api/chat`, {
         method: 'POST',
@@ -1159,11 +1233,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function formatUserFriendlyError(err, statusCode = null) {
+    // 1. Offline State
     if (!navigator.onLine) {
       return {
         title: 'Connection Offline',
         desc: 'You appear to be offline. Please check your network connection.',
-        type: 'offline'
+        action: 'We will send your chat when you reconnect.',
+        type: 'offline',
+        canRetry: true
       };
     }
 
@@ -1171,7 +1248,9 @@ document.addEventListener('DOMContentLoaded', () => {
       return {
         title: 'Investigation Halted',
         desc: 'Generation was stopped by user.',
-        type: 'info'
+        action: '',
+        type: 'info',
+        canRetry: false
       };
     }
 
@@ -1186,36 +1265,55 @@ document.addEventListener('DOMContentLoaded', () => {
     ) {
       return {
         title: 'Daily Free Quota Reached',
-        desc: 'The shared daily free reasoning quota has been reached (50 requests/day). It automatically resets at midnight UTC. You can configure a custom OpenRouter key in Settings for immediate access.',
-        type: 'warning'
+        desc: 'The shared daily free reasoning quota has been reached (50 requests/day). It automatically resets at midnight UTC.',
+        action: 'You can configure a custom OpenRouter key in Settings for immediate access.',
+        type: 'warning',
+        canRetry: false
       };
     }
 
     if (statusCode === 401 || lower.includes('api key not configured') || lower.includes('unauthorized') || lower.includes('invalid api key')) {
       return {
         title: 'API Key Required',
-        desc: 'OpenRouter API key is not configured in Vercel Environment Variables. You can supply your own OpenRouter key in Settings to continue.',
-        type: 'warning'
+        desc: 'OpenRouter API key is missing or invalid.',
+        action: 'You can supply your own OpenRouter key in Settings to continue.',
+        type: 'warning',
+        canRetry: false
       };
     }
 
     if (statusCode === 429 || lower.includes('rate limit') || lower.includes('too many requests')) {
       return {
         title: 'Rate Limit Reached',
-        desc: 'You are sending requests a bit too quickly. Please wait a few moments before trying again.',
-        type: 'warning'
+        desc: 'You are sending messages too fast.',
+        action: 'Please wait a few seconds before trying again.',
+        type: 'warning',
+        canRetry: true
+      };
+    }
+
+    if (statusCode === 413 || lower.includes('payload too large')) {
+      return {
+        title: 'File Too Large',
+        desc: 'This file is too large to be processed.',
+        action: 'Choose a file under 25MB and try again.',
+        type: 'warning',
+        canRetry: false
       };
     }
 
     if (statusCode === 403 || lower.includes('unauthorized model') || lower.includes('not available')) {
       return {
         title: 'Model Unavailable',
-        desc: 'This reasoning model is momentarily unavailable. Please switch to another model from the menu.',
-        type: 'warning'
+        desc: 'This reasoning model is momentarily unavailable.',
+        action: 'Please switch to another model from the menu.',
+        type: 'warning',
+        canRetry: false
       };
     }
 
     if (
+      statusCode === 500 ||
       statusCode === 503 ||
       statusCode === 504 ||
       statusCode === 502 ||
@@ -1227,32 +1325,40 @@ document.addEventListener('DOMContentLoaded', () => {
       lower.includes('timeout')
     ) {
       return {
-        title: 'Engines Busy',
-        desc: 'The reasoning engines are currently experiencing high demand. Please try your question again in a moment.',
-        type: 'warning'
+        title: 'Engines Busy or Unreachable',
+        desc: 'Our servers are resting or experiencing high demand.',
+        action: 'Your message is saved. Please try your question again in a moment.',
+        type: 'warning',
+        canRetry: true
       };
     }
 
     if (lower.includes('failed to fetch') || lower.includes('networkerror') || lower.includes('network error') || lower.includes('load failed')) {
       return {
         title: 'Connection Interrupted',
-        desc: 'Unable to reach the server. Please verify your internet connection and try again.',
-        type: 'offline'
+        desc: 'Unable to reach the servers.',
+        action: 'Check your internet connection and try again.',
+        type: 'offline',
+        canRetry: true
       };
     }
 
     if (statusCode === 400 && lower.includes('system prompt')) {
       return {
         title: 'Instructions Too Long',
-        desc: 'Your custom instructions exceed the allowed character limit. Please shorten them in Studio Parameters.',
-        type: 'warning'
+        desc: 'Your custom instructions exceed the allowed character limit.',
+        action: 'Please shorten them in Studio Parameters.',
+        type: 'warning',
+        canRetry: false
       };
     }
 
     return {
       title: 'Service Notice',
-      desc: raw || 'Unable to complete this step right now. Please try again shortly.',
-      type: 'error'
+      desc: 'Something went wrong while processing your request.',
+      action: 'Please try again shortly.',
+      type: 'error',
+      canRetry: true
     };
   }
 
@@ -1261,16 +1367,45 @@ document.addEventListener('DOMContentLoaded', () => {
       ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="1" y1="1" x2="23" y2="23"></line><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"></path><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"></path><path d="M10.71 5.05A16 16 0 0 1 22.56 9"></path><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></svg>`
       : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`;
 
+    const retryBtn = errorInfo.canRetry 
+      ? `<button class="atlas-retry-btn" onclick="window.atlasRetryLast()" style="margin-top: 10px; padding: 6px 12px; background: var(--border-light); border: 1px solid var(--border-focus); border-radius: 4px; color: var(--text-main); font-family: inherit; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px;">${ICONS.retry} Try Again</button>`
+      : '';
+
+    const actionText = errorInfo.action ? `<div class="atlas-error-action" style="margin-top: 4px; font-weight: 500;">${escapeHtml(errorInfo.action)}</div>` : '';
+
     return `
       <div class="atlas-error-card ${errorInfo.type}">
         <div class="atlas-error-icon">${icon}</div>
         <div class="atlas-error-body">
           <div class="atlas-error-title">${escapeHtml(errorInfo.title)}</div>
           <div class="atlas-error-desc">${escapeHtml(errorInfo.desc)}</div>
+          ${actionText}
+          ${retryBtn}
         </div>
       </div>
     `;
   }
+
+  // --- SMART RETRY ---
+  window.atlasRetryLast = async function() {
+    if (state.isGenerating) return;
+    const session = getActiveSession();
+    if (!session || session.messages.length === 0) return;
+    
+    const chatMessagesEl = document.getElementById('chatMessages');
+    
+    // If the last message is from the user, it means the assistant failed
+    if (session.messages[session.messages.length - 1].role === 'user') {
+      // Remove the failed assistant bubble from the DOM
+      if (chatMessagesEl && chatMessagesEl.lastElementChild && chatMessagesEl.lastElementChild.classList.contains('assistant')) {
+        chatMessagesEl.removeChild(chatMessagesEl.lastElementChild);
+      }
+      
+      const lastUserMsg = session.messages.pop(); // Remove it temporarily
+      messageInput.value = lastUserMsg.content; // Put it in the input
+      handleChatSubmit(new Event('submit')); // Resubmit
+    }
+  };
 
   async function fetchSessionTitle(userPrompt, sessionId) {
     try {
