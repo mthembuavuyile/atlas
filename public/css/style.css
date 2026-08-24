@@ -136,6 +136,20 @@ html, body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Global Link Styles */
+a {
+  color: var(--accent-primary, #fba919);
+  text-decoration: underline;
+  text-decoration-color: rgba(251, 169, 25, 0.35);
+  text-underline-offset: 3px;
+  transition: color 0.15s ease, text-decoration-color 0.15s ease;
+}
+
+a:hover {
+  color: #ffc247;
+  text-decoration-color: var(--accent-primary, #fba919);
+}
+
 /* --------------------------------------------------------------------------
    APP LAYOUT & BACKDROP
    -------------------------------------------------------------------------- */
@@ -897,11 +911,13 @@ html, body {
 }
 
 .message-bubble {
-  padding: 8px 12px;
+  padding: 10px 14px;
   border-radius: 6px;
   font-size: 0.88rem;
-  line-height: 1.5;
+  line-height: 1.6;
+  overflow-wrap: break-word;
   word-break: break-word;
+  box-sizing: border-box;
 }
 
 .message-row.user .message-bubble {
@@ -915,6 +931,114 @@ html, body {
   border: 1px solid var(--message-ai-border);
   color: var(--text-main);
   width: 100%;
+}
+
+/* Link Styling inside Messages */
+.message-bubble a {
+  color: #60a5fa;
+  text-decoration: underline;
+  text-decoration-color: rgba(96, 165, 250, 0.4);
+  text-underline-offset: 3px;
+  font-weight: 500;
+  transition: color 0.15s ease, text-decoration-color 0.15s ease;
+}
+
+.message-bubble a:hover {
+  color: #93c5fd;
+  text-decoration-color: #93c5fd;
+}
+
+.message-bubble a:visited {
+  color: #c084fc;
+}
+
+/* Lists - Keep bullets and numbers strictly inside the message bubble border */
+.message-bubble ul,
+.message-bubble ol {
+  margin: 8px 0;
+  padding-left: 22px;
+  list-style-position: outside;
+  box-sizing: border-box;
+}
+
+.message-bubble li {
+  margin-bottom: 4px;
+  padding-left: 2px;
+  line-height: 1.55;
+  word-break: break-word;
+}
+
+.message-bubble li:last-child {
+  margin-bottom: 0;
+}
+
+.message-bubble li::marker {
+  color: var(--accent-primary, #fba919);
+}
+
+/* Paragraphs & Headings in Message Bubbles */
+.message-bubble p {
+  margin: 6px 0;
+  line-height: 1.55;
+}
+
+.message-bubble p:first-child {
+  margin-top: 0;
+}
+
+.message-bubble p:last-child {
+  margin-bottom: 0;
+}
+
+.message-bubble h1,
+.message-bubble h2,
+.message-bubble h3,
+.message-bubble h4,
+.message-bubble h5,
+.message-bubble h6 {
+  margin: 12px 0 6px 0;
+  line-height: 1.35;
+  color: var(--text-main, #f8fafc);
+  font-weight: 700;
+}
+
+.message-bubble h1:first-child,
+.message-bubble h2:first-child,
+.message-bubble h3:first-child,
+.message-bubble h4:first-child {
+  margin-top: 0;
+}
+
+.message-bubble h1 { font-size: 1.18rem; }
+.message-bubble h2 { font-size: 1.05rem; }
+.message-bubble h3 { font-size: 0.95rem; }
+.message-bubble h4 { font-size: 0.88rem; }
+
+.message-bubble blockquote {
+  margin: 8px 0;
+  padding: 6px 12px;
+  border-left: 3px solid var(--accent-primary, #fba919);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 0 4px 4px 0;
+  color: var(--text-secondary, #cbd5e1);
+  font-size: 0.84rem;
+}
+
+.message-bubble hr {
+  border: none;
+  border-top: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.1));
+  margin: 12px 0;
+}
+
+.message-bubble code:not(pre code) {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 2px 5px;
+  border-radius: 4px;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.82rem;
+  color: #fca5a5;
+  word-break: break-word;
 }
 
 .message-bubble img {
