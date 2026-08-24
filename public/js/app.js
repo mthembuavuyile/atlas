@@ -661,13 +661,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     session.messages.forEach(msg => {
-      renderMessageItem(msg.role, msg.content, msg.reasoning, false);
+      renderMessageItem(msg.role, msg.content, msg.reasoning, false, msg.widgets || []);
     });
 
     scrollToBottom(true);
   }
 
-  function renderMessageItem(role, content = '', reasoning = '', shouldScroll = true) {
+  function renderMessageItem(role, content = '', reasoning = '', shouldScroll = true, widgets = []) {
     if (welcomeScreen && welcomeScreen.parentNode) {
       welcomeScreen.style.display = 'none';
     }
@@ -693,6 +693,25 @@ document.addEventListener('DOMContentLoaded', () => {
       wrapper.appendChild(details);
     }
 
+    // Dedicated widgets container (weather, crypto, math, etc.)
+    const widgetsContainer = document.createElement('div');
+    widgetsContainer.className = 'message-widgets-container';
+    wrapper.appendChild(widgetsContainer);
+
+    if (Array.isArray(widgets) && widgets.length > 0) {
+      widgets.forEach(w => {
+        if (window.atlasRenderWidget) {
+          const wHtml = window.atlasRenderWidget(w.type, w.data);
+          if (wHtml) {
+            const wBox = document.createElement('div');
+            wBox.className = 'widget-mount-point';
+            wBox.innerHTML = wHtml;
+            widgetsContainer.appendChild(wBox);
+          }
+        }
+      });
+    }
+
     const bubble = document.createElement('div');
     bubble.className = 'message-bubble';
     bubble.innerHTML = parseMarkdownSafely(content, false);
@@ -709,7 +728,7 @@ document.addEventListener('DOMContentLoaded', () => {
       scrollToBottom(true);
     }
 
-    return { row, bubble, wrapper };
+    return { row, bubble, wrapper, widgetsContainer };
   }
 
   function renderMathSafely(container) {
@@ -864,7 +883,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateSessionMetrics();
 
     // Prepare assistant message bubble
-    const { bubble, wrapper } = renderMessageItem('assistant', '', '', true);
+    const { bubble, wrapper, widgetsContainer } = renderMessageItem('assistant', '', '', true);
     state.isGenerating = true;
 
     if (stopGenerationBtn) stopGenerationBtn.style.display = 'flex';
@@ -879,6 +898,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let accumulatedContent = '';
     let accumulatedReasoning = '';
+    let accumulatedWidgets = [];
     let inThinkTag = false;
     let lastRenderTime = 0;
 
@@ -929,13 +949,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Handle injected widget rendering directly in message
             if (parsed.__widget__) {
+              accumulatedWidgets.push(parsed.__widget__);
               if (window.atlasRenderWidget) {
                 const widgetHtml = window.atlasRenderWidget(parsed.__widget__.type, parsed.__widget__.data);
-                if (widgetHtml) {
+                if (widgetHtml && widgetsContainer) {
                   const widgetBox = document.createElement('div');
                   widgetBox.className = 'widget-mount-point';
                   widgetBox.innerHTML = widgetHtml;
-                  bubble.appendChild(widgetBox);
+                  widgetsContainer.appendChild(widgetBox);
                   scrollToBottom(false);
                 }
               }
@@ -995,7 +1016,8 @@ document.addEventListener('DOMContentLoaded', () => {
       session.messages.push({
         role: 'assistant',
         content: accumulatedContent,
-        reasoning: accumulatedReasoning
+        reasoning: accumulatedReasoning,
+        widgets: accumulatedWidgets
       });
       session.updatedAt = new Date().toISOString();
       saveSessions();
