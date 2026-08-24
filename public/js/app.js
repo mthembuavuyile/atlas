@@ -443,7 +443,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (activeModeTag) activeModeTag.textContent = `Mode: ${mode.name}`;
     if (activeModeDesc) activeModeDesc.textContent = mode.desc;
-    if (activePromptLabel) activePromptLabel.textContent = mode.name;
 
     updateDynamicGreeting(mode.id);
 
