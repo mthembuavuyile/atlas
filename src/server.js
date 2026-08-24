@@ -57,13 +57,7 @@ app.get('/', (req, res) => {
 // 6. Global 404 Handler
 app.use((req, res) => {
   res.status(404).json({
-    error: 'Route not found',
-    availableEndpoints: [
-      'GET  /',
-      'GET  /api/health',
-      'GET  /api/models',
-      'POST /api/chat'
-    ]
+    error: 'The requested resource was not found.'
   });
 });
 
