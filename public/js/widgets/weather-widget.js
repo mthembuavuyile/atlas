@@ -28,6 +28,14 @@ export function renderWeatherWidget(data) {
         weatherLabel = 'Thunderstorm';
     }
 
+    let timeStr = '';
+    if (current && current.time) {
+        const parts = String(current.time).split('T');
+        if (parts[1]) {
+            timeStr = parts[1].slice(0, 5);
+        }
+    }
+
     const content = `
         <div class="atlas-weather-main">
             <div class="weather-temp-group">
@@ -38,7 +46,7 @@ export function renderWeatherWidget(data) {
         </div>
         <div class="atlas-weather-details">
             <span>Wind: ${current.windspeed} km/h</span>
-            <span>Direction: ${current.winddirection}°</span>
+            ${timeStr ? `<span>Time: ${escapeHtml(timeStr)}${data.timezone_abbreviation ? ` (${escapeHtml(data.timezone_abbreviation)})` : ''}</span>` : `<span>Direction: ${current.winddirection}°</span>`}
         </div>
     `;
 

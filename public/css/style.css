@@ -742,6 +742,11 @@ html, body {
   user-select: none;
 }
 
+/* On mobile 2-column grid, span the 7th card to balance symmetry */
+.mode-card-pill:last-child {
+  grid-column: 1 / -1;
+}
+
 .mode-card-pill:hover, .mode-card-pill.active {
   border-color: var(--accent-primary);
   background: var(--pill-active-bg);
@@ -1661,6 +1666,10 @@ code {
 
   .mode-card-pill {
     padding: 10px 12px;
+  }
+
+  .mode-card-pill:last-child {
+    grid-column: auto;
   }
 
   .mode-desc-hint {

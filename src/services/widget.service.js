@@ -11,18 +11,43 @@ class WidgetService {
             if (!geoData.results?.length) {
                 return { error: `Location "${city}" could not be found. Please verify the city name.` };
             }
-            const { latitude, longitude, name, country } = geoData.results[0];
+            const { latitude, longitude, name, country, admin1, timezone } = geoData.results[0];
             
             const params = new URLSearchParams({
-                latitude, longitude, current_weather: true,
-                temperature_unit: 'celsius', wind_speed_unit: 'kmh'
+                latitude,
+                longitude,
+                current_weather: true,
+                temperature_unit: 'celsius',
+                wind_speed_unit: 'kmh',
+                timezone: 'auto'
             });
             const weatherRes = await fetchWithTimeout(`https://api.open-meteo.com/v1/forecast?${params.toString()}`);
             const weatherData = await weatherRes.json();
             
+            const current = weatherData.current_weather || {};
+            const resolvedTimezone = weatherData.timezone || timezone || 'auto';
+            const tzAbbr = weatherData.timezone_abbreviation || '';
+
             return {
                 type: 'weather',
-                data: { name, country, current: weatherData.current_weather }
+                data: {
+                    name,
+                    country,
+                    admin1: admin1 || '',
+                    timezone: resolvedTimezone,
+                    timezone_abbreviation: tzAbbr,
+                    utc_offset_seconds: weatherData.utc_offset_seconds || 0,
+                    current: {
+                        temperature: current.temperature,
+                        windspeed: current.windspeed,
+                        winddirection: current.winddirection,
+                        weathercode: current.weathercode,
+                        time: current.time,
+                        local_time: current.time,
+                        timezone: resolvedTimezone,
+                        timezone_abbreviation: tzAbbr
+                    }
+                }
             };
         } catch (err) {
             console.error('[Weather Error]:', err.message);
