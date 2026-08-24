@@ -20,16 +20,17 @@ class ChatController {
   buildSystemPrompt(mode, customSystemPrompt) {
     const parts = [];
 
-    // 1. Mode-specific reasoning instructions (if active)
+    // 1. Core Atlas identity — ALWAYS included so the AI knows who it is
+    parts.push(SYSTEM_PROMPT_FULL);
+
+    // 2. Mode-specific reasoning instructions (if active)
     if (mode && INVESTIGATION_MODES[mode]) {
       parts.push(INVESTIGATION_MODES[mode].prompt);
     }
 
-    // 2. Custom user system prompt OR the default full prompt
+    // 3. Additional custom user instructions (layered on top, not replacing identity)
     if (customSystemPrompt && customSystemPrompt.trim()) {
-      parts.push(customSystemPrompt.trim());
-    } else {
-      parts.push(SYSTEM_PROMPT_FULL);
+      parts.push(`ADDITIONAL USER INSTRUCTIONS:\n${customSystemPrompt.trim()}`);
     }
 
     return parts.join('\n\n');
@@ -47,21 +48,35 @@ class ChatController {
     } = req.body;
 
     try {
-      let normalizedMessages = Array.isArray(messages) ? [...messages] : [];
+      // Filter out any raw client system messages and extract custom instructions
+      const rawMessages = Array.isArray(messages) ? messages : [];
+      let clientCustomPrompt = customSystemPrompt;
+
+      const nonSystemMessages = [];
+      for (const m of rawMessages) {
+        if (!m) continue;
+        if (m.role === 'system') {
+          if (!clientCustomPrompt && m.content) {
+            clientCustomPrompt = m.content;
+          }
+        } else {
+          nonSystemMessages.push(m);
+        }
+      }
 
       // Validate systemPrompt length to prevent token abuse
-      if (customSystemPrompt && customSystemPrompt.length > 2000) {
+      if (clientCustomPrompt && clientCustomPrompt.length > 2000) {
         return res.status(400).json({ error: 'System prompt exceeds maximum length of 2000 characters.' });
       }
 
-      const hasSystemMessage = normalizedMessages.some(m => m && m.role === 'system');
-
-      if (!hasSystemMessage) {
-        normalizedMessages.unshift({
+      // Always inject the complete, authoritative mode-aware Atlas system prompt
+      const normalizedMessages = [
+        {
           role: 'system',
-          content: this.buildSystemPrompt(mode, customSystemPrompt)
-        });
-      }
+          content: this.buildSystemPrompt(mode, clientCustomPrompt)
+        },
+        ...nonSystemMessages
+      ];
 
       if (webSearch) {
         const lastUserMsg = [...normalizedMessages].reverse().find(m => m.role === 'user');

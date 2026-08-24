@@ -182,7 +182,7 @@ class OpenRouterService {
 
     // All models in pool exhausted
     console.error(`❌ [Auto-Rotation Exhausted]: All ${attemptedModels.size} free models in the pool were rate-limited or congested.`);
-    const exhaustedErr = new Error(`All free models are momentarily experiencing high global concurrency. Last error: ${errorMessage}`);
+    const exhaustedErr = new Error('The reasoning engines are experiencing high demand right now. Please try again in a few moments.');
     exhaustedErr.status = status;
     throw exhaustedErr;
   }

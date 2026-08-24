@@ -26,7 +26,7 @@ function modelGuard(req, res, next) {
   if (!isExplicitlyWhitelisted && !isFreeSuffix) {
     console.warn(`[Security Alert]: Blocked unauthorized model request for: "${model}" from IP: ${req.ip || req.headers['x-forwarded-for']}`);
     return res.status(403).json({
-      error: 'Unauthorized model requested. Only free Atlas developer models are permitted on this workspace.'
+      error: 'The selected model is not available. Please choose from the available reasoning models in the menu.'
     });
   }
 

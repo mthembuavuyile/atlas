@@ -930,11 +930,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (sendBtn) sendBtn.style.display = 'none';
     if (streamingIndicator) streamingIndicator.style.display = 'flex';
 
-    const payloadMessages = [];
-    if (state.systemPrompt && state.systemPrompt.trim()) {
-      payloadMessages.push({ role: 'system', content: state.systemPrompt.trim() });
-    }
-    session.messages.forEach(m => payloadMessages.push({ role: m.role, content: m.content }));
+    const payloadMessages = session.messages
+      .filter(m => m && (m.role === 'user' || m.role === 'assistant'))
+      .map(m => ({ role: m.role, content: m.content }));
 
     let accumulatedContent = '';
     let accumulatedReasoning = '';

@@ -91,16 +91,16 @@ module.exports = {
   chatLimiter: createRateLimiter({
     windowMs: 60 * 1000,
     max: 60,
-    message: 'Rate limit reached: Maximum 60 chat messages per minute. Please wait a moment.'
+    message: 'Rate limit reached. Please wait a moment before sending another message.'
   }),
   titleLimiter: createRateLimiter({
     windowMs: 60 * 1000,
     max: 40,
-    message: 'Rate limit reached for title generation. Please slow down.'
+    message: 'Too many title requests. Please wait a moment.'
   }),
   toolLimiter: createRateLimiter({
     windowMs: 60 * 1000,
     max: 50,
-    message: 'Rate limit reached for tool executions. Please slow down.'
+    message: 'Tool request limit reached. Please wait a moment.'
   })
 };
