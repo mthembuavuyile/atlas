@@ -477,6 +477,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function formatBadge(badge) {
+    return String(badge || '').replace(/\s*FREE\s*/gi, '').trim() || 'PRO';
+  }
+
   // --- MODEL DROPDOWN CONTROLLER ---
   function renderModelOptions() {
     if (!modelOptionsList) return;
@@ -491,7 +495,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ${getModelIcon(model.id)}
             <span>${escapeHtml(model.name)}</span>
           </span>
-          <span class="model-pill-badge">${model.badge}</span>
+          <span class="model-pill-badge">${formatBadge(model.badge)}</span>
         </div>
         <div class="model-option-desc">${escapeHtml(model.description || model.desc || '')}</div>
       `;
@@ -515,7 +519,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function syncModelDisplay(modelId) {
     const model = state.models.find(m => m.id === modelId) || FREE_MODELS[0];
     if (modelCurrentName) modelCurrentName.textContent = model.name;
-    if (modelPillBadge) modelPillBadge.textContent = model.badge;
+    if (modelPillBadge) modelPillBadge.textContent = formatBadge(model.badge);
     if (hintModelName) hintModelName.textContent = model.id;
     if (modelSparkIcon) modelSparkIcon.innerHTML = getModelIcon(model.id);
   }

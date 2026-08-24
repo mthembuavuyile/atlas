@@ -689,49 +689,6 @@ html, body {
 
 .welcome-header-block {
   margin-bottom: 12px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.welcome-pill-indicator {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 3px 10px;
-  border-radius: 12px;
-  background: rgba(251, 169, 25, 0.08);
-  border: 1px solid rgba(251, 169, 25, 0.2);
-  margin-bottom: 8px;
-  user-select: none;
-}
-
-[data-theme="carbon"] .welcome-pill-indicator {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 255, 255, 0.12);
-}
-
-[data-theme="obsidian"] .welcome-pill-indicator {
-  background: rgba(224, 122, 95, 0.08);
-  border-color: rgba(224, 122, 95, 0.22);
-}
-
-.welcome-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--accent-primary);
-  box-shadow: 0 0 8px var(--accent-primary);
-  animation: pulseGlow 2.4s infinite ease-in-out;
-}
-
-.welcome-platform-tag {
-  font-size: 0.65rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--accent-primary);
-  font-family: var(--font-mono);
 }
 
 .welcome-heading {
@@ -761,18 +718,6 @@ html, body {
   color: var(--text-secondary);
   line-height: 1.45;
   max-width: 440px;
-}
-
-@keyframes pulseGlow {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 0.85;
-  }
-  50% {
-    transform: scale(1.25);
-    opacity: 1;
-    box-shadow: 0 0 12px var(--accent-primary);
-  }
 }
 
 /* 7 Investigation Modes Selector Grid */
