@@ -2004,3 +2004,31 @@ code {
     padding-bottom: clamp(140px, 28vh, 180px);
   }
 }
+
+/* ─────────────────────────────────────────────────────────────
+   MESSAGE ACTIONS BAR (COPY, SPEAK, ETC)
+   ───────────────────────────────────────────────────────────── */
+.message-actions-bar {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+  padding: 0 4px;
+}
+
+.action-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-main);
+}

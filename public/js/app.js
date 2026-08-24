@@ -790,6 +790,44 @@ document.addEventListener('DOMContentLoaded', () => {
     enhanceCodeBlocks(bubble);
     renderMathSafely(bubble);
     wrapper.appendChild(bubble);
+
+    if (role === 'assistant') {
+      const actionsBar = document.createElement('div');
+      actionsBar.className = 'message-actions-bar';
+      
+      const copyBtn = document.createElement('button');
+      copyBtn.className = 'action-btn copy-btn';
+      copyBtn.innerHTML = ICONS.copy || 'Copy';
+      copyBtn.title = 'Copy response';
+      
+      copyBtn.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(bubble.innerText);
+          copyBtn.innerHTML = ICONS.check || 'Copied';
+          setTimeout(() => { copyBtn.innerHTML = ICONS.copy || 'Copy'; }, 2000);
+        } catch (e) {
+          console.warn('Clipboard write failed', e);
+        }
+      });
+      
+      const speakBtn = document.createElement('button');
+      speakBtn.className = 'action-btn speak-btn';
+      speakBtn.innerHTML = ICONS.speaker || 'Speak';
+      speakBtn.title = 'Speak response';
+      
+      speakBtn.addEventListener('click', () => {
+        if ('speechSynthesis' in window) {
+          window.speechSynthesis.cancel();
+          const utterance = new SpeechSynthesisUtterance(bubble.innerText);
+          window.speechSynthesis.speak(utterance);
+        }
+      });
+      
+      actionsBar.appendChild(copyBtn);
+      actionsBar.appendChild(speakBtn);
+      wrapper.appendChild(actionsBar);
+    }
+
     row.appendChild(avatar);
     row.appendChild(wrapper);
 
