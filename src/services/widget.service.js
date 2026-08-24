@@ -425,9 +425,12 @@ class WidgetService {
             }
         }
 
-        // 1. Try Newton API
+        // 1. Try Newton API (vercel.app / now.sh)
         try {
-            const res = await fetchWithTimeout(`https://newton.now.sh/api/v2/${apiOperation}/${encodeURIComponent(cleanedExpr)}`, { signal: AbortSignal.timeout(4000) });
+            let res = await fetchWithTimeout(`https://newton.vercel.app/api/v2/${apiOperation}/${encodeURIComponent(cleanedExpr)}`, { signal: AbortSignal.timeout(4000) });
+            if (!res.ok) {
+                res = await fetchWithTimeout(`https://newton.now.sh/api/v2/${apiOperation}/${encodeURIComponent(cleanedExpr)}`, { signal: AbortSignal.timeout(3000) });
+            }
             if (res.ok) {
                 const data = await res.json();
                 if (data && data.result !== undefined && !data.error) {
