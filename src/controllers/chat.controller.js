@@ -170,6 +170,18 @@ class ChatController {
             res.write(`data: ${JSON.stringify({ __widget__: { type: widgetResult.type, data: widgetResult.data, error: widgetResult.error } })}\n\n`);
             res.write(`data: ${JSON.stringify({ __tool_done__: { name: toolName, success: !widgetResult.error } })}\n\n`);
 
+            // Structure tool response for LLM's second pass
+            let toolContentForLlm = widgetResult;
+            if (toolName === 'search_images' && widgetResult.data?.images) {
+              toolContentForLlm = {
+                status: 'success',
+                query: widgetResult.data.query,
+                image_count: widgetResult.data.images.length,
+                titles: widgetResult.data.images.slice(0, 5).map(img => img.title),
+                instruction: `Visual references gallery containing ${widgetResult.data.images.length} images for "${widgetResult.data.query}" has already been displayed directly above. Provide a concise, helpful summary or fascinating scientific context about the subject. Do NOT output markdown image syntax or raw image links.`
+              };
+            }
+
             // Second pass for assistant reasoning
             normalizedMessages.push({
               role: 'assistant',
@@ -180,7 +192,7 @@ class ChatController {
               role: 'tool',
               tool_call_id: toolCallId || 'call_0',
               name: toolName,
-              content: JSON.stringify(widgetResult)
+              content: JSON.stringify(toolContentForLlm)
             });
 
             const secondPass = await openrouterService.createChatCompletion({

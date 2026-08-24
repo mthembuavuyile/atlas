@@ -1226,6 +1226,13 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!e.target.closest('.export-dropdown-wrapper')) {
         document.getElementById('exportMenuPopup')?.classList.remove('show');
       }
+      const msgImg = e.target.closest('.message-bubble img');
+      if (msgImg) {
+        e.preventDefault();
+        if (window.atlasOpenLightbox) {
+          window.atlasOpenLightbox(msgImg.src, msgImg.alt || 'Visual reference', '', 'Visual Reference');
+        }
+      }
     });
 
     messageInput?.addEventListener('input', autoResizeTextarea);

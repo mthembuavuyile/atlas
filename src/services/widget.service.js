@@ -117,120 +117,180 @@ class WidgetService {
     }
 
     // 4. Images (Free Multi-Provider: Wikimedia Commons, Wikipedia, Unsplash, Pixabay)
-    async searchImages(query) {
+    async searchImages(query, limit = 8) {
         const cleanQuery = (query || 'science').trim();
+        const targetLimit = Math.min(Math.max(parseInt(limit, 10) || 8, 2), 12);
         const API_KEYS = {
             unsplash: process.env.UNSPLASH_ACCESS_KEY || '',
             pixabay: process.env.PIXABAY_API_KEY || ''
         };
         const allImages = [];
+        const seenUrls = new Set();
+
+        const addImage = (img) => {
+            if (!img || !img.src || seenUrls.has(img.src)) return false;
+            seenUrls.add(img.src);
+            allImages.push(img);
+            return true;
+        };
 
         // 1. Unsplash (if key provided)
         if (API_KEYS.unsplash) {
             try {
-                const res = await fetchWithTimeout(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(cleanQuery)}&per_page=4&client_id=${API_KEYS.unsplash}`);
+                const res = await fetchWithTimeout(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(cleanQuery)}&per_page=${targetLimit}&client_id=${API_KEYS.unsplash}`);
                 const data = await res.json();
                 if (data.results?.length) {
-                    data.results.forEach(photo => allImages.push({
-                        src: photo.urls.regular,
-                        thumb: photo.urls.small || photo.urls.regular,
-                        link: photo.links.html,
-                        title: photo.alt_description || cleanQuery,
-                        author: photo.user?.name || 'Photographer',
-                        provider: 'Unsplash',
-                        color: photo.color || '#0a2e5c'
-                    }));
+                    for (const photo of data.results) {
+                        addImage({
+                            src: photo.urls.regular,
+                            thumb: photo.urls.small || photo.urls.regular,
+                            link: photo.links.html,
+                            title: photo.alt_description || cleanQuery,
+                            author: photo.user?.name || 'Photographer',
+                            provider: 'Unsplash',
+                            width: photo.width || 800,
+                            height: photo.height || 600,
+                            color: photo.color || '#0a2e5c'
+                        });
+                        if (allImages.length >= targetLimit) break;
+                    }
                 }
             } catch (e) {}
         }
 
         // 2. Pixabay (if key provided)
-        if (API_KEYS.pixabay && allImages.length < 4) {
+        if (API_KEYS.pixabay && allImages.length < targetLimit) {
             try {
-                const res = await fetchWithTimeout(`https://api.pixabay.com/api/?key=${API_KEYS.pixabay}&q=${encodeURIComponent(cleanQuery)}&image_type=photo&per_page=4&safesearch=true`);
+                const remaining = targetLimit - allImages.length;
+                const res = await fetchWithTimeout(`https://api.pixabay.com/api/?key=${API_KEYS.pixabay}&q=${encodeURIComponent(cleanQuery)}&image_type=photo&per_page=${remaining}&safesearch=true`);
                 const data = await res.json();
                 if (data.hits?.length) {
-                    data.hits.forEach(hit => allImages.push({
-                        src: hit.largeImageURL,
-                        thumb: hit.webformatURL || hit.largeImageURL,
-                        link: hit.pageURL,
-                        title: hit.tags || cleanQuery,
-                        author: hit.user || 'Contributor',
-                        provider: 'Pixabay',
-                        color: '#0a2e5c'
-                    }));
-                }
-            } catch (e) {}
-        }
-
-        // 3. Free Wikimedia Commons API (Zero API key required, high-resolution scientific/encyclopedic images)
-        if (allImages.length < 4) {
-            try {
-                const wikiUrl = `https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(cleanQuery)}&gsrlimit=6&gsrnamespace=6&prop=imageinfo&iiprop=url|mime|extmetadata&format=json`;
-                const res = await fetchWithTimeout(wikiUrl);
-                if (res.ok) {
-                    const data = await res.json();
-                    const pages = Object.values(data.query?.pages || {});
-                    for (const page of pages) {
-                        const info = page.imageinfo?.[0];
-                        if (info?.url && !info.url.endsWith('.svg') && !info.url.endsWith('.tif')) {
-                            const cleanTitle = (page.title || '').replace(/^File:/i, '').replace(/\.[^/.]+$/, '').replace(/_/g, ' ');
-                            allImages.push({
-                                src: info.url,
-                                thumb: info.url,
-                                link: `https://commons.wikimedia.org/wiki/${encodeURIComponent(page.title)}`,
-                                title: cleanTitle || cleanQuery,
-                                author: info.extmetadata?.Artist?.value ? info.extmetadata.Artist.value.replace(/<[^>]*>?/gm, '') : 'Wikimedia Commons',
-                                provider: 'Wikimedia',
-                                color: '#0a2e5c'
-                            });
-                            if (allImages.length >= 4) break;
-                        }
+                    for (const hit of data.hits) {
+                        addImage({
+                            src: hit.largeImageURL,
+                            thumb: hit.webformatURL || hit.largeImageURL,
+                            link: hit.pageURL,
+                            title: hit.tags || cleanQuery,
+                            author: hit.user || 'Contributor',
+                            provider: 'Pixabay',
+                            width: hit.imageWidth || 800,
+                            height: hit.imageHeight || 600,
+                            color: '#0a2e5c'
+                        });
+                        if (allImages.length >= targetLimit) break;
                     }
                 }
             } catch (e) {}
         }
 
-        // 4. Free Wikipedia Page Lead Image API
-        if (allImages.length === 0) {
+        // 3. Free Wikimedia Commons API (High-performance thumbnail generation via iiurlwidth=800)
+        if (allImages.length < targetLimit) {
             try {
-                const wpUrl = `https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(cleanQuery)}&prop=pageimages|extracts&pithumbsize=600&format=json`;
+                const wikiUrl = `https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(cleanQuery)}&gsrlimit=24&gsrnamespace=6&prop=imageinfo&iiprop=url|mime|extmetadata|size&iiurlwidth=800&format=json`;
+                const res = await fetchWithTimeout(wikiUrl, {
+                    headers: { 'User-Agent': 'AtlasReasoningStudio/1.0 (https://vylex.co.za; hello@vylex.co.za)' }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    const pages = Object.values(data.query?.pages || {});
+                    
+                    const validExtRegex = /\.(jpe?g|png|webp|gif)$/i;
+                    const invalidMimeRegex = /tiff|svg|pdf|djvu|ogg|video|audio/i;
+
+                    for (const page of pages) {
+                        const info = page.imageinfo?.[0];
+                        if (!info || !info.url) continue;
+
+                        const mime = (info.mime || '').toLowerCase();
+                        if (mime && !mime.startsWith('image/')) continue;
+                        if (mime && invalidMimeRegex.test(mime)) continue;
+
+                        const cleanUrl = info.url.split('?')[0];
+                        if (!validExtRegex.test(cleanUrl)) continue;
+
+                        const rawTitle = (page.title || '').replace(/^File:/i, '').replace(/\.[^/.]+$/, '').replace(/_/g, ' ');
+                        const cleanTitle = rawTitle.replace(/\s+/g, ' ').trim();
+                        const artist = info.extmetadata?.Artist?.value
+                            ? info.extmetadata.Artist.value.replace(/<[^>]*>?/gm, '').trim()
+                            : '';
+
+                        const thumbUrl = info.thumburl || info.url;
+                        const fullUrl = info.url;
+
+                        addImage({
+                            src: fullUrl,
+                            thumb: thumbUrl,
+                            link: `https://commons.wikimedia.org/wiki/${encodeURIComponent(page.title)}`,
+                            title: cleanTitle || cleanQuery,
+                            author: artist || 'Wikimedia Commons',
+                            provider: 'Wikimedia',
+                            width: info.width || 800,
+                            height: info.height || 600,
+                            color: '#0a2e5c'
+                        });
+
+                        if (allImages.length >= targetLimit) break;
+                    }
+                }
+            } catch (e) {
+                console.error('[Wikimedia Image Error]:', e.message);
+            }
+        }
+
+        // 4. Free Wikipedia Page Images Search (Augment if still below target)
+        if (allImages.length < targetLimit) {
+            try {
+                const wpUrl = `https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(cleanQuery)}&gsrlimit=10&prop=pageimages|extracts&pithumbsize=800&piprop=thumbnail|original&format=json`;
                 const res = await fetchWithTimeout(wpUrl);
                 if (res.ok) {
                     const data = await res.json();
                     const pages = Object.values(data.query?.pages || {});
                     for (const page of pages) {
-                        if (page.thumbnail?.source) {
-                            allImages.push({
-                                src: page.thumbnail.source,
-                                thumb: page.thumbnail.source,
+                        const thumb = page.thumbnail?.source;
+                        const original = page.original?.source || thumb;
+                        if (thumb) {
+                            addImage({
+                                src: original,
+                                thumb: thumb,
                                 link: `https://en.wikipedia.org/wiki/${encodeURIComponent(page.title)}`,
-                                title: page.title,
+                                title: page.title || cleanQuery,
                                 author: 'Wikipedia',
                                 provider: 'Wikipedia',
+                                width: page.thumbnail?.width || 800,
+                                height: page.thumbnail?.height || 600,
                                 color: '#0a2e5c'
                             });
+                            if (allImages.length >= targetLimit) break;
                         }
                     }
                 }
             } catch (e) {}
         }
 
-        // 5. Fallback visual generation prompt
+        // 5. Fallback Visual Generation if absolutely zero images found
         if (allImages.length === 0) {
-            const visualUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanQuery)}?width=600&height=400&nologo=true`;
-            allImages.push({
+            const visualUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanQuery)}?width=800&height=500&nologo=true`;
+            addImage({
                 src: visualUrl,
                 thumb: visualUrl,
                 link: visualUrl,
-                title: `${cleanQuery} Visual Model`,
+                title: `${cleanQuery} Visual Concept`,
                 author: 'Scientific Visualizer',
                 provider: 'Vylex Visual Core',
+                width: 800,
+                height: 500,
                 color: '#0a2e5c'
             });
         }
 
-        return { type: 'image', data: { query: cleanQuery, images: allImages } };
+        return {
+            type: 'image',
+            data: {
+                query: cleanQuery,
+                total: allImages.length,
+                images: allImages
+            }
+        };
     }
 
     // 5. Space News
