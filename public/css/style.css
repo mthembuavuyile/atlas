@@ -439,17 +439,17 @@ a:hover {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 8px;
+  padding: 0 10px;
   flex-shrink: 0;
   background: var(--bg-app);
-  gap: 4px;
+  gap: 6px;
   z-index: 40;
 }
 
 .nav-left, .nav-right {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
 }
 
 .nav-left {
@@ -466,7 +466,7 @@ a:hover {
 .model-dropdown-capsule {
   position: relative;
   min-width: 0;
-  max-width: 170px;
+  max-width: clamp(140px, 40vw, 200px);
 }
 
 .model-pill-trigger {
@@ -608,29 +608,95 @@ a:hover {
 
 /* Theme Switcher */
 .theme-switcher-group {
-  display: flex;
+  display: inline-flex;
+  align-items: center;
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
-  border-radius: 4px;
-  padding: 1px;
-  gap: 1px;
+  border-radius: 6px;
+  padding: 2px;
+  gap: 2px;
   flex-shrink: 0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .theme-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
   background: transparent;
   border: none;
-  padding: 2px 6px;
-  border-radius: 3px;
-  font-size: 0.68rem;
+  padding: 3px 6px;
+  min-height: 24px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 500;
   color: var(--text-muted);
   cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+  user-select: none;
+  line-height: 1;
+}
+
+.theme-btn:hover {
+  color: var(--text-secondary);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .theme-btn.active {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.09);
   color: var(--text-main);
-  font-weight: 500;
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.theme-dot {
+  width: 7.5px;
+  height: 7.5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-block;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
+}
+
+.theme-dot-vylex {
+  background-color: #FBA919;
+}
+
+.theme-dot-obsidian {
+  background-color: #e07a5f;
+}
+
+.theme-dot-carbon {
+  background-color: #10b981;
+}
+
+.theme-btn.active .theme-dot {
+  transform: scale(1.15);
+}
+
+/* Mobile-only compact mode: only active theme displays full word */
+@media (max-width: 767px) {
+  .theme-btn:not(.active) .theme-label {
+    display: none;
+  }
+  
+  .theme-btn:not(.active) {
+    padding: 3px 6px;
+    min-width: 22px;
+    justify-content: center;
+  }
+
+  .theme-btn.active {
+    padding: 3px 8px 3px 6px;
+  }
+
+  .theme-btn.active .theme-label {
+    display: inline-block;
+    font-size: 0.68rem;
+    letter-spacing: 0.01em;
+  }
 }
 
 /* Canvas Toggle Button */
@@ -2042,6 +2108,19 @@ code {
 
   .model-current-name {
     font-size: 0.78rem;
+  }
+
+  .theme-btn {
+    padding: 3px 8px;
+    min-width: auto;
+  }
+
+  .theme-btn:not(.active) .theme-label {
+    display: inline-block;
+  }
+
+  .theme-btn.active {
+    padding: 3px 8px;
   }
 
   .canvas-btn-text {

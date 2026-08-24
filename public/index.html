@@ -208,10 +208,19 @@
 
         <div class="nav-right">
           <!-- Minimal Theme Selector -->
-          <div class="theme-switcher-group" title="Select Theme">
-            <button class="theme-btn active" data-theme-val="vylex">Vylex</button>
-            <button class="theme-btn" data-theme-val="obsidian">Obsidian</button>
-            <button class="theme-btn" data-theme-val="carbon">Carbon</button>
+          <div class="theme-switcher-group" title="Select Theme" role="radiogroup" aria-label="Theme selector">
+            <button class="theme-btn active" data-theme-val="vylex" title="Vylex Theme" aria-label="Vylex Theme">
+              <span class="theme-dot theme-dot-vylex" aria-hidden="true"></span>
+              <span class="theme-label">Vylex</span>
+            </button>
+            <button class="theme-btn" data-theme-val="obsidian" title="Obsidian Theme" aria-label="Obsidian Theme">
+              <span class="theme-dot theme-dot-obsidian" aria-hidden="true"></span>
+              <span class="theme-label">Obsidian</span>
+            </button>
+            <button class="theme-btn" data-theme-val="carbon" title="Carbon Theme" aria-label="Carbon Theme">
+              <span class="theme-dot theme-dot-carbon" aria-hidden="true"></span>
+              <span class="theme-label">Carbon</span>
+            </button>
           </div>
 
           <!-- Session Metrics -->
