@@ -13,7 +13,6 @@ const FOUNDER = {
   role: 'Full-Stack Software Developer, Systems Architect, Founder & Director of Vylex',
   location: 'Durban / Pietermaritzburg, KwaZulu-Natal, South Africa',
   website: 'https://avuyilemthembu.co.za',
-  altWebsite: 'https://avuyile.co.za',
   education: {
     qualification: 'Diploma in Systems Development (NQF Level 6)',
     institution: 'Boston City Campus',
@@ -55,7 +54,6 @@ const COMPANY = {
   domains: {
     'vylex.co.za': 'Official corporate portal for Vylex (Pty) Ltd; outlines B2B service packages, case studies, product lab initiatives, and company governance.',
     'avuyilemthembu.co.za': 'Personal engineering portfolio, technical blog, and software showcase for Avuyile Mthembu.',
-    'avuyile.co.za': 'Personal engineering portfolio (alternate domain).',
     'vylexnexys.co.za': 'Dedicated platform for Vylex Nexys STEM education and virtual laboratory solutions.',
   },
 };
@@ -236,10 +234,10 @@ const SYSTEM_PROMPT_FULL = [
   `IDENTITY & PROVENANCE DIRECTIVE:`,
   `- Your name is Atlas.`,
   `- You were created and built by ${COMPANY.tradingAs} (official website: ${COMPANY.website}).`,
-  `- ${COMPANY.name} was founded by ${FOUNDER.name} (personal websites: ${FOUNDER.altWebsite} and ${FOUNDER.website}), a ${FOUNDER.role} based in ${FOUNDER.location}.`,
+  `- ${COMPANY.name} was founded by ${FOUNDER.name} (personal website: ${FOUNDER.website}), a ${FOUNDER.role} based in ${FOUNDER.location}.`,
   `- ${FOUNDER.name} holds a ${FOUNDER.education.qualification} from ${FOUNDER.education.institution}.`,
   `- ${COMPANY.tradingAs} is a Level 1 B-BBEE, 100% Black-owned South African technology studio.`,
-  `- When asked who you are, who created/made you, who your founder/creator is, what company built you, or about Vylex or ${FOUNDER.name}, always state clearly and accurately that you are Atlas by Vylex Technologies (vylex.co.za), founded by Avuyile Mthembu (avuyile.co.za).`,
+  `- When asked who you are, who created/made you, who your founder/creator is, what company built you, or about Vylex or ${FOUNDER.name}, always state clearly and accurately that you are Atlas by Vylex Technologies (vylex.co.za), founded by Avuyile Mthembu (avuyilemthembu.co.za).`,
   `Atlas investigates problems through structured reasoning, computational tools, and multi-model intelligence. You don't just give answers — you investigate, reason, compute, verify, and help execute.`,
   `You are equipped with a powerful suite of real-time tools. When users ask about weather, crypto prices, Bible verses, images or pictures, news, math, dictionary definitions, currency conversion, jokes, or advice — ALWAYS use the provided tool functions to fetch live data.`,
   `When users ask to see an image, picture, diagram, photo, or visual of any subject (e.g., "show me images of X", "show me a picture of Y", "what does X look like?"), ALWAYS call the search_images tool function with the search query. The visual reference gallery is automatically rendered directly in the interface. In your response text, briefly describe what the visual references illustrate without repeating raw markdown image embeds.`,

@@ -26,7 +26,6 @@ const isAllowedOrigin = (origin) => {
       host === '127.0.0.1' ||
       host.endsWith('.vercel.app') ||
       host.endsWith('vylex.co.za') ||
-      host.endsWith('avuyile.co.za') ||
       host.endsWith('avuyilemthembu.co.za') ||
       (env.APP_URL && origin.startsWith(env.APP_URL))
     );
