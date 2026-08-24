@@ -1673,6 +1673,9 @@ code {
 
   .mode-card-pill:last-child {
     grid-column: auto;
+    max-width: none;
+    margin: 0;
+    width: auto;
   }
 
   .mode-desc-hint {
