@@ -22,7 +22,7 @@ export function renderRedditWidget(data) {
                             <span class="external-icon">${WIDGET_ICONS.externalLink}</span>
                         </a>
                     </h4>
-                    ${post.image ? `<div class="discussion-thumbnail-container"><img src="${escapeHtml(post.image)}" alt="thumbnail" loading="lazy" onerror="this.parentElement.style.display='none'" /></div>` : ''}
+                    ${post.image ? `<div class="discussion-thumbnail-container"><img src="${escapeHtml(post.image)}" alt="thumbnail" loading="lazy" onerror="this.parentElement.style.display='none'" data-src="${escapeHtml(post.image)}" data-title="${escapeHtml(post.title)}" data-author="${escapeHtml(post.author || '')}" data-provider="Reddit" data-link="${escapeHtml(post.url || '')}" onclick="if(window.atlasOpenLightbox) { window.atlasOpenLightbox(this.getAttribute('data-src'), this.getAttribute('data-title'), this.getAttribute('data-author'), this.getAttribute('data-provider'), this.getAttribute('data-link')); event.preventDefault(); event.stopPropagation(); }" style="cursor: zoom-in;" title="View full image" /></div>` : ''}
                     <div class="discussion-meta">
                         <span class="discussion-tag">${escapeHtml(post.subreddit || 'community')}</span>
                         <span>•</span>
