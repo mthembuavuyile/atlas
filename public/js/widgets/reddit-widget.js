@@ -3,11 +3,15 @@ import { createWidgetShell, escapeHtml, formatNumber, WIDGET_ICONS } from './wid
 export function renderRedditWidget(data) {
     if (data.error) return `<div class="atlas-widget error">${escapeHtml(data.error)}</div>`;
 
+    if (!data.posts || !data.posts.length) {
+        return `<div class="atlas-widget-empty">No live discussions found for ${escapeHtml(data.subreddit || 'this topic')}.</div>`;
+    }
+
     let html = '<div class="atlas-discussions-list">';
     for (const post of (data.posts || [])) {
         html += `
             <div class="atlas-discussion-item">
-                <div class="discussion-score-badge">
+                <div class="discussion-score-badge" title="Upvotes / Score">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"></polyline></svg>
                     <span>${formatNumber(post.ups || 0)}</span>
                 </div>
@@ -18,7 +22,7 @@ export function renderRedditWidget(data) {
                             <span class="external-icon">${WIDGET_ICONS.externalLink}</span>
                         </a>
                     </h4>
-                    ${post.image ? `<div class="discussion-thumbnail-container" style="margin: 8px 0; border-radius: 6px; overflow: hidden; max-height: 200px;"><img src="${escapeHtml(post.image)}" alt="thumbnail" style="width: 100%; height: auto; object-fit: cover;" /></div>` : ''}
+                    ${post.image ? `<div class="discussion-thumbnail-container"><img src="${escapeHtml(post.image)}" alt="thumbnail" loading="lazy" onerror="this.parentElement.style.display='none'" /></div>` : ''}
                     <div class="discussion-meta">
                         <span class="discussion-tag">${escapeHtml(post.subreddit || 'community')}</span>
                         <span>•</span>
@@ -33,6 +37,7 @@ export function renderRedditWidget(data) {
     }
     html += '</div>';
 
-    const headerTitle = `Community Discussions: ${escapeHtml(data.subreddit || 'Tech')}`;
+    const headerTitle = `${escapeHtml(data.source || 'Community Discussions')}: ${escapeHtml(data.subreddit || 'r/news')}`;
     return createWidgetShell('reddit', WIDGET_ICONS.reddit, headerTitle, html);
 }
+

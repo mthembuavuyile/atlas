@@ -1030,15 +1030,27 @@ document.addEventListener('DOMContentLoaded', () => {
       if (command === 'crypto') {
         toolToCall = 'get_crypto_price';
         argsPayload = { coin: arg || 'bitcoin' };
-      } else if (command === 'define') {
+      } else if (command === 'define' || command === 'dict') {
         toolToCall = 'define_word';
-        argsPayload = { word: arg };
+        argsPayload = { word: arg || 'intelligence' };
       } else if (command === 'reddit') {
         toolToCall = 'get_reddit_posts';
-        argsPayload = { subreddit: arg || 'technology' };
+        argsPayload = { subreddit: arg || 'news' };
       } else if (command === 'weather') {
         toolToCall = 'get_weather';
         argsPayload = { city: arg || 'London' };
+      } else if (command === 'space' || command === 'spacenews') {
+        toolToCall = 'get_space_news';
+        argsPayload = { topic: arg || 'astronomy' };
+      } else if (command === 'bible' || command === 'verse') {
+        toolToCall = 'get_bible_verse';
+        argsPayload = { reference: arg || 'John 3:16' };
+      } else if (command === 'joke') {
+        toolToCall = 'tell_joke';
+        argsPayload = {};
+      } else if (command === 'advice') {
+        toolToCall = 'give_advice';
+        argsPayload = {};
       }
       
       if (toolToCall) {

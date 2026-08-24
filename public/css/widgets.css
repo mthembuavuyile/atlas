@@ -644,6 +644,23 @@
     color: var(--text-muted, #94a3b8);
 }
 
+.discussion-thumbnail-container {
+    margin: 6px 0;
+    border-radius: 4px;
+    overflow: hidden;
+    max-height: 180px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.05));
+}
+
+.discussion-thumbnail-container img {
+    width: 100%;
+    height: auto;
+    max-height: 180px;
+    object-fit: cover;
+    display: block;
+}
+
 .discussion-meta {
     font-size: 0.68rem;
     color: var(--text-muted, #94a3b8);

@@ -314,44 +314,158 @@ class WidgetService {
 
     // 6. Reddit & Community Discussions
     async getRedditPosts(subreddit) {
-        const cleanSub = (subreddit || 'technology').replace(/^r\//i, '').trim();
+        const rawSub = (subreddit || 'news').toString().trim();
+        const cleanSub = rawSub.replace(/^\/?r\//i, '').replace(/^[#@]/, '').replace(/\/+$/, '').trim();
+        const finalSub = cleanSub || 'news';
         const posts = [];
+        let sourceName = 'Community Discussions';
 
-        // 0. Reddit Official API
+        // Tier 1: Photon / Arctic Shift Reddit API (High Reliability & Real-Time)
         try {
-            const redditRes = await fetchWithTimeout(`https://www.reddit.com/r/${encodeURIComponent(cleanSub)}/hot.json?limit=5&include_over_18=on&raw_json=1`, {
-                headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
-            });
-            if (redditRes.ok) {
-                const data = await redditRes.json();
-                if (data.data?.children?.length) {
-                    data.data.children.forEach(child => {
-                        const postData = child.data;
-                        let imageUrl = null;
-                        if (postData.thumbnail && postData.thumbnail.startsWith('http')) {
-                            imageUrl = postData.thumbnail;
+            const photonRes = await fetchWithTimeout(`https://arctic-shift.photon-reddit.com/api/posts/search?subreddit=${encodeURIComponent(finalSub)}&limit=15`, {}, 4000);
+            if (photonRes.ok) {
+                const data = await photonRes.json();
+                if (Array.isArray(data.data) && data.data.length > 0) {
+                    for (const p of data.data) {
+                        if (!p.title || p.title.startsWith('[ Removed') || p.title.startsWith('[ Deleted') || p.author === '[deleted]' || p.title.trim().length < 4) {
+                            continue;
                         }
+                        let imageUrl = null;
+                        if (p.preview?.images?.[0]?.source?.url) {
+                            imageUrl = p.preview.images[0].source.url.replace(/&amp;/g, '&');
+                        } else if (p.thumbnail && p.thumbnail.startsWith('http')) {
+                            imageUrl = p.thumbnail;
+                        } else if (p.url && /\.(jpeg|jpg|png|webp|gif)(\?.*)?$/i.test(p.url)) {
+                            imageUrl = p.url;
+                        }
+
+                        const permalink = p.permalink 
+                            ? (p.permalink.startsWith('http') ? p.permalink : `https://www.reddit.com${p.permalink}`)
+                            : (p.url || `https://www.reddit.com/r/${finalSub}`);
+
                         posts.push({
-                            title: postData.title,
-                            url: `https://www.reddit.com${postData.permalink}`,
-                            ups: postData.ups || 0,
-                            comments: postData.num_comments || 0,
-                            author: postData.author,
-                            subreddit: postData.subreddit_name_prefixed || `r/${cleanSub}`,
+                            title: p.title,
+                            url: permalink,
+                            ups: p.score || p.ups || 0,
+                            comments: p.num_comments || 0,
+                            author: p.author ? `u/${p.author.replace(/^u\//, '')}` : 'u/reddit_user',
+                            subreddit: p.subreddit_name_prefixed || `r/${finalSub}`,
                             source: 'Reddit',
-                            created_at: new Date(postData.created_utc * 1000).toLocaleDateString(),
+                            created_at: p.created_utc ? new Date(p.created_utc * 1000).toLocaleDateString() : 'Recent',
                             image: imageUrl
                         });
-                    });
+                    }
                 }
             }
         } catch (e) {}
 
-        if (posts.length > 0) {
-            return { type: 'reddit', data: { subreddit: `r/${cleanSub}`, posts: posts.slice(0, 5), source: 'Community Discussions' } };
+        // Tier 2: Direct Reddit API with custom User-Agent
+        if (posts.length === 0) {
+            try {
+                const redditRes = await fetchWithTimeout(`https://www.reddit.com/r/${encodeURIComponent(finalSub)}/hot.json?limit=10&raw_json=1`, {
+                    headers: { 'User-Agent': 'web:atlasapp:v1.2.0 (by /u/atlas_agent)' }
+                }, 3500);
+                if (redditRes.ok) {
+                    const data = await redditRes.json();
+                    if (data.data?.children?.length) {
+                        for (const child of data.data.children) {
+                            const postData = child.data;
+                            if (!postData.title || postData.title.startsWith('[ Removed') || postData.author === '[deleted]') continue;
+                            let imageUrl = null;
+                            if (postData.preview?.images?.[0]?.source?.url) {
+                                imageUrl = postData.preview.images[0].source.url.replace(/&amp;/g, '&');
+                            } else if (postData.thumbnail && postData.thumbnail.startsWith('http')) {
+                                imageUrl = postData.thumbnail;
+                            }
+                            posts.push({
+                                title: postData.title,
+                                url: `https://www.reddit.com${postData.permalink}`,
+                                ups: postData.ups || postData.score || 0,
+                                comments: postData.num_comments || 0,
+                                author: `u/${postData.author}`,
+                                subreddit: postData.subreddit_name_prefixed || `r/${finalSub}`,
+                                source: 'Reddit',
+                                created_at: new Date(postData.created_utc * 1000).toLocaleDateString(),
+                                image: imageUrl
+                            });
+                        }
+                    }
+                }
+            } catch (e) {}
         }
 
-        return { type: 'reddit', data: { error: `Could not retrieve live discussions for "r/${cleanSub}". Reddit API might be blocking the request.` } };
+        // Tier 3: Lemmy Federated Community Discussions Fallback
+        if (posts.length === 0) {
+            try {
+                const lemmyRes = await fetchWithTimeout(`https://lemmy.world/api/v3/post/list?community_name=${encodeURIComponent(finalSub)}&limit=10`, {}, 3000);
+                if (lemmyRes.ok) {
+                    const lemmyData = await lemmyRes.json();
+                    if (lemmyData.posts?.length) {
+                        sourceName = 'Lemmy Discussions';
+                        for (const item of lemmyData.posts) {
+                            const post = item.post;
+                            if (!post?.name) continue;
+                            posts.push({
+                                title: post.name,
+                                url: post.ap_id || post.url || `https://lemmy.world/c/${finalSub}`,
+                                ups: item.counts?.score || item.counts?.upvotes || 0,
+                                comments: item.counts?.comments || 0,
+                                author: item.creator?.name ? `u/${item.creator.name}` : 'community',
+                                subreddit: `c/${item.community?.name || finalSub}`,
+                                source: 'Lemmy',
+                                created_at: post.published ? new Date(post.published).toLocaleDateString() : 'Recent',
+                                image: post.thumbnail_url || null
+                            });
+                        }
+                    }
+                }
+            } catch (e) {}
+        }
+
+        // Tier 4: Hacker News Discussions Fallback
+        if (posts.length === 0) {
+            try {
+                const hnRes = await fetchWithTimeout(`https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(finalSub)}&tags=story&hitsPerPage=10`, {}, 3000);
+                if (hnRes.ok) {
+                    const hnData = await hnRes.json();
+                    if (hnData.hits?.length) {
+                        sourceName = 'Hacker News';
+                        for (const item of hnData.hits) {
+                            if (!item.title) continue;
+                            posts.push({
+                                title: item.title,
+                                url: item.url || `https://news.ycombinator.com/item?id=${item.objectID}`,
+                                ups: item.points || 0,
+                                comments: item.num_comments || 0,
+                                author: item.author || 'hn_user',
+                                subreddit: 'Hacker News',
+                                source: 'Hacker News',
+                                created_at: item.created_at ? new Date(item.created_at).toLocaleDateString() : 'Recent',
+                                image: null
+                            });
+                        }
+                    }
+                }
+            } catch (e) {}
+        }
+
+        if (posts.length > 0) {
+            return {
+                type: 'reddit',
+                data: {
+                    subreddit: `r/${finalSub}`,
+                    posts: posts.slice(0, 5),
+                    source: sourceName
+                }
+            };
+        }
+
+        return {
+            type: 'reddit',
+            data: {
+                error: `Could not retrieve live discussions for "r/${finalSub}". Please verify the community name or try again shortly.`
+            }
+        };
     }
 
     // 7. Dictionary
