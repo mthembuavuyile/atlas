@@ -646,6 +646,7 @@ document.addEventListener('DOMContentLoaded', () => {
     bubble.innerHTML = parseMarkdownSafely(content, false);
 
     enhanceCodeBlocks(bubble);
+    renderMathSafely(bubble);
     wrapper.appendChild(bubble);
     row.appendChild(avatar);
     row.appendChild(wrapper);
@@ -657,6 +658,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     return { row, bubble, wrapper };
+  }
+
+  function renderMathSafely(container) {
+    if (!container) return;
+    if (window.renderMathInElement) {
+      try {
+        window.renderMathInElement(container, {
+          delimiters: [
+            { left: '$$', right: '$$', display: true },
+            { left: '$', right: '$', display: false },
+            { left: '\\(', right: '\\)', display: false },
+            { left: '\\[', right: '\\]', display: true }
+          ],
+          throwOnError: false
+        });
+      } catch (e) {
+        console.warn('[KaTeX]', e);
+      }
+    }
   }
 
   function parseMarkdownSafely(raw, isStreaming = false) {
@@ -918,6 +938,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       bubble.innerHTML = parseMarkdownSafely(accumulatedContent, false);
       enhanceCodeBlocks(bubble);
+      renderMathSafely(bubble);
 
       session.messages.push({
         role: 'assistant',

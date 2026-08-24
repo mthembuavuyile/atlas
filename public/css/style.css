@@ -1,6 +1,7 @@
 /* ==========================================================================
    ATLAS BY VYLEX TECHNOLOGIES — MOBILE-FIRST DESIGN SYSTEM
-   Ultra-clean, distraction-free technical workspace. https://vylex.co.za
+   Official Master Brand Hub Palette: Navy #051B38 & Golden Orange #FBA919
+   https://vylex.co.za
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
@@ -8,38 +9,38 @@
    -------------------------------------------------------------------------- */
 
 :root, [data-theme="vylex"] {
-  --bg-app: #0b0d11;
-  --bg-sidebar: #07090c;
-  --bg-card: #12151b;
-  --bg-card-hover: #181c24;
-  --bg-composer: #12151b;
-  --bg-canvas: #07090c;
-  --bg-code: #06070a;
+  --bg-app: #051B38;
+  --bg-sidebar: #031227;
+  --bg-card: #0A2E5C;
+  --bg-card-hover: #0E3D7A;
+  --bg-composer: #0A2E5C;
+  --bg-canvas: #031227;
+  --bg-code: #020B18;
   
-  --accent-primary: #3b82f6;
-  --accent-secondary: #60a5fa;
-  --accent-solid: #3b82f6;
-  --accent-hover: #2563eb;
+  --accent-primary: #FBA919;
+  --accent-secondary: #FBBF24;
+  --accent-solid: #FBA919;
+  --accent-hover: #D97706;
 
-  --text-main: #f1f5f9;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --text-subtle: #475569;
+  --text-main: #F8FAFC;
+  --text-secondary: #CBD5E1;
+  --text-muted: #94A3B8;
+  --text-subtle: #64748B;
   
-  --border-subtle: #1e222b;
-  --border-medium: #2a303c;
-  --border-active: #3b82f6;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-medium: rgba(255, 255, 255, 0.15);
+  --border-active: #FBA919;
 
-  --message-user-bg: #151922;
-  --message-user-border: #232936;
-  --message-ai-bg: #0e1117;
-  --message-ai-border: #1a1e27;
+  --message-user-bg: #0A2E5C;
+  --message-user-border: rgba(251, 169, 25, 0.15);
+  --message-ai-bg: #051B38;
+  --message-ai-border: rgba(255, 255, 255, 0.06);
 
   --font-display: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-body: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
-  --pill-active-bg: rgba(59, 130, 246, 0.12);
-  --pill-active-text: #93c5fd;
+  --pill-active-bg: rgba(251, 169, 25, 0.14);
+  --pill-active-text: #FBA919;
 }
 
 [data-theme="obsidian"] {

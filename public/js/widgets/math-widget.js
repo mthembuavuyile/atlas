@@ -3,17 +3,44 @@ import { createWidgetShell, escapeHtml, WIDGET_ICONS } from './widget-utils.js';
 export function renderMathWidget(data) {
     if (data.error) return `<div class="atlas-widget error">${escapeHtml(data.error)}</div>`;
 
+    const expr = data.expression || '';
+    const result = data.result || '';
+    const op = data.operation || 'COMPUTATION';
+
+    let mathHtml = '';
+    if (window.katex) {
+        try {
+            const renderedExpr = window.katex.renderToString(expr, { displayMode: false, throwOnError: false });
+            const renderedResult = window.katex.renderToString(result, { displayMode: true, throwOnError: false });
+            mathHtml = `
+                <div class="math-expression-display katex-rendered">
+                    <span>Expression:</span> ${renderedExpr}
+                </div>
+                <div class="math-result-display katex-rendered">
+                    ${renderedResult}
+                </div>
+            `;
+        } catch (e) {
+            mathHtml = `
+                <div class="math-expression-display">$$${escapeHtml(expr)}$$</div>
+                <div class="math-result-display">= $$${escapeHtml(result)}$$</div>
+            `;
+        }
+    } else {
+        mathHtml = `
+            <div class="math-expression-display">$$${escapeHtml(expr)}$$</div>
+            <div class="math-result-display">= ${escapeHtml(result)}</div>
+        `;
+    }
+
     const content = `
         <div class="math-operation-tag">
-            ${escapeHtml(data.operation || 'COMPUTATION')}
+            <span class="widget-badge">${escapeHtml(op.toUpperCase())}</span>
         </div>
-        <div class="math-expression-display">
-            ${escapeHtml(data.expression || '')}
-        </div>
-        <div class="math-result-display">
-            = ${escapeHtml(data.result || '')}
+        <div class="math-render-container">
+            ${mathHtml}
         </div>
     `;
 
-    return createWidgetShell('math', WIDGET_ICONS.math, 'Computation Engine', content);
+    return createWidgetShell('math', WIDGET_ICONS.math, 'Mathematical Computation Engine', content);
 }
