@@ -317,52 +317,35 @@ class WidgetService {
         const cleanSub = (subreddit || 'technology').replace(/^r\//i, '').trim();
         const posts = [];
 
-        // 1. HackerNews Algolia Discussion API
+        // 0. Reddit Official API
         try {
-            const hnUrl = `https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(cleanSub)}&tags=story&hitsPerPage=5`;
-            const res = await fetchWithTimeout(hnUrl);
-            if (res.ok) {
-                const data = await res.json();
-                if (data.hits?.length) {
-                    data.hits.slice(0, 5).forEach(h => {
+            const redditRes = await fetchWithTimeout(`https://www.reddit.com/r/${encodeURIComponent(cleanSub)}/hot.json?limit=5&include_over_18=on&raw_json=1`, {
+                headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
+            });
+            if (redditRes.ok) {
+                const data = await redditRes.json();
+                if (data.data?.children?.length) {
+                    data.data.children.forEach(child => {
+                        const postData = child.data;
+                        let imageUrl = null;
+                        if (postData.thumbnail && postData.thumbnail.startsWith('http')) {
+                            imageUrl = postData.thumbnail;
+                        }
                         posts.push({
-                            title: h.title || 'Discussion Topic',
-                            url: h.url || `https://news.ycombinator.com/item?id=${h.objectID}`,
-                            ups: h.points || 0,
-                            comments: h.num_comments || 0,
-                            author: h.author || 'contributor',
-                            subreddit: `r/${cleanSub}`,
-                            source: 'Community Forum',
-                            created_at: h.created_at ? new Date(h.created_at).toLocaleDateString() : 'Recent'
+                            title: postData.title,
+                            url: `https://www.reddit.com${postData.permalink}`,
+                            ups: postData.ups || 0,
+                            comments: postData.num_comments || 0,
+                            author: postData.author,
+                            subreddit: postData.subreddit_name_prefixed || `r/${cleanSub}`,
+                            source: 'Reddit',
+                            created_at: new Date(postData.created_utc * 1000).toLocaleDateString(),
+                            image: imageUrl
                         });
                     });
                 }
             }
         } catch (e) {}
-
-        // 2. Dev.to Community API (if additional posts needed)
-        if (posts.length < 3) {
-            try {
-                const devRes = await fetchWithTimeout(`https://dev.to/api/articles?tag=${encodeURIComponent(cleanSub)}&per_page=4`);
-                if (devRes.ok) {
-                    const devData = await devRes.json();
-                    if (Array.isArray(devData)) {
-                        devData.forEach(art => {
-                            posts.push({
-                                title: art.title,
-                                url: art.url,
-                                ups: art.public_reactions_count || art.positive_reactions_count || 0,
-                                comments: art.comments_count || 0,
-                                author: art.user?.name || 'Developer',
-                                subreddit: `r/${cleanSub}`,
-                                source: 'Dev Community',
-                                created_at: art.readable_publish_date || 'Recent'
-                            });
-                        });
-                    }
-                }
-            } catch (e) {}
-        }
 
         if (posts.length > 0) {
             return { type: 'reddit', data: { subreddit: `r/${cleanSub}`, posts: posts.slice(0, 5), source: 'Community Discussions' } };

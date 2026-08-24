@@ -18,6 +18,7 @@ export function renderRedditWidget(data) {
                             <span class="external-icon">${WIDGET_ICONS.externalLink}</span>
                         </a>
                     </h4>
+                    ${post.image ? `<div class="discussion-thumbnail-container" style="margin: 8px 0; border-radius: 6px; overflow: hidden; max-height: 200px;"><img src="${escapeHtml(post.image)}" alt="thumbnail" style="width: 100%; height: auto; object-fit: cover;" /></div>` : ''}
                     <div class="discussion-meta">
                         <span class="discussion-tag">${escapeHtml(post.subreddit || 'community')}</span>
                         <span>•</span>
