@@ -157,6 +157,15 @@
           </svg>
           <span>Studio Parameters</span>
         </button>
+        <button id="generalSettingsSidebarBtn" class="sidebar-tool-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line>
+            <line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line>
+            <line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line>
+          </svg>
+          <span>General Settings</span>
+        </button>
       </div>
     </aside>
 
@@ -597,6 +606,41 @@
 
       <div class="modal-footer">
         <button id="saveSettingsBtn" class="primary-modal-btn">Apply Instructions</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- GENERAL SETTINGS MODAL -->
+  <div class="modal-backdrop" id="generalSettingsModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div class="modal-icon-svg">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line>
+              <line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line>
+              <line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line>
+            </svg>
+          </div>
+          <div>
+            <h3>General Settings</h3>
+            <p>Manage your application data and preferences</p>
+          </div>
+        </div>
+        <button id="closeGeneralSettingsBtn" class="icon-btn" aria-label="Close Settings">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="settings-section">
+          <label class="settings-label">Data Management</label>
+          <div class="settings-flex-row" style="margin-top: 10px;">
+            <p style="margin: 0; font-size: 0.85rem; color: var(--text-tertiary);">Clear all stored investigations and local preferences. This action cannot be undone.</p>
+            <button id="clearAllDataBtn" class="primary-modal-btn" style="background: var(--vylex-danger, #ef4444); border-color: var(--vylex-danger, #ef4444); white-space: nowrap; margin-left: 10px;">Delete All Data</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>

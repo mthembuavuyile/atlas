@@ -274,6 +274,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const presetPills = document.querySelectorAll('.preset-pill');
   const systemPromptDrawerBtn = document.getElementById('systemPromptDrawerBtn');
 
+  // General Settings Modal
+  const generalSettingsModal = document.getElementById('generalSettingsModal');
+  const generalSettingsSidebarBtn = document.getElementById('generalSettingsSidebarBtn');
+  const closeGeneralSettingsBtn = document.getElementById('closeGeneralSettingsBtn');
+  const clearAllDataBtn = document.getElementById('clearAllDataBtn');
+
   // Persona Presets for Domain Intelligence
   const PERSONA_PRESETS = {
     scientist: 'You are a rigorous scientific researcher. Apply the scientific method to every problem. Form hypotheses, gather evidence, test rigorously, and always quantify your uncertainty. Distinguish clearly between what is established, what is probable, and what is speculative.',
@@ -1224,7 +1230,11 @@ document.addEventListener('DOMContentLoaded', () => {
     newChatBtn?.addEventListener('click', () => createNewSession());
 
     sidebarCollapseBtn?.addEventListener('click', () => {
-      sidebar.classList.toggle('collapsed');
+      if (window.innerWidth <= 768) {
+        closeMobileSidebar();
+      } else {
+        sidebar.classList.toggle('collapsed');
+      }
     });
 
     sidebarToggleBtn?.addEventListener('click', () => {
@@ -1351,6 +1361,24 @@ document.addEventListener('DOMContentLoaded', () => {
     openSysPromptModalBtn?.addEventListener('click', () => openSettingsModal());
     systemPromptDrawerBtn?.addEventListener('click', () => openSettingsModal());
     closeModalBtn?.addEventListener('click', () => closeSettingsModal());
+
+    generalSettingsSidebarBtn?.addEventListener('click', () => {
+      generalSettingsModal?.classList.add('show');
+    });
+
+    closeGeneralSettingsBtn?.addEventListener('click', () => {
+      generalSettingsModal?.classList.remove('show');
+    });
+
+    clearAllDataBtn?.addEventListener('click', () => {
+      if (confirm('Are you sure you want to delete all chats and clear all local storage? This action cannot be undone.')) {
+        localStorage.clear();
+        state.sessions = [];
+        state.activeSessionId = null;
+        if (typeof saveSessions === 'function') saveSessions();
+        window.location.reload();
+      }
+    });
 
     presetPills.forEach(pill => {
       pill.addEventListener('click', () => {
