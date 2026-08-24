@@ -677,6 +677,145 @@
 }
 
 /* ─────────────────────────────────────────────────────────────
+   AEROSPACE & ASTRONOMY NEWS FEED WIDGET
+   ───────────────────────────────────────────────────────────── */
+.atlas-news-list,
+.atlas-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 6px;
+}
+
+.atlas-news-item,
+.atlas-list-item {
+    display: flex;
+    gap: 12px;
+    padding: 10px;
+    background: rgba(2, 11, 24, 0.4);
+    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+    border-radius: 6px;
+    transition: border-color 0.18s ease, background 0.18s ease, transform 0.18s ease;
+    align-items: flex-start;
+}
+
+.atlas-news-item:hover,
+.atlas-list-item:hover {
+    border-color: var(--accent-primary, #fba919);
+    background: rgba(10, 46, 92, 0.35);
+}
+
+.atlas-news-thumb-wrapper,
+.atlas-list-thumb-wrapper {
+    width: 96px;
+    min-width: 96px;
+    height: 72px;
+    border-radius: 4px;
+    overflow: hidden;
+    background: #020b18;
+    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+    flex-shrink: 0;
+    position: relative;
+}
+
+.atlas-news-thumb,
+.atlas-list-thumb {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+    transition: transform 0.25s ease;
+}
+
+.atlas-news-item:hover .atlas-news-thumb,
+.atlas-list-item:hover .atlas-list-thumb {
+    transform: scale(1.06);
+}
+
+.atlas-news-content,
+.atlas-list-content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.atlas-news-title,
+.atlas-list-content h4 {
+    margin: 0;
+    font-size: 0.82rem;
+    font-weight: 600;
+    line-height: 1.35;
+}
+
+.atlas-news-title a,
+.atlas-list-content h4 a {
+    color: var(--text-main, #f8fafc);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+}
+
+.atlas-news-title a:hover,
+.atlas-list-content h4 a:hover {
+    color: var(--accent-primary, #fba919);
+}
+
+.atlas-news-summary {
+    margin: 0;
+    font-size: 0.74rem;
+    color: var(--text-secondary, #cbd5e1);
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.atlas-news-meta,
+.atlas-list-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    font-size: 0.68rem;
+    color: var(--text-muted, #94a3b8);
+    margin-top: 2px;
+}
+
+.atlas-news-site {
+    color: var(--accent-secondary, #fbbf24);
+    font-family: var(--font-mono, monospace);
+    font-weight: 600;
+}
+
+@media (max-width: 480px) {
+    .atlas-news-item,
+    .atlas-list-item {
+        gap: 8px;
+        padding: 8px;
+    }
+    .atlas-news-thumb-wrapper,
+    .atlas-list-thumb-wrapper {
+        width: 76px;
+        min-width: 76px;
+        height: 60px;
+    }
+    .atlas-news-title,
+    .atlas-list-content h4 {
+        font-size: 0.78rem;
+    }
+    .atlas-news-summary {
+        font-size: 0.7rem;
+        -webkit-line-clamp: 2;
+    }
+}
+
+/* ─────────────────────────────────────────────────────────────
    MATHEMATICAL EQUATIONS & KATEX STYLING
    ───────────────────────────────────────────────────────────── */
 .math-render-container {
