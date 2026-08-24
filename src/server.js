@@ -25,8 +25,8 @@ const ALLOWED_ORIGINS = [
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (same-origin, curl, mobile apps)
-    if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+    // Allow requests with no origin (same-origin, curl, mobile apps), allowed origins, or Vercel preview domains
+    if (!origin || ALLOWED_ORIGINS.includes(origin) || origin.endsWith('.vercel.app')) {
       callback(null, true);
     } else {
       console.warn(`[CORS] Blocked request from unauthorized origin: ${origin}`);
@@ -89,6 +89,9 @@ function startServer(port) {
   });
 }
 
-startServer(Number(PORT));
+// ONLY start the server if run directly (local dev). Vercel imports the app instead.
+if (require.main === module) {
+  startServer(Number(PORT));
+}
 
 module.exports = app;
