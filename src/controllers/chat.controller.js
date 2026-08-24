@@ -310,7 +310,7 @@ class ChatController {
         temperature: 0.3,
         stream: false,
         maxTokens: 30,
-        reasoning: { effort: 'none' },
+        reasoning: { effort: 'low' },
         apiKey: customApiKey,
         referer: env.APP_URL
       });

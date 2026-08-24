@@ -962,6 +962,159 @@ document.addEventListener('DOMContentLoaded', () => {
     return { row, bubble, wrapper, widgetsContainer, setReasoning };
   }
 
+  // ─────────────────────────────────────────────────────────────
+  // ADVANCED MATHEMATICAL & SCIENTIFIC FORMULA PARSER (KaTeX + mhchem)
+  // ─────────────────────────────────────────────────────────────
+
+  function extractMathTokens(raw) {
+    if (!raw) return { text: '', tokens: [] };
+
+    const tokens = [];
+    let counter = 0;
+
+    // 1. Protect code blocks and inline code so math syntax inside code blocks is preserved as-is
+    const codeBlocks = [];
+    let text = raw.replace(/(```[\s\S]*?```|`[^`\n]+`)/g, (match) => {
+      const ph = `@@ATLAS_CODE_SHIELD_${codeBlocks.length}@@`;
+      codeBlocks.push({ placeholder: ph, content: match });
+      return ph;
+    });
+
+    // 2. Block math: $$ ... $$
+    text = text.replace(/\$\$([\s\S]*?)\$\$/g, (match, formula) => {
+      const trimmed = formula.trim();
+      if (!trimmed) return '';
+      const id = counter++;
+      const ph = `@@ATLAS_MATH_BLOCK_${id}@@`;
+      tokens.push({ id, placeholder: ph, formula: trimmed, isBlock: true });
+      return `\n\n${ph}\n\n`;
+    });
+
+    // 3. Block math: \[ ... \]
+    text = text.replace(/\\\[([\s\S]*?)\\\]/g, (match, formula) => {
+      const trimmed = formula.trim();
+      if (!trimmed) return '';
+      const id = counter++;
+      const ph = `@@ATLAS_MATH_BLOCK_${id}@@`;
+      tokens.push({ id, placeholder: ph, formula: trimmed, isBlock: true });
+      return `\n\n${ph}\n\n`;
+    });
+
+    // 4. Block math LaTeX environments: \begin{equation}...\end{equation}, \begin{align}...\end{align}, etc.
+    const latexEnvs = 'equation|equation\\*|align|align\\*|aligned|matrix|pmatrix|bmatrix|Bmatrix|vmatrix|Vmatrix|cases|gather|gather\\*|flalign|flalign\\*|split|multline|multline\\*';
+    const envRegex = new RegExp(`\\\\begin\\{(${latexEnvs})\\}([\\s\\S]*?)\\\\end\\{\\1\\}`, 'g');
+    text = text.replace(envRegex, (match) => {
+      const trimmed = match.trim();
+      if (!trimmed) return '';
+      const id = counter++;
+      const ph = `@@ATLAS_MATH_BLOCK_${id}@@`;
+      tokens.push({ id, placeholder: ph, formula: trimmed, isBlock: true });
+      return `\n\n${ph}\n\n`;
+    });
+
+    // 5. Inline math: \( ... \)
+    text = text.replace(/\\\(([\s\S]*?)\\\)/g, (match, formula) => {
+      const trimmed = formula.trim();
+      if (!trimmed) return '';
+      const id = counter++;
+      const ph = `@@ATLAS_MATH_INLINE_${id}@@`;
+      tokens.push({ id, placeholder: ph, formula: trimmed, isBlock: false });
+      return ph;
+    });
+
+    // 6. Inline math: $...$ (ensuring we don't accidentally match currency e.g. $50 or $100.00)
+    text = text.replace(/(^|[^\$\w])\$((?!\s)[^\$\n]+?(?<!\s))\$(?!\d)/g, (match, prefix, formula) => {
+      const trimmed = formula.trim();
+      if (/^[\d,]+(\.\d+)?$/.test(trimmed)) {
+        return match;
+      }
+      const id = counter++;
+      const ph = `@@ATLAS_MATH_INLINE_${id}@@`;
+      tokens.push({ id, placeholder: ph, formula: trimmed, isBlock: false });
+      return `${prefix}${ph}`;
+    });
+
+    // 7. Unshield code blocks
+    for (const cb of codeBlocks) {
+      text = text.replace(cb.placeholder, cb.content);
+    }
+
+    return { text, tokens };
+  }
+
+  function renderMathTokenToHtml(token) {
+    if (!token || !token.formula) return '';
+    const formula = token.formula;
+    let katexHtml = '';
+
+    if (window.katex) {
+      try {
+        katexHtml = window.katex.renderToString(formula, {
+          displayMode: token.isBlock,
+          throwOnError: false,
+          output: 'htmlAndMathml',
+          strict: false,
+          trust: true
+        });
+      } catch (err) {
+        katexHtml = token.isBlock
+          ? `<div class="katex-display">$$${escapeHtml(formula)}$$</div>`
+          : `<span class="katex">$${escapeHtml(formula)}$</span>`;
+      }
+    } else {
+      katexHtml = token.isBlock
+        ? `<div class="katex-display">$$${escapeHtml(formula)}$$</div>`
+        : `<span class="katex">$${escapeHtml(formula)}$</span>`;
+    }
+
+    if (token.isBlock) {
+      const rawEscaped = encodeURIComponent(formula);
+      return `
+        <div class="math-block-wrapper" data-latex="${rawEscaped}">
+          <div class="math-block-header">
+            <span class="math-block-tag">FORMULA</span>
+            <button class="math-copy-btn" type="button" title="Copy LaTeX formula" aria-label="Copy LaTeX formula">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              <span>Copy LaTeX</span>
+            </button>
+          </div>
+          <div class="math-block-body">
+            ${katexHtml}
+          </div>
+        </div>
+      `;
+    } else {
+      return `<span class="katex-inline-wrapper">${katexHtml}</span>`;
+    }
+  }
+
+  function enhanceMathBlocks(container) {
+    if (!container) return;
+    const copyBtns = container.querySelectorAll('.math-copy-btn');
+    copyBtns.forEach(btn => {
+      if (btn.dataset.bound) return;
+      btn.dataset.bound = 'true';
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const wrapper = btn.closest('.math-block-wrapper');
+        if (!wrapper) return;
+        const latex = decodeURIComponent(wrapper.getAttribute('data-latex') || '');
+        if (!latex) return;
+        navigator.clipboard.writeText(latex).then(() => {
+          const span = btn.querySelector('span');
+          if (span) {
+            const old = span.textContent;
+            span.textContent = 'Copied!';
+            setTimeout(() => { span.textContent = old; }, 1800);
+          }
+        }).catch(() => {});
+      });
+    });
+  }
+
   function renderMathSafely(container) {
     if (!container) return;
     if (window.renderMathInElement) {
@@ -973,23 +1126,49 @@ document.addEventListener('DOMContentLoaded', () => {
             { left: '\\(', right: '\\)', display: false },
             { left: '\\[', right: '\\]', display: true }
           ],
-          throwOnError: false
+          ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option', 'svg'],
+          throwOnError: false,
+          strict: false
         });
       } catch (e) {
-        console.warn('[KaTeX]', e);
+        console.warn('[KaTeX auto-render]', e);
       }
     }
+    enhanceMathBlocks(container);
   }
 
   function parseMarkdownSafely(raw, isStreaming = false) {
     if (!raw) return isStreaming ? '<span class="streaming-caret" aria-hidden="true"></span>' : '';
-    let html = window.marked ? marked.parse(raw) : escapeHtml(raw);
+
+    // 1. Extract and shield LaTeX mathematical & scientific formulas
+    const { text: shieldedText, tokens: mathTokens } = extractMathTokens(raw);
+
+    // 2. Parse markdown with marked
+    let html = window.marked ? marked.parse(shieldedText) : escapeHtml(shieldedText);
+
+    // 3. Sanitize HTML
     if (window.DOMPurify) {
       html = DOMPurify.sanitize(html, {
-        ADD_TAGS: ['kbd', 'mark', 'details', 'summary', 'svg', 'path', 'circle', 'line', 'polyline', 'polygon', 'rect'],
-        ADD_ATTR: ['target', 'disabled', 'checked', 'type', 'viewBox', 'fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin', 'cx', 'cy', 'r', 'x1', 'y1', 'x2', 'y2', 'd', 'points', 'width', 'height', 'aria-hidden']
+        ADD_TAGS: ['kbd', 'mark', 'details', 'summary', 'svg', 'path', 'circle', 'line', 'polyline', 'polygon', 'rect', 'math', 'semantics', 'mrow', 'mo', 'mn', 'mi', 'annotation', 'mfrac', 'msup', 'msub', 'msubsup', 'msqrt', 'mroot', 'mtable', 'mtr', 'mtd', 'mtext'],
+        ADD_ATTR: ['target', 'disabled', 'checked', 'type', 'viewBox', 'fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin', 'cx', 'cy', 'r', 'x1', 'y1', 'x2', 'y2', 'd', 'points', 'width', 'height', 'aria-hidden', 'xmlns', 'display', 'data-latex']
       });
     }
+
+    // 4. Substitute rendered KaTeX formulas back
+    for (const token of mathTokens) {
+      const renderedMath = renderMathTokenToHtml(token);
+      if (token.isBlock) {
+        const pRegex = new RegExp(`<p>\\s*${token.placeholder}\\s*<\\/p>`, 'g');
+        if (pRegex.test(html)) {
+          html = html.replace(pRegex, renderedMath);
+        } else {
+          html = html.split(token.placeholder).join(renderedMath);
+        }
+      } else {
+        html = html.split(token.placeholder).join(renderedMath);
+      }
+    }
+
     if (isStreaming) {
       html += '<span class="streaming-caret" aria-hidden="true"></span>';
     }
@@ -1067,6 +1246,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (canvasMarkdownContent && window.marked) {
       canvasMarkdownContent.innerHTML = parseMarkdownSafely(codeText);
+      enhanceCodeBlocks(canvasMarkdownContent);
+      renderMathSafely(canvasMarkdownContent);
     }
 
     if (canvasPreviewFrame && (language === 'html' || codeText.includes('<!DOCTYPE') || codeText.includes('<html'))) {
@@ -1329,6 +1510,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 lastRenderTime = now;
                 bubble.innerHTML = parseMarkdownSafely(accumulatedContent, true);
                 enhanceCodeBlocks(bubble);
+                enhanceMathBlocks(bubble);
                 scrollToBottom(false);
               }
             }

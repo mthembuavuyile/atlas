@@ -10,11 +10,23 @@ export function renderMathWidget(data) {
     let mathHtml = '';
     if (window.katex) {
         try {
-            const renderedExpr = window.katex.renderToString(expr, { displayMode: false, throwOnError: false });
-            const renderedResult = window.katex.renderToString(result, { displayMode: true, throwOnError: false });
+            const renderedExpr = window.katex.renderToString(expr, {
+                displayMode: false,
+                throwOnError: false,
+                output: 'htmlAndMathml',
+                strict: false,
+                trust: true
+            });
+            const renderedResult = window.katex.renderToString(result, {
+                displayMode: true,
+                throwOnError: false,
+                output: 'htmlAndMathml',
+                strict: false,
+                trust: true
+            });
             mathHtml = `
                 <div class="math-expression-display katex-rendered">
-                    <span>Expression:</span> ${renderedExpr}
+                    <span class="math-expr-label">Input:</span> <span class="math-expr-val">${renderedExpr}</span>
                 </div>
                 <div class="math-result-display katex-rendered">
                     ${renderedResult}
@@ -23,12 +35,12 @@ export function renderMathWidget(data) {
         } catch (e) {
             mathHtml = `
                 <div class="math-expression-display">$$${escapeHtml(expr)}$$</div>
-                <div class="math-result-display">= $$${escapeHtml(result)}$$</div>
+                <div class="math-result-display">$$${escapeHtml(result)}$$</div>
             `;
         }
     } else {
         mathHtml = `
-            <div class="math-expression-display">$$${escapeHtml(expr)}$$</div>
+            <div class="math-expression-display">Input: ${escapeHtml(expr)}</div>
             <div class="math-result-display">= ${escapeHtml(result)}</div>
         `;
     }
