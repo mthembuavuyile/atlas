@@ -742,9 +742,12 @@ html, body {
   user-select: none;
 }
 
-/* On mobile 2-column grid, span the 7th card to balance symmetry */
+/* On mobile 2-column grid, center the 7th card to balance symmetry */
 .mode-card-pill:last-child {
   grid-column: 1 / -1;
+  max-width: calc(50% - 2.5px);
+  margin: 0 auto;
+  width: 100%;
 }
 
 .mode-card-pill:hover, .mode-card-pill.active {
