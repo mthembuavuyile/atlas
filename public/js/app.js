@@ -1221,7 +1221,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     return {
       title: 'Service Notice',
-      desc: 'Unable to complete this step right now. Please try again shortly.',
+      desc: raw || 'Unable to complete this step right now. Please try again shortly.',
       type: 'error'
     };
   }
