@@ -45,6 +45,8 @@ class ChatController {
       webSearch = false,
       mode = null,
       systemPrompt: customSystemPrompt = null,
+      reasoning: enableDeepReasoning = false,
+      maxTokens = 4096,
       apiKey = null
     } = req.body;
 
@@ -101,6 +103,12 @@ class ChatController {
         }
       }
 
+      const reasoningConfig = enableDeepReasoning
+        ? { effort: 'high' }
+        : { effort: 'low' };
+
+      const safeMaxTokens = Math.min(Math.max(Number(maxTokens) || 4096, 256), 8192);
+
       // First pass: Call OpenRouter with tools
       const openRouterResponse = await openrouterService.createChatCompletion({
         messages: normalizedMessages,
@@ -108,6 +116,8 @@ class ChatController {
         temperature,
         stream,
         tools: ATLAS_TOOLS,
+        maxTokens: safeMaxTokens,
+        reasoning: reasoningConfig,
         apiKey: customApiKey,
         referer: env.APP_URL
       });
@@ -238,6 +248,8 @@ class ChatController {
               model,
               temperature,
               stream: true,
+              maxTokens: safeMaxTokens,
+              reasoning: reasoningConfig,
               apiKey: customApiKey,
               referer: env.APP_URL
             });
@@ -297,6 +309,8 @@ class ChatController {
         model,
         temperature: 0.3,
         stream: false,
+        maxTokens: 30,
+        reasoning: { effort: 'none' },
         apiKey: customApiKey,
         referer: env.APP_URL
       });

@@ -305,7 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
     systemPrompt: localStorage.getItem('omni_sys_prompt') || PERSONA_PRESETS.scientist,
     activePreset: localStorage.getItem('omni_preset') || 'scientist',
     temperature: parseFloat(localStorage.getItem('omni_temp') || '0.7'),
-    isDeepReasoning: true,
+    isDeepReasoning: localStorage.getItem('omni_deep_reasoning') === 'true',
     isWebSearch: localStorage.getItem('omni_web_search') === 'true',
     sessions: JSON.parse(savedInvestigations),
     activeSessionId: null,
@@ -758,15 +758,30 @@ document.addEventListener('DOMContentLoaded', () => {
     const wrapper = document.createElement('div');
     wrapper.className = 'message-content-wrapper';
 
-    // Reasoning accordion (if any reasoning is provided)
+    let reasoningDetails = null;
+    let reasoningBody = null;
+
+    function setReasoning(text) {
+      if (!text || !text.trim()) return;
+      if (!reasoningDetails) {
+        reasoningDetails = document.createElement('details');
+        reasoningDetails.className = 'reasoning-accordion';
+        reasoningDetails.open = true; // Always show thought process when present
+        reasoningDetails.innerHTML = `
+          <summary>Thought Process</summary>
+          <div class="reasoning-body"></div>
+        `;
+        wrapper.insertBefore(reasoningDetails, wrapper.firstChild);
+        reasoningBody = reasoningDetails.querySelector('.reasoning-body');
+      }
+      if (reasoningBody) {
+        reasoningBody.textContent = text;
+      }
+    }
+
+    // Reasoning accordion (if any reasoning is provided initially)
     if (role === 'assistant' && reasoning) {
-      const details = document.createElement('details');
-      details.className = 'reasoning-accordion';
-      details.innerHTML = `
-        <summary>Reasoning Chain</summary>
-        <div class="reasoning-body">${escapeHtml(reasoning)}</div>
-      `;
-      wrapper.appendChild(details);
+      setReasoning(reasoning);
     }
 
     // Dedicated widgets container (weather, crypto, math, etc.)
@@ -842,7 +857,7 @@ document.addEventListener('DOMContentLoaded', () => {
       scrollToBottom(true);
     }
 
-    return { row, bubble, wrapper, widgetsContainer };
+    return { row, bubble, wrapper, widgetsContainer, setReasoning };
   }
 
   function renderMathSafely(container) {
@@ -997,7 +1012,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateSessionMetrics();
 
     // Prepare assistant message bubble
-    const { bubble, wrapper, widgetsContainer } = renderMessageItem('assistant', '', '', true);
+    const { bubble, wrapper, widgetsContainer, setReasoning } = renderMessageItem('assistant', '', '', true);
     state.isGenerating = true;
 
     if (stopGenerationBtn) stopGenerationBtn.style.display = 'flex';
@@ -1118,6 +1133,8 @@ document.addEventListener('DOMContentLoaded', () => {
           systemPrompt: state.systemPrompt,
           temperature: state.temperature,
           webSearch: state.isWebSearch,
+          reasoning: state.isDeepReasoning,
+          maxTokens: 4096,
           apiKey: state.apiKey || undefined
         })
       });
@@ -1177,6 +1194,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (rawReasoning) {
               accumulatedReasoning += rawReasoning;
+              setReasoning(accumulatedReasoning);
+              scrollToBottom(false);
             }
 
             if (rawContent.includes('<think>')) {
@@ -1192,6 +1211,8 @@ document.addEventListener('DOMContentLoaded', () => {
               } else {
                 accumulatedReasoning += rawContent.replace('<think>', '');
               }
+              setReasoning(accumulatedReasoning);
+              scrollToBottom(false);
             } else if (rawContent) {
               accumulatedContent += rawContent;
 
@@ -1211,6 +1232,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (!accumulatedContent) {
         accumulatedContent = accumulatedReasoning || '*(The model returned an empty response. This usually happens due to a safety filter or a temporary model glitch. Please try again or switch to a different model.)*';
+      }
+
+      if (accumulatedReasoning) {
+        setReasoning(accumulatedReasoning);
       }
 
       bubble.innerHTML = parseMarkdownSafely(accumulatedContent, false);
@@ -1538,6 +1563,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     deepThinkToggleBtn?.addEventListener('click', () => {
       state.isDeepReasoning = !state.isDeepReasoning;
+      localStorage.setItem('omni_deep_reasoning', state.isDeepReasoning.toString());
       deepThinkToggleBtn.classList.toggle('active-web', state.isDeepReasoning);
     });
 

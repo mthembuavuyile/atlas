@@ -48,6 +48,8 @@ class OpenRouterService {
     temperature = 0.7,
     stream = true,
     tools = undefined,
+    maxTokens = 4096,
+    reasoning = undefined,
     apiKey = null,
     referer = env.APP_URL || APP.url,
     attemptedModels = new Set()
@@ -71,8 +73,13 @@ class OpenRouterService {
       messages,
       temperature,
       stream,
-      tools
+      tools,
+      max_tokens: maxTokens
     };
+
+    if (reasoning !== undefined) {
+      payload.reasoning = reasoning;
+    }
 
     let response;
     try {
@@ -104,6 +111,8 @@ class OpenRouterService {
         temperature,
         stream,
         tools,
+        maxTokens,
+        reasoning,
         apiKey: activeKey,
         referer,
         attemptedModels,
@@ -155,6 +164,8 @@ class OpenRouterService {
           temperature,
           stream,
           tools,
+          maxTokens,
+          reasoning,
           apiKey: activeKey,
           referer,
           attemptedModels,
@@ -180,6 +191,8 @@ class OpenRouterService {
     temperature,
     stream,
     tools,
+    maxTokens = 4096,
+    reasoning = undefined,
     apiKey,
     referer,
     attemptedModels,
@@ -197,6 +210,8 @@ class OpenRouterService {
         temperature,
         stream,
         tools,
+        maxTokens,
+        reasoning,
         apiKey,
         referer,
         attemptedModels
