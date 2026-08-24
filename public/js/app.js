@@ -1198,7 +1198,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       if (!accumulatedContent) {
-        accumulatedContent = accumulatedReasoning || '(Empty response received)';
+        accumulatedContent = accumulatedReasoning || '*(The model returned an empty response. This usually happens due to a safety filter or a temporary model glitch. Please try again or switch to a different model.)*';
       }
 
       bubble.innerHTML = parseMarkdownSafely(accumulatedContent, false);
