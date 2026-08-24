@@ -195,6 +195,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
   const newChatBtn = document.getElementById('newChatBtn');
   const historySearchInput = document.getElementById('historySearchInput');
+  const historyGroupToday = document.getElementById('historyGroupToday');
+  const historyGroupYesterday = document.getElementById('historyGroupYesterday');
+  const historyGroupPrevious = document.getElementById('historyGroupPrevious');
   const historyListToday = document.getElementById('historyListToday');
   const historyListYesterday = document.getElementById('historyListYesterday');
   const historyListPrevious = document.getElementById('historyListPrevious');
@@ -617,6 +620,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function getSessionDateCategory(session) {
+    const rawDate = session.createdAt || session.updatedAt;
+    if (!rawDate) return 'previous';
+
+    const sessionDate = new Date(rawDate);
+    if (isNaN(sessionDate.getTime())) return 'previous';
+
+    const now = new Date();
+    // Real calendar day comparison (midnight to midnight) in user's local timezone
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+    const itemDay = new Date(sessionDate.getFullYear(), sessionDate.getMonth(), sessionDate.getDate());
+
+    if (itemDay.getTime() === today.getTime()) {
+      return 'today';
+    } else if (itemDay.getTime() === yesterday.getTime()) {
+      return 'yesterday';
+    }
+    return 'previous';
+  }
+
   function renderHistoryTree(searchQuery = '') {
     if (!historyListToday || !historyListYesterday || !historyListPrevious) return;
 
@@ -631,22 +655,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (filtered.length === 0) {
       if (emptyHistoryState) emptyHistoryState.style.display = 'block';
+      if (historyGroupToday) historyGroupToday.style.display = 'none';
+      if (historyGroupYesterday) historyGroupYesterday.style.display = 'none';
+      if (historyGroupPrevious) historyGroupPrevious.style.display = 'none';
       return;
     }
     if (emptyHistoryState) emptyHistoryState.style.display = 'none';
 
-    const now = new Date();
-    const todayStr = now.toDateString();
-    const yesterday = new Date(now);
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayStr = yesterday.toDateString();
-
     filtered.forEach(session => {
-      const itemDate = new Date(session.updatedAt || session.createdAt).toDateString();
+      const category = getSessionDateCategory(session);
       let targetList = historyListPrevious;
 
-      if (itemDate === todayStr) targetList = historyListToday;
-      else if (itemDate === yesterdayStr) targetList = historyListYesterday;
+      if (category === 'today') targetList = historyListToday;
+      else if (category === 'yesterday') targetList = historyListYesterday;
 
       const item = document.createElement('div');
       item.className = `history-item ${session.id === state.activeSessionId ? 'active' : ''}`;
@@ -669,6 +690,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
       targetList.appendChild(item);
     });
+
+    if (historyGroupToday) historyGroupToday.style.display = historyListToday.children.length > 0 ? 'block' : 'none';
+    if (historyGroupYesterday) historyGroupYesterday.style.display = historyListYesterday.children.length > 0 ? 'block' : 'none';
+    if (historyGroupPrevious) historyGroupPrevious.style.display = historyListPrevious.children.length > 0 ? 'block' : 'none';
   }
 
   function deleteSession(sessionId) {
@@ -960,7 +985,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (!response.ok) {
         const errJson = await response.json().catch(() => ({}));
-        throw new Error(errJson.error || `HTTP ${response.status} (${response.statusText})`);
+        const customErr = new Error(errJson.error || 'Request failed');
+        customErr.status = response.status;
+        throw customErr;
       }
 
       const reader = response.body.getReader();
@@ -1062,10 +1089,12 @@ document.addEventListener('DOMContentLoaded', () => {
       updateSessionMetrics();
 
     } catch (err) {
-      if (err.name === 'AbortError') {
-        bubble.innerHTML += `<div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 6px;">Investigation halted by user.</div>`;
+      const errorInfo = formatUserFriendlyError(err, err.status);
+      const errorHtml = renderErrorCard(errorInfo);
+      if (accumulatedContent) {
+        bubble.innerHTML = parseMarkdownSafely(accumulatedContent, false) + errorHtml;
       } else {
-        bubble.innerHTML += `<div style="font-size: 0.82rem; color: #f87171; margin-top: 6px;">Error: ${escapeHtml(err.message)}</div>`;
+        bubble.innerHTML = errorHtml;
       }
     } finally {
       state.isGenerating = false;
@@ -1074,6 +1103,99 @@ document.addEventListener('DOMContentLoaded', () => {
       if (streamingIndicator) streamingIndicator.style.display = 'none';
       scrollToBottom(true);
     }
+  }
+
+  function formatUserFriendlyError(err, statusCode = null) {
+    if (!navigator.onLine) {
+      return {
+        title: 'Connection Offline',
+        desc: 'You appear to be offline. Please check your network connection.',
+        type: 'offline'
+      };
+    }
+
+    if (err && err.name === 'AbortError') {
+      return {
+        title: 'Investigation Halted',
+        desc: 'Generation was stopped by user.',
+        type: 'info'
+      };
+    }
+
+    const raw = (err && (err.message || String(err))) || '';
+    const lower = raw.toLowerCase();
+
+    if (statusCode === 429 || lower.includes('rate limit') || lower.includes('too many requests')) {
+      return {
+        title: 'Rate Limit Reached',
+        desc: 'You are sending requests a bit too quickly. Please wait a few moments before trying again.',
+        type: 'warning'
+      };
+    }
+
+    if (statusCode === 403 || lower.includes('unauthorized model') || lower.includes('not available')) {
+      return {
+        title: 'Model Unavailable',
+        desc: 'This reasoning model is momentarily unavailable. Please switch to another model from the menu.',
+        type: 'warning'
+      };
+    }
+
+    if (
+      statusCode === 503 ||
+      statusCode === 504 ||
+      statusCode === 502 ||
+      lower.includes('high demand') ||
+      lower.includes('concurrency') ||
+      lower.includes('overloaded') ||
+      lower.includes('temporarily unavailable') ||
+      lower.includes('timed out') ||
+      lower.includes('timeout')
+    ) {
+      return {
+        title: 'Engines Busy',
+        desc: 'The reasoning engines are currently experiencing high demand. Please try your question again in a moment.',
+        type: 'warning'
+      };
+    }
+
+    if (lower.includes('failed to fetch') || lower.includes('networkerror') || lower.includes('network error') || lower.includes('load failed')) {
+      return {
+        title: 'Connection Interrupted',
+        desc: 'Unable to reach the server. Please verify your internet connection and try again.',
+        type: 'offline'
+      };
+    }
+
+    if (statusCode === 400 && lower.includes('system prompt')) {
+      return {
+        title: 'Instructions Too Long',
+        desc: 'Your custom instructions exceed the allowed character limit. Please shorten them in Studio Parameters.',
+        type: 'warning'
+      };
+    }
+
+    return {
+      title: 'Service Notice',
+      desc: 'Unable to complete this step right now. Please try again shortly.',
+      type: 'error'
+    };
+  }
+
+  function renderErrorCard(errorInfo) {
+    const icon = errorInfo.type === 'offline'
+      ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="1" y1="1" x2="23" y2="23"></line><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"></path><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"></path><path d="M10.71 5.05A16 16 0 0 1 22.56 9"></path><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></svg>`
+      : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`;
+
+    return `
+      <div class="atlas-error-card ${errorInfo.type}">
+        <div class="atlas-error-icon">${icon}</div>
+        <div class="atlas-error-body">
+          <div class="atlas-error-title">${escapeHtml(errorInfo.title)}</div>
+          <div class="atlas-error-desc">${escapeHtml(errorInfo.desc)}</div>
+        </div>
+      </div>
+    `;
   }
 
   async function fetchSessionTitle(userPrompt, sessionId) {
@@ -1271,6 +1393,15 @@ document.addEventListener('DOMContentLoaded', () => {
           window.atlasOpenLightbox(msgImg.src, msgImg.alt || 'Visual reference', '', 'Visual Reference');
         }
       }
+    });
+
+    // Offline / Online Connection State Listeners
+    const offlineBanner = document.getElementById('offlineBanner');
+    window.addEventListener('offline', () => {
+      if (offlineBanner) offlineBanner.style.display = 'flex';
+    });
+    window.addEventListener('online', () => {
+      if (offlineBanner) offlineBanner.style.display = 'none';
     });
 
     messageInput?.addEventListener('input', autoResizeTextarea);

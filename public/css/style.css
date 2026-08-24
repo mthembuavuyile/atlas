@@ -963,6 +963,74 @@ a:hover {
   width: 100%;
 }
 
+/* Production-Grade Error Card (Zero AI Gimmicks) */
+.atlas-error-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: var(--text-main);
+  font-size: 0.82rem;
+  margin-top: 6px;
+}
+
+.atlas-error-card.warning {
+  background: rgba(251, 191, 36, 0.08);
+  border-color: rgba(251, 191, 36, 0.25);
+}
+
+.atlas-error-card.info {
+  background: rgba(148, 163, 184, 0.08);
+  border-color: rgba(148, 163, 184, 0.2);
+}
+
+.atlas-error-card.offline {
+  background: rgba(249, 115, 22, 0.08);
+  border-color: rgba(249, 115, 22, 0.25);
+}
+
+.atlas-error-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f87171;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.atlas-error-card.warning .atlas-error-icon {
+  color: #fbbf24;
+}
+
+.atlas-error-card.info .atlas-error-icon {
+  color: var(--text-muted);
+}
+
+.atlas-error-card.offline .atlas-error-icon {
+  color: #f97316;
+}
+
+.atlas-error-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.atlas-error-title {
+  font-weight: 600;
+  font-size: 0.8rem;
+  margin-bottom: 2px;
+  color: var(--text-main);
+}
+
+.atlas-error-desc {
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
 /* Link Styling inside Messages */
 .message-bubble a {
   color: #60a5fa;
