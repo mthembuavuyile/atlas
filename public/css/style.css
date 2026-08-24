@@ -963,6 +963,22 @@ a:hover {
   width: 100%;
 }
 
+.bubble-status-loader {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  user-select: none;
+  padding: 2px 0;
+}
+
+.bubble-status-text {
+  transition: opacity 0.15s ease;
+  letter-spacing: 0.01em;
+}
+
 /* Production-Grade Error Card (Zero AI Gimmicks) */
 .atlas-error-card {
   display: flex;

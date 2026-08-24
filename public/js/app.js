@@ -99,6 +99,63 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  // --- Curated Dynamic Investigation Status Terms (Mode-Aware) ---
+  const INVESTIGATION_STATUS_TERMS = {
+    research: [
+      'Parsing literature & problem space...',
+      'Evaluating evidence & contradictions...',
+      'Synthesizing conceptual framework...',
+      'Mapping research landscape...',
+      'Identifying experimental gaps...'
+    ],
+    solve: [
+      'Deconstructing mathematical formulation...',
+      'Deriving step-by-step proof...',
+      'Verifying boundary conditions...',
+      'Computing analytical solution...',
+      'Checking logical consistency...'
+    ],
+    build: [
+      'Analyzing architecture & dependencies...',
+      'Constructing implementation logic...',
+      'Evaluating edge cases & security...',
+      'Optimizing algorithmic structure...',
+      'Assembling code artifact...'
+    ],
+    engineer: [
+      'Modeling system constraints & latency...',
+      'Assessing failure modes & redundancy...',
+      'Benchmarking scalability tradeoffs...',
+      'Verifying architectural robustness...',
+      'Structuring system topology...'
+    ],
+    experiment: [
+      'Formulating test hypotheses...',
+      'Simulating parameter variations...',
+      'Inspecting statistical anomalies...',
+      'Validating empirical outcomes...'
+    ],
+    reason: [
+      'Deconstructing first-principles logic...',
+      'Tracing logical dependencies...',
+      'Exposing implicit assumptions...',
+      'Constructing deductive proof...'
+    ],
+    discover: [
+      'Mapping conceptual frontier...',
+      'Synthesizing cross-domain insights...',
+      'Evaluating unexplained patterns...',
+      'Formulating falsifiable hypotheses...'
+    ],
+    default: [
+      'Synthesizing problem context...',
+      'Formulating reasoning trace...',
+      'Tracing logical dependencies...',
+      'Evaluating constraint boundaries...',
+      'Structuring response hierarchy...'
+    ]
+  };
+
   // --- Clean Precision Vector SVGs (Zero Emojis) ---
   const ICONS = {
     freeRouter: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></svg>`,
@@ -742,6 +799,52 @@ document.addEventListener('DOMContentLoaded', () => {
     scrollToBottom(true);
   }
 
+  function escapeHtml(str) {
+    if (typeof str !== 'string') return '';
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  function startStatusAnimation(bubble, modeId) {
+    const terms = INVESTIGATION_STATUS_TERMS[modeId] || INVESTIGATION_STATUS_TERMS.default;
+    let stepIndex = 0;
+
+    const loader = document.createElement('div');
+    loader.className = 'bubble-status-loader';
+    loader.innerHTML = `<span class="status-spinner"></span><span class="bubble-status-text">${escapeHtml(terms[0])}</span>`;
+    bubble.innerHTML = '';
+    bubble.appendChild(loader);
+
+    const textElem = loader.querySelector('.bubble-status-text');
+
+    const intervalId = setInterval(() => {
+      stepIndex = (stepIndex + 1) % terms.length;
+      const currentTerm = terms[stepIndex];
+      if (textElem && textElem.isConnected) {
+        textElem.style.opacity = '0';
+        setTimeout(() => {
+          if (textElem && textElem.isConnected) {
+            textElem.textContent = currentTerm;
+            textElem.style.opacity = '1';
+          }
+        }, 150);
+      }
+    }, 2000);
+
+    return {
+      stop: () => {
+        clearInterval(intervalId);
+        if (loader.parentNode === bubble) {
+          loader.remove();
+        }
+      }
+    };
+  }
+
   function renderMessageItem(role, content = '', reasoning = '', shouldScroll = true, widgets = []) {
     if (welcomeScreen && welcomeScreen.parentNode) {
       welcomeScreen.style.display = 'none';
@@ -1010,8 +1113,9 @@ document.addEventListener('DOMContentLoaded', () => {
     renderMessageItem('user', prompt, '', true);
     updateSessionMetrics();
 
-    // Prepare assistant message bubble
+    // Prepare assistant message bubble & status animator
     const { bubble, wrapper, widgetsContainer, setReasoning } = renderMessageItem('assistant', '', '', true);
+    let statusAnimator = startStatusAnimation(bubble, state.activeMode);
     state.isGenerating = true;
 
     if (stopGenerationBtn) stopGenerationBtn.style.display = 'flex';
@@ -1069,6 +1173,7 @@ document.addEventListener('DOMContentLoaded', () => {
       
       if (toolToCall) {
         try {
+          if (statusAnimator) { statusAnimator.stop(); statusAnimator = null; }
           const res = await fetch(`${API_BASE}/api/widget/execute`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -1169,6 +1274,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Handle injected widget rendering directly in message
             if (parsed.__widget__) {
+              if (statusAnimator) { statusAnimator.stop(); statusAnimator = null; }
               accumulatedWidgets.push(parsed.__widget__);
               if (window.atlasRenderWidget) {
                 const widgetHtml = window.atlasRenderWidget(parsed.__widget__.type, parsed.__widget__.data);
@@ -1192,6 +1298,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const rawReasoning = choice?.delta?.reasoning ?? choice?.delta?.reasoning_content ?? choice?.delta?.thought ?? '';
 
             if (rawReasoning) {
+              if (statusAnimator) { statusAnimator.stop(); statusAnimator = null; }
               accumulatedReasoning += rawReasoning;
               setReasoning(accumulatedReasoning);
               scrollToBottom(false);
@@ -1202,6 +1309,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (inThinkTag) {
+              if (statusAnimator) { statusAnimator.stop(); statusAnimator = null; }
               if (rawContent.includes('</think>')) {
                 inThinkTag = false;
                 const parts = rawContent.split('</think>');
@@ -1213,6 +1321,7 @@ document.addEventListener('DOMContentLoaded', () => {
               setReasoning(accumulatedReasoning);
               scrollToBottom(false);
             } else if (rawContent) {
+              if (statusAnimator) { statusAnimator.stop(); statusAnimator = null; }
               accumulatedContent += rawContent;
 
               const now = Date.now();
@@ -1228,6 +1337,8 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
       }
+
+      if (statusAnimator) { statusAnimator.stop(); statusAnimator = null; }
 
       if (!accumulatedContent) {
         accumulatedContent = accumulatedReasoning || '*(The model returned an empty response. This usually happens due to a safety filter or a temporary model glitch. Please try again or switch to a different model.)*';
@@ -1252,6 +1363,7 @@ document.addEventListener('DOMContentLoaded', () => {
       updateSessionMetrics();
 
     } catch (err) {
+      if (statusAnimator) { statusAnimator.stop(); statusAnimator = null; }
       const errorInfo = formatUserFriendlyError(err, err.status);
       const errorHtml = renderErrorCard(errorInfo);
       if (accumulatedContent) {
@@ -1260,6 +1372,7 @@ document.addEventListener('DOMContentLoaded', () => {
         bubble.innerHTML = errorHtml;
       }
     } finally {
+      if (statusAnimator) { statusAnimator.stop(); statusAnimator = null; }
       state.isGenerating = false;
       if (stopGenerationBtn) stopGenerationBtn.style.display = 'none';
       if (sendBtn) sendBtn.style.display = 'flex';
