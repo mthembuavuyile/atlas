@@ -2023,12 +2023,20 @@ code {
 .atlas-ocr-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
   display: none;
   align-items: center;
   justify-content: center;
   z-index: 350;
-  padding: 10px;
+  padding: 14px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.atlas-ocr-overlay.active {
+  display: flex;
+  opacity: 1;
 }
 
 .atlas-ocr-modal {
@@ -2038,6 +2046,7 @@ code {
   border: 1px solid var(--border-medium);
   border-radius: 8px;
   overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
 }
 
 .atlas-ocr-header {

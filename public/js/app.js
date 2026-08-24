@@ -352,6 +352,15 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const savedInvestigations = localStorage.getItem('atlas_investigations') || localStorage.getItem('omni_sessions') || '[]';
+  let initialSessions = [];
+  try {
+    const rawParsed = JSON.parse(savedInvestigations);
+    if (Array.isArray(rawParsed)) {
+      initialSessions = rawParsed.filter(s => s && Array.isArray(s.messages) && s.messages.length > 0);
+    }
+  } catch (e) {
+    initialSessions = [];
+  }
 
   let state = {
     theme: localStorage.getItem('omni_theme') || 'vylex',
@@ -364,7 +373,7 @@ document.addEventListener('DOMContentLoaded', () => {
     temperature: parseFloat(localStorage.getItem('omni_temp') || '0.7'),
     isDeepReasoning: localStorage.getItem('omni_deep_reasoning') === 'true',
     isWebSearch: localStorage.getItem('omni_web_search') === 'true',
-    sessions: JSON.parse(savedInvestigations),
+    sessions: initialSessions,
     activeSessionId: null,
     isGenerating: false,
     abortController: null,
@@ -636,6 +645,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- INVESTIGATION SESSION MANAGEMENT ---
   function createNewSession() {
+    const active = getActiveSession();
+    if (active && (!active.messages || active.messages.length === 0)) {
+      renderSessionMessages(active);
+      updateSessionMetrics();
+      if (messageInput) messageInput.focus();
+      if (window.innerWidth <= 768) closeMobileSidebar();
+      return;
+    }
+
+    // Clean up any empty sessions
+    state.sessions = state.sessions.filter(s => s && Array.isArray(s.messages) && s.messages.length > 0);
+
     const newSession = {
       id: 'inv_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
       title: 'New Investigation',
@@ -646,10 +667,13 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     state.sessions.unshift(newSession);
+    state.activeSessionId = newSession.id;
     saveSessions();
-    loadSession(newSession.id);
     renderHistoryTree();
+    renderSessionMessages(newSession);
+    updateSessionMetrics();
 
+    if (messageInput) messageInput.focus();
     if (window.innerWidth <= 768) {
       closeMobileSidebar();
     }
@@ -676,7 +700,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function saveSessions() {
-    localStorage.setItem('atlas_investigations', JSON.stringify(state.sessions));
+    const validSessions = state.sessions.filter(s => s && Array.isArray(s.messages) && s.messages.length > 0);
+    localStorage.setItem('atlas_investigations', JSON.stringify(validSessions));
   }
 
   function updateSessionMetrics() {
@@ -716,7 +741,8 @@ document.addEventListener('DOMContentLoaded', () => {
     historyListPrevious.innerHTML = '';
 
     const query = searchQuery.toLowerCase();
-    const filtered = state.sessions.filter(s =>
+    const validSessions = state.sessions.filter(s => s && Array.isArray(s.messages) && s.messages.length > 0);
+    const filtered = validSessions.filter(s =>
       !query || s.title.toLowerCase().includes(query) || (s.messages && s.messages.some(m => m.content && m.content.toLowerCase().includes(query)))
     );
 
@@ -766,8 +792,9 @@ document.addEventListener('DOMContentLoaded', () => {
   function deleteSession(sessionId) {
     state.sessions = state.sessions.filter(s => s.id !== sessionId);
     saveSessions();
+    const remainingValid = state.sessions.filter(s => s.messages && s.messages.length > 0);
     if (state.activeSessionId === sessionId) {
-      if (state.sessions.length > 0) loadSession(state.sessions[0].id);
+      if (remainingValid.length > 0) loadSession(remainingValid[0].id);
       else createNewSession();
     } else {
       renderHistoryTree();
