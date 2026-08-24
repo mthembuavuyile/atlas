@@ -138,36 +138,46 @@
 }
 
 /* ─────────────────────────────────────────────────────────────
-   PHOTOS & IMAGE CARDS
+   PHOTOS & IMAGE CARDS & LIGHTBOX
    ───────────────────────────────────────────────────────────── */
 .atlas-image-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
     gap: 8px;
-    margin-top: 6px;
+    margin-top: 8px;
+}
+
+@media (min-width: 600px) {
+    .atlas-image-grid {
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        gap: 10px;
+    }
 }
 
 .atlas-image-card {
     display: flex;
     flex-direction: column;
-    background: rgba(0, 0, 0, 0.25);
+    background: var(--bg-card, #0a2e5c);
     border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
-    border-radius: 5px;
+    border-radius: 6px;
     overflow: hidden;
+    cursor: pointer;
     text-decoration: none;
-    transition: transform 0.15s ease, border-color 0.15s ease;
+    transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    user-select: none;
 }
 
 .atlas-image-card:hover {
     border-color: var(--accent-primary, #fba919);
     transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
 }
 
 .image-thumb-wrapper {
     position: relative;
     width: 100%;
-    aspect-ratio: 4/3;
-    background: #031227;
+    aspect-ratio: 16/10;
+    background: rgba(0, 0, 0, 0.35);
     overflow: hidden;
 }
 
@@ -176,7 +186,39 @@
     height: 100%;
     object-fit: cover;
     display: block;
-    transition: opacity 0.2s ease;
+    transition: transform 0.25s ease, opacity 0.2s ease;
+}
+
+.atlas-image-card:hover .image-thumb-wrapper img {
+    transform: scale(1.04);
+}
+
+.image-thumb-wrapper.img-load-failed {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.image-card-overlay {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+}
+
+.atlas-image-card:hover .image-card-overlay {
+    opacity: 1;
 }
 
 .image-card-info {
@@ -188,7 +230,7 @@
 
 .image-card-title {
     font-size: 0.72rem;
-    font-weight: 500;
+    font-weight: 600;
     color: var(--text-main, #f8fafc);
     white-space: nowrap;
     overflow: hidden;
@@ -199,6 +241,159 @@
     font-size: 0.65rem;
     color: var(--text-muted, #94a3b8);
     font-family: var(--font-mono, monospace);
+}
+
+/* Lightbox Modal */
+.atlas-lightbox-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(3, 18, 39, 0.88);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+
+.atlas-lightbox-backdrop.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.atlas-lightbox-dialog {
+    background: var(--bg-card, #0a2e5c);
+    border: 1px solid var(--border-medium, rgba(255, 255, 255, 0.15));
+    border-radius: 8px;
+    max-width: 720px;
+    width: 100%;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+    overflow: hidden;
+}
+
+.atlas-lightbox-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+}
+
+.atlas-lightbox-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-main, #f8fafc);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-right: 12px;
+}
+
+.atlas-lightbox-close {
+    background: transparent;
+    border: none;
+    color: var(--text-muted, #94a3b8);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border-radius: 4px;
+    transition: color 0.15s ease, background 0.15s ease;
+}
+
+.atlas-lightbox-close:hover {
+    color: var(--text-main, #f8fafc);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.atlas-lightbox-body {
+    flex: 1;
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #020b18;
+    padding: 8px;
+    min-height: 240px;
+}
+
+.atlas-lightbox-img-wrap {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.atlas-lightbox-img-wrap img {
+    max-width: 100%;
+    max-height: 60vh;
+    object-fit: contain;
+    border-radius: 4px;
+}
+
+.atlas-lightbox-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-top: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+    font-size: 0.75rem;
+    gap: 8px;
+}
+
+.atlas-lightbox-meta {
+    color: var(--text-muted, #94a3b8);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.atlas-lightbox-link-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--accent-primary, #fba919);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    border-radius: 4px;
+    background: rgba(251, 169, 25, 0.08);
+    border: 1px solid rgba(251, 169, 25, 0.2);
+    transition: background 0.15s ease;
+    white-space: nowrap;
+}
+
+.atlas-lightbox-link-btn:hover {
+    background: rgba(251, 169, 25, 0.16);
+}
+
+.markdown-image-wrapper {
+    margin: 10px 0;
+    display: block;
+}
+
+.markdown-rendered-img {
+    max-width: 100%;
+    border-radius: 6px;
+    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+    cursor: zoom-in;
+    display: block;
+}
+
+.markdown-img-caption {
+    font-size: 0.72rem;
+    color: var(--text-muted, #94a3b8);
+    margin-top: 4px;
+    text-align: center;
 }
 
 /* ─────────────────────────────────────────────────────────────
