@@ -305,15 +305,55 @@ document.addEventListener('DOMContentLoaded', () => {
   if (window.marked) {
     const customRenderer = new marked.Renderer();
 
+    // Table renderer supporting both object tokens (marked v12+) and classic string arguments
     customRenderer.table = function(header, body) {
+      let headerContent = '';
+      let bodyContent = '';
+
+      if (typeof header === 'object' && header !== null) {
+        const token = header;
+        if (token.header) {
+          headerContent = Array.isArray(token.header)
+            ? '<tr>' + token.header.map(cell => `<th>${cell.text || cell}</th>`).join('') + '</tr>'
+            : String(token.header);
+        }
+        if (token.rows) {
+          bodyContent = Array.isArray(token.rows)
+            ? token.rows.map(row => '<tr>' + (Array.isArray(row) ? row.map(cell => `<td>${cell.text || cell}</td>`).join('') : `<td>${row}</td>`) + '</tr>').join('')
+            : String(token.rows);
+        }
+      } else {
+        headerContent = header || '';
+        bodyContent = body || '';
+      }
+
       return `
         <div class="table-container">
           <table class="rich-table">
-            <thead>${header}</thead>
-            <tbody>${body}</tbody>
+            <thead>${headerContent}</thead>
+            <tbody>${bodyContent}</tbody>
           </table>
         </div>
       `;
+    };
+
+    // Link renderer ensuring clean target="_blank" and no [object Object]
+    customRenderer.link = function(href, title, text) {
+      let cleanHref = '';
+      let cleanTitle = '';
+      let cleanText = '';
+
+      if (typeof href === 'object' && href !== null) {
+        cleanHref = href.href || '';
+        cleanTitle = href.title || '';
+        cleanText = href.text || href.raw || cleanHref;
+      } else {
+        cleanHref = href || '';
+        cleanTitle = title || '';
+        cleanText = text || cleanHref;
+      }
+
+      return `<a href="${cleanHref}" ${cleanTitle ? `title="${cleanTitle}"` : ''} target="_blank" rel="noopener noreferrer">${cleanText}</a>`;
     };
 
     marked.setOptions({
