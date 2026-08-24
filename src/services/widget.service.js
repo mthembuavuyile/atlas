@@ -351,7 +351,7 @@ class WidgetService {
             return { type: 'reddit', data: { subreddit: `r/${cleanSub}`, posts: posts.slice(0, 5), source: 'Community Discussions' } };
         }
 
-        return { error: `Could not retrieve live discussions for "r/${cleanSub}".` };
+        return { type: 'reddit', data: { error: `Could not retrieve live discussions for "r/${cleanSub}". Reddit API might be blocking the request.` } };
     }
 
     // 7. Dictionary
