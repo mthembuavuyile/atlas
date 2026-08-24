@@ -322,7 +322,7 @@ class WidgetService {
 
         // Tier 1: Photon / Arctic Shift Reddit API (High Reliability & Real-Time)
         try {
-            const photonRes = await fetchWithTimeout(`https://arctic-shift.photon-reddit.com/api/posts/search?subreddit=${encodeURIComponent(finalSub)}&limit=15`, {}, 4000);
+            const photonRes = await fetchWithTimeout(`https://arctic-shift.photon-reddit.com/api/posts/search?subreddit=${encodeURIComponent(finalSub)}&limit=15`, { timeoutMs: 3500 }, 3500);
             if (photonRes.ok) {
                 const data = await photonRes.json();
                 if (Array.isArray(data.data) && data.data.length > 0) {
@@ -363,8 +363,9 @@ class WidgetService {
         if (posts.length === 0) {
             try {
                 const redditRes = await fetchWithTimeout(`https://www.reddit.com/r/${encodeURIComponent(finalSub)}/hot.json?limit=10&raw_json=1`, {
-                    headers: { 'User-Agent': 'web:atlasapp:v1.2.0 (by /u/atlas_agent)' }
-                }, 3500);
+                    headers: { 'User-Agent': 'web:atlasapp:v1.2.0 (by /u/atlas_agent)' },
+                    timeoutMs: 3000
+                }, 3000);
                 if (redditRes.ok) {
                     const data = await redditRes.json();
                     if (data.data?.children?.length) {
@@ -397,7 +398,7 @@ class WidgetService {
         // Tier 3: Lemmy Federated Community Discussions Fallback
         if (posts.length === 0) {
             try {
-                const lemmyRes = await fetchWithTimeout(`https://lemmy.world/api/v3/post/list?community_name=${encodeURIComponent(finalSub)}&limit=10`, {}, 3000);
+                const lemmyRes = await fetchWithTimeout(`https://lemmy.world/api/v3/post/list?community_name=${encodeURIComponent(finalSub)}&limit=10`, { timeoutMs: 2500 }, 2500);
                 if (lemmyRes.ok) {
                     const lemmyData = await lemmyRes.json();
                     if (lemmyData.posts?.length) {
@@ -425,7 +426,7 @@ class WidgetService {
         // Tier 4: Hacker News Discussions Fallback
         if (posts.length === 0) {
             try {
-                const hnRes = await fetchWithTimeout(`https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(finalSub)}&tags=story&hitsPerPage=10`, {}, 3000);
+                const hnRes = await fetchWithTimeout(`https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(finalSub)}&tags=story&hitsPerPage=10`, { timeoutMs: 2500 }, 2500);
                 if (hnRes.ok) {
                     const hnData = await hnRes.json();
                     if (hnData.hits?.length) {
