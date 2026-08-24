@@ -150,21 +150,14 @@
 
       <!-- Sidebar Footer -->
       <div class="sidebar-footer">
-        <button id="systemPromptDrawerBtn" class="sidebar-tool-btn">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="3"></circle>
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-          </svg>
-          <span>Studio Parameters</span>
-        </button>
-        <button id="generalSettingsSidebarBtn" class="sidebar-tool-btn">
+        <button id="settingsSidebarBtn" class="sidebar-tool-btn">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line>
             <line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line>
             <line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line>
             <line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line>
           </svg>
-          <span>General Settings</span>
+          <span>Settings</span>
         </button>
       </div>
     </aside>
@@ -530,126 +523,130 @@
     </aside>
   </div>
 
-  <!-- STUDIO PARAMETERS MODAL -->
-  <div class="modal-backdrop" id="systemPromptModal">
-    <div class="modal-dialog">
-      <div class="modal-header">
-        <div class="modal-title-group">
-          <div class="modal-icon-svg">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+  <!-- UNIFIED SETTINGS MODAL -->
+  <div class="modal-backdrop" id="unifiedSettingsModal">
+    <div class="modal-dialog unified-settings-dialog">
+      <div class="unified-settings-layout">
+        <!-- Sidebar Navigation -->
+        <div class="settings-sidebar-nav">
+          <div class="settings-nav-header">
+            <h3>Settings</h3>
           </div>
-          <div>
-            <h3>Reasoning Persona & Parameters</h3>
-            <p>Configure model instructions, temperature, and domain presets</p>
-          </div>
-        </div>
-        <button id="closeModalBtn" class="icon-btn" aria-label="Close Parameters">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-        </button>
-      </div>
-
-      <div class="modal-body">
-        <!-- Preset Personas (Zero Emojis) -->
-        <div class="settings-section">
-          <label class="settings-label">Domain Intelligence Presets</label>
-          <div class="preset-pills-grid">
-            <button class="preset-pill active" data-preset="scientist">
-              <span class="preset-name">Scientific Researcher</span>
-              <span class="preset-desc">Hypothesis formation, evidence evaluation, and uncertainty quantification</span>
-            </button>
-            <button class="preset-pill" data-preset="mathematician">
-              <span class="preset-name">Mathematician</span>
-              <span class="preset-desc">Formal proofs, derivation pipelines, and rigorous verification</span>
-            </button>
-            <button class="preset-pill" data-preset="engineer">
-              <span class="preset-name">Systems Engineer</span>
-              <span class="preset-desc">Distributed systems, scalability, constraints, & failure modes</span>
-            </button>
-            <button class="preset-pill" data-preset="builder">
-              <span class="preset-name">Full-Stack Builder</span>
-              <span class="preset-desc">Production-grade code, architectures, and testing</span>
-            </button>
-            <button class="preset-pill" data-preset="reasoner">
-              <span class="preset-name">Deep Reasoner</span>
-              <span class="preset-desc">Logical decomposition & explicit chain-of-thought</span>
-            </button>
-            <button class="preset-pill" data-preset="concise">
-              <span class="preset-name">Concise Expert</span>
-              <span class="preset-desc">Direct, optimal solutions with minimal preamble</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Custom Instructions Area -->
-        <div class="settings-section">
-          <div class="settings-flex-row">
-            <label class="settings-label" for="customSystemPrompt">System Instructions</label>
-            <button id="resetModalPromptBtn" class="text-btn">Reset Default</button>
-          </div>
-          <textarea id="customSystemPrompt" class="system-prompt-editor" rows="5" placeholder="Enter custom instructions for the model..."></textarea>
-        </div>
-
-        <!-- Temperature Slider -->
-        <div class="settings-section">
-          <div class="settings-flex-row">
-            <label class="settings-label" for="temperatureSlider">Temperature</label>
-            <span class="slider-val-badge" id="tempValBadge">0.7</span>
-          </div>
-          <input type="range" id="temperatureSlider" min="0" max="1.5" step="0.05" value="0.7" class="custom-range">
-          <div class="slider-hints">
-            <span>Deterministic (0.0)</span>
-            <span>Balanced (0.7)</span>
-            <span>Exploratory (1.5)</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="modal-footer">
-        <button id="saveSettingsBtn" class="primary-modal-btn">Apply Instructions</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- GENERAL SETTINGS MODAL -->
-  <div class="modal-backdrop" id="generalSettingsModal">
-    <div class="modal-dialog">
-      <div class="modal-header">
-        <div class="modal-title-group">
-          <div class="modal-icon-svg">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <button class="settings-nav-btn active" data-tab="studio-parameters">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            Personalization
+          </button>
+          <button class="settings-nav-btn" data-tab="general-settings">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line>
               <line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line>
               <line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line>
               <line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line>
             </svg>
-          </div>
-          <div>
-            <h3>General Settings</h3>
-            <p>Manage your application data and preferences</p>
-          </div>
-        </div>
-        <button id="closeGeneralSettingsBtn" class="icon-btn" aria-label="Close Settings">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-        </button>
-      </div>
-
-      <div class="modal-body">
-        <div class="settings-section">
-          <label class="settings-label" for="customApiKeyInput">Custom OpenRouter API Key (Optional)</label>
-          <p style="margin: 4px 0 10px 0; font-size: 0.82rem; color: var(--text-tertiary);">Supply your personal OpenRouter key for uninterrupted access with private quota. Stored securely in local browser storage.</p>
-          <div class="settings-flex-row" style="gap: 8px; align-items: center;">
-            <input type="password" id="customApiKeyInput" class="system-prompt-editor" style="height: 38px; padding: 6px 12px; font-family: monospace; font-size: 0.85rem; flex: 1;" placeholder="sk-or-v1-..." autocomplete="off">
-            <button id="saveApiKeyBtn" class="primary-modal-btn" style="white-space: nowrap; padding: 0 16px; height: 38px;">Save Key</button>
-          </div>
-          <div id="apiKeyStatusHint" style="display: none; font-size: 0.8rem; color: var(--text-secondary); margin-top: 6px;">Key active in local session.</div>
+            General
+          </button>
         </div>
 
-        <div class="settings-section">
-          <label class="settings-label">Data Management</label>
-          <div class="settings-flex-row" style="margin-top: 10px;">
-            <p style="margin: 0; font-size: 0.85rem; color: var(--text-tertiary);">Clear all stored investigations and local preferences. This action cannot be undone.</p>
-            <button id="clearAllDataBtn" class="primary-modal-btn" style="background: var(--vylex-danger, #ef4444); border-color: var(--vylex-danger, #ef4444); white-space: nowrap; margin-left: 10px;">Delete All Data</button>
+        <!-- Main Content Area -->
+        <div class="settings-content-area">
+          <div class="settings-content-header">
+            <div class="settings-content-title">
+              <h3 id="activeSettingsTitle">Reasoning Persona & Parameters</h3>
+              <p id="activeSettingsDesc">Configure model instructions, temperature, and domain presets</p>
+            </div>
+            <button id="closeUnifiedSettingsBtn" class="icon-btn" aria-label="Close Settings">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
           </div>
+
+          <div class="settings-panes-wrapper">
+            <!-- Studio Parameters Pane -->
+            <div class="settings-pane active" id="pane-studio-parameters">
+              <div class="settings-pane-scrollable">
+                <!-- Preset Personas -->
+                <div class="settings-section">
+                  <label class="settings-label">Domain Intelligence Presets</label>
+                  <div class="preset-pills-grid">
+                    <button class="preset-pill active" data-preset="scientist">
+                      <span class="preset-name">Scientific Researcher</span>
+                      <span class="preset-desc">Hypothesis formation, evidence evaluation, and uncertainty quantification</span>
+                    </button>
+                    <button class="preset-pill" data-preset="mathematician">
+                      <span class="preset-name">Mathematician</span>
+                      <span class="preset-desc">Formal proofs, derivation pipelines, and rigorous verification</span>
+                    </button>
+                    <button class="preset-pill" data-preset="engineer">
+                      <span class="preset-name">Systems Engineer</span>
+                      <span class="preset-desc">Distributed systems, scalability, constraints, & failure modes</span>
+                    </button>
+                    <button class="preset-pill" data-preset="builder">
+                      <span class="preset-name">Full-Stack Builder</span>
+                      <span class="preset-desc">Production-grade code, architectures, and testing</span>
+                    </button>
+                    <button class="preset-pill" data-preset="reasoner">
+                      <span class="preset-name">Deep Reasoner</span>
+                      <span class="preset-desc">Logical decomposition & explicit chain-of-thought</span>
+                    </button>
+                    <button class="preset-pill" data-preset="concise">
+                      <span class="preset-name">Concise Expert</span>
+                      <span class="preset-desc">Direct, optimal solutions with minimal preamble</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Custom Instructions Area -->
+                <div class="settings-section">
+                  <div class="settings-flex-row">
+                    <label class="settings-label" for="customSystemPrompt">System Instructions</label>
+                    <button id="resetModalPromptBtn" class="text-btn">Reset Default</button>
+                  </div>
+                  <textarea id="customSystemPrompt" class="system-prompt-editor" rows="5" placeholder="Enter custom instructions for the model..."></textarea>
+                </div>
+
+                <!-- Temperature Slider -->
+                <div class="settings-section">
+                  <div class="settings-flex-row">
+                    <label class="settings-label" for="temperatureSlider">Temperature</label>
+                    <span class="slider-val-badge" id="tempValBadge">0.7</span>
+                  </div>
+                  <input type="range" id="temperatureSlider" min="0" max="1.5" step="0.05" value="0.7" class="custom-range">
+                  <div class="slider-hints">
+                    <span>Deterministic (0.0)</span>
+                    <span>Balanced (0.7)</span>
+                    <span>Exploratory (1.5)</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="modal-footer" style="padding-top: 16px; margin-top: 16px;">
+                <button id="saveSettingsBtn" class="primary-modal-btn">Apply Instructions</button>
+              </div>
+            </div>
+
+            <!-- General Settings Pane -->
+            <div class="settings-pane" id="pane-general-settings" style="display: none;">
+              <div class="settings-pane-scrollable">
+                <div class="settings-section">
+                  <label class="settings-label" for="customApiKeyInput">Custom OpenRouter API Key (Optional)</label>
+                  <p style="margin: 4px 0 10px 0; font-size: 0.82rem; color: var(--text-tertiary);">Supply your personal OpenRouter key for uninterrupted access with private quota. Stored securely in local browser storage.</p>
+                  <div class="settings-flex-row" style="gap: 8px; align-items: center;">
+                    <input type="password" id="customApiKeyInput" class="system-prompt-editor" style="height: 38px; padding: 6px 12px; font-family: monospace; font-size: 0.85rem; flex: 1;" placeholder="sk-or-v1-..." autocomplete="off">
+                    <button id="saveApiKeyBtn" class="primary-modal-btn" style="white-space: nowrap; padding: 0 16px; height: 38px;">Save Key</button>
+                  </div>
+                  <div id="apiKeyStatusHint" style="display: none; font-size: 0.8rem; color: var(--text-secondary); margin-top: 6px;">Key active in local session.</div>
+                </div>
+
+                <div class="settings-section">
+                  <label class="settings-label">Data Management</label>
+                  <div class="settings-flex-row" style="margin-top: 10px;">
+                    <p style="margin: 0; font-size: 0.85rem; color: var(--text-tertiary);">Clear all stored investigations and local preferences. This action cannot be undone.</p>
+                    <button id="clearAllDataBtn" class="primary-modal-btn" style="background: var(--vylex-danger, #ef4444); border-color: var(--vylex-danger, #ef4444); white-space: nowrap; margin-left: 10px;">Delete All Data</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>

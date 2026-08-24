@@ -264,20 +264,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const downloadCanvasBtn = document.getElementById('downloadCanvasBtn');
 
   // Settings Modal
-  const systemPromptModal = document.getElementById('systemPromptModal');
-  const closeModalBtn = document.getElementById('closeModalBtn');
+  const unifiedSettingsModal = document.getElementById('unifiedSettingsModal');
+  const settingsSidebarBtn = document.getElementById('settingsSidebarBtn');
+  const closeUnifiedSettingsBtn = document.getElementById('closeUnifiedSettingsBtn');
+  const settingsNavBtns = document.querySelectorAll('.settings-nav-btn');
+  const settingsPanes = document.querySelectorAll('.settings-pane');
+  const activeSettingsTitle = document.getElementById('activeSettingsTitle');
+  const activeSettingsDesc = document.getElementById('activeSettingsDesc');
   const customSystemPrompt = document.getElementById('customSystemPrompt');
   const resetModalPromptBtn = document.getElementById('resetModalPromptBtn');
   const temperatureSlider = document.getElementById('temperatureSlider');
   const tempValBadge = document.getElementById('tempValBadge');
   const saveSettingsBtn = document.getElementById('saveSettingsBtn');
   const presetPills = document.querySelectorAll('.preset-pill');
-  const systemPromptDrawerBtn = document.getElementById('systemPromptDrawerBtn');
 
-  // General Settings Modal
-  const generalSettingsModal = document.getElementById('generalSettingsModal');
-  const generalSettingsSidebarBtn = document.getElementById('generalSettingsSidebarBtn');
-  const closeGeneralSettingsBtn = document.getElementById('closeGeneralSettingsBtn');
+  // General Settings
   const clearAllDataBtn = document.getElementById('clearAllDataBtn');
   const customApiKeyInput = document.getElementById('customApiKeyInput');
   const saveApiKeyBtn = document.getElementById('saveApiKeyBtn');
@@ -1432,21 +1433,35 @@ document.addEventListener('DOMContentLoaded', () => {
       fileInput.click();
     });
 
-    openSysPromptModalBtn?.addEventListener('click', () => openSettingsModal());
-    systemPromptDrawerBtn?.addEventListener('click', () => openSettingsModal());
-    closeModalBtn?.addEventListener('click', () => closeSettingsModal());
+    openSysPromptModalBtn?.addEventListener('click', () => openUnifiedSettings('studio-parameters'));
+    settingsSidebarBtn?.addEventListener('click', () => openUnifiedSettings('studio-parameters'));
+    closeUnifiedSettingsBtn?.addEventListener('click', () => closeUnifiedSettings());
 
-    generalSettingsSidebarBtn?.addEventListener('click', () => {
-      if (customApiKeyInput) customApiKeyInput.value = state.apiKey || '';
-      if (apiKeyStatusHint) {
-        apiKeyStatusHint.style.display = state.apiKey ? 'block' : 'none';
-        apiKeyStatusHint.textContent = state.apiKey ? 'Custom key active in this browser.' : '';
-      }
-      generalSettingsModal?.classList.add('show');
-    });
+    // Settings Navigation Tabs Logic
+    settingsNavBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const targetTab = btn.getAttribute('data-tab');
+        
+        // Update active states for tabs
+        settingsNavBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        // Update active states for panes
+        settingsPanes.forEach(pane => pane.classList.remove('active'));
+        const activePane = document.getElementById(`pane-${targetTab}`);
+        if (activePane) activePane.classList.add('active');
 
-    closeGeneralSettingsBtn?.addEventListener('click', () => {
-      generalSettingsModal?.classList.remove('show');
+        // Update header text based on selected tab
+        if (activeSettingsTitle && activeSettingsDesc) {
+          if (targetTab === 'studio-parameters') {
+            activeSettingsTitle.textContent = 'Personalization';
+            activeSettingsDesc.textContent = 'Configure model instructions, temperature, and domain presets';
+          } else if (targetTab === 'general-settings') {
+            activeSettingsTitle.textContent = 'General';
+            activeSettingsDesc.textContent = 'Manage your application data and preferences';
+          }
+        }
+      });
     });
 
     saveApiKeyBtn?.addEventListener('click', () => {
@@ -1557,16 +1572,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function openSettingsModal() {
-    customSystemPrompt.value = state.systemPrompt;
-    temperatureSlider.value = state.temperature;
+  function openUnifiedSettings(defaultTab = 'studio-parameters') {
+    // Populate Studio Parameters
+    if (customSystemPrompt) customSystemPrompt.value = state.systemPrompt;
+    if (temperatureSlider) temperatureSlider.value = state.temperature;
     if (tempValBadge) tempValBadge.textContent = state.temperature;
-    presetPills.forEach(p => p.classList.toggle('active', p.getAttribute('data-preset') === state.activePreset));
-    systemPromptModal.classList.add('show');
+    if (presetPills) presetPills.forEach(p => p.classList.toggle('active', p.getAttribute('data-preset') === state.activePreset));
+    
+    // Populate General Settings
+    if (customApiKeyInput) customApiKeyInput.value = state.apiKey || '';
+    if (apiKeyStatusHint) {
+      apiKeyStatusHint.style.display = state.apiKey ? 'block' : 'none';
+      apiKeyStatusHint.textContent = state.apiKey ? 'Custom key active in this browser.' : '';
+    }
+    
+    // Select the default tab
+    const tabToSelect = Array.from(settingsNavBtns).find(btn => btn.getAttribute('data-tab') === defaultTab);
+    if (tabToSelect) {
+      tabToSelect.click();
+    }
+    
+    unifiedSettingsModal?.classList.add('show');
   }
 
-  function closeSettingsModal() {
-    systemPromptModal.classList.remove('show');
+  function closeUnifiedSettings() {
+    unifiedSettingsModal?.classList.remove('show');
   }
 
   function loadSavedSettings() {

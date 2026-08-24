@@ -2032,3 +2032,180 @@ code {
   background: rgba(255, 255, 255, 0.08);
   color: var(--text-main);
 }
+
+/* --------------------------------------------------------------------------
+   UNIFIED SETTINGS MODAL
+   -------------------------------------------------------------------------- */
+.unified-settings-dialog {
+  max-width: 800px;
+  width: 90vw;
+  height: 80vh;
+  max-height: 700px;
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.unified-settings-layout {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Sidebar */
+.settings-sidebar-nav {
+  width: 240px;
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  padding: 16px 12px;
+  flex-shrink: 0;
+}
+
+.settings-nav-header h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 16px;
+  padding-left: 8px;
+}
+
+.settings-nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 4px;
+}
+
+.settings-nav-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-main);
+}
+
+.settings-nav-btn.active {
+  background: var(--pill-active-bg);
+  color: var(--pill-active-text);
+}
+
+.settings-nav-btn svg {
+  color: inherit;
+}
+
+/* Main Content Area */
+.settings-content-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-app);
+  overflow: hidden;
+}
+
+.settings-content-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 24px 32px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.settings-content-title h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 4px;
+}
+
+.settings-content-title p {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.settings-panes-wrapper {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.settings-pane {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+  flex-direction: column;
+}
+
+.settings-pane.active {
+  display: flex;
+}
+
+.settings-pane-scrollable {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 32px;
+}
+
+.settings-pane .modal-footer {
+  padding: 16px 32px;
+  background: var(--bg-app);
+}
+
+/* Mobile Responsiveness for Settings */
+@media (max-width: 768px) {
+  .unified-settings-dialog {
+    height: 95vh;
+    width: 95vw;
+  }
+  
+  .unified-settings-layout {
+    flex-direction: column;
+  }
+  
+  .settings-sidebar-nav {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--border-subtle);
+    padding: 12px 16px;
+    flex-direction: row;
+    overflow-x: auto;
+  }
+  
+  .settings-nav-header {
+    display: none; /* Hide header on mobile to save space */
+  }
+  
+  .settings-nav-btn {
+    width: auto;
+    margin-bottom: 0;
+    margin-right: 8px;
+    white-space: nowrap;
+    padding: 8px 12px;
+  }
+  
+  .settings-content-header {
+    padding: 16px;
+  }
+  
+  .settings-pane-scrollable {
+    padding: 16px;
+  }
+  
+  .settings-pane .modal-footer {
+    padding: 12px 16px;
+  }
+}
