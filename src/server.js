@@ -15,26 +15,37 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false // Allow external CDN resources
 }));
 
-// 2. CORS Configuration — locked to your production domain + localhost for dev
-const ALLOWED_ORIGINS = [
-  'http://localhost:3000',
-  'http://localhost:5500',
-  'http://127.0.0.1:3000',
-  env.APP_URL
-].filter(Boolean);
+// 2. CORS Configuration — supports production domains, Vercel deployments, and dev
+const isAllowedOrigin = (origin) => {
+  if (!origin) return true; // same-origin, curl, server-to-server
+  try {
+    const parsed = new URL(origin);
+    const host = parsed.hostname;
+    return (
+      host === 'localhost' ||
+      host === '127.0.0.1' ||
+      host.endsWith('.vercel.app') ||
+      host.endsWith('vylex.co.za') ||
+      host.endsWith('avuyile.co.za') ||
+      host.endsWith('avuyilemthembu.co.za') ||
+      (env.APP_URL && origin.startsWith(env.APP_URL))
+    );
+  } catch (e) {
+    return false;
+  }
+};
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (same-origin, curl, mobile apps), allowed origins, or Vercel preview domains
-    if (!origin || ALLOWED_ORIGINS.includes(origin) || origin.endsWith('.vercel.app')) {
+    if (isAllowedOrigin(origin)) {
       callback(null, true);
     } else {
-      console.warn(`[CORS] Blocked request from unauthorized origin: ${origin}`);
-      callback(new Error('Not allowed by CORS'));
+      console.warn(`[CORS Notice] Request from origin: ${origin}`);
+      callback(null, true); // Allow public API usage while logging notice
     }
   },
   methods: ['GET', 'POST', 'OPTIONS', 'HEAD'],
-  allowedHeaders: ['Content-Type', 'Accept'],
+  allowedHeaders: ['Content-Type', 'Accept', 'Authorization', 'X-OpenRouter-Key', 'x-openrouter-key'],
   credentials: false
 }));
 app.options('*', cors());

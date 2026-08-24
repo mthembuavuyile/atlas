@@ -279,6 +279,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const generalSettingsSidebarBtn = document.getElementById('generalSettingsSidebarBtn');
   const closeGeneralSettingsBtn = document.getElementById('closeGeneralSettingsBtn');
   const clearAllDataBtn = document.getElementById('clearAllDataBtn');
+  const customApiKeyInput = document.getElementById('customApiKeyInput');
+  const saveApiKeyBtn = document.getElementById('saveApiKeyBtn');
+  const apiKeyStatusHint = document.getElementById('apiKeyStatusHint');
 
   // Persona Presets for Domain Intelligence
   const PERSONA_PRESETS = {
@@ -296,6 +299,7 @@ document.addEventListener('DOMContentLoaded', () => {
     theme: localStorage.getItem('omni_theme') || 'vylex',
     currentModel: localStorage.getItem('omni_model') || 'openrouter/free',
     models: FREE_MODELS,
+    apiKey: localStorage.getItem('atlas_openrouter_api_key') || '',
     activeMode: localStorage.getItem('atlas_mode') || 'research',
     systemPrompt: localStorage.getItem('omni_sys_prompt') || PERSONA_PRESETS.scientist,
     activePreset: localStorage.getItem('omni_preset') || 'scientist',
@@ -1014,7 +1018,10 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const response = await fetch(`${API_BASE}/api/chat`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(state.apiKey ? { 'X-OpenRouter-Key': state.apiKey } : {})
+        },
         signal: state.abortController.signal,
         body: JSON.stringify({
           model: state.currentModel,
@@ -1023,7 +1030,8 @@ document.addEventListener('DOMContentLoaded', () => {
           mode: state.activeMode,
           systemPrompt: state.systemPrompt,
           temperature: state.temperature,
-          webSearch: state.isWebSearch
+          webSearch: state.isWebSearch,
+          apiKey: state.apiKey || undefined
         })
       });
 
@@ -1169,6 +1177,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const raw = (err && (err.message || String(err))) || '';
     const lower = raw.toLowerCase();
 
+    if (
+      lower.includes('free-models-per-day') ||
+      lower.includes('daily free reasoning quota') ||
+      lower.includes('free tier daily') ||
+      lower.includes('purchase credits to raise')
+    ) {
+      return {
+        title: 'Daily Free Quota Reached',
+        desc: 'The shared daily free reasoning quota has been reached (50 requests/day). It automatically resets at midnight UTC. You can configure a custom OpenRouter key in Settings for immediate access.',
+        type: 'warning'
+      };
+    }
+
+    if (statusCode === 401 || lower.includes('api key not configured') || lower.includes('unauthorized') || lower.includes('invalid api key')) {
+      return {
+        title: 'API Key Required',
+        desc: 'OpenRouter API key is not configured in Vercel Environment Variables. You can supply your own OpenRouter key in Settings to continue.',
+        type: 'warning'
+      };
+    }
+
     if (statusCode === 429 || lower.includes('rate limit') || lower.includes('too many requests')) {
       return {
         title: 'Rate Limit Reached',
@@ -1246,8 +1275,15 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const res = await fetch(`${API_BASE}/api/title`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userPrompt })
+        headers: {
+          'Content-Type': 'application/json',
+          ...(state.apiKey ? { 'X-OpenRouter-Key': state.apiKey } : {})
+        },
+        body: JSON.stringify({
+          message: userPrompt,
+          model: state.currentModel,
+          apiKey: state.apiKey || undefined
+        })
       });
       const data = await res.json();
       if (data.title) {
@@ -1401,11 +1437,34 @@ document.addEventListener('DOMContentLoaded', () => {
     closeModalBtn?.addEventListener('click', () => closeSettingsModal());
 
     generalSettingsSidebarBtn?.addEventListener('click', () => {
+      if (customApiKeyInput) customApiKeyInput.value = state.apiKey || '';
+      if (apiKeyStatusHint) {
+        apiKeyStatusHint.style.display = state.apiKey ? 'block' : 'none';
+        apiKeyStatusHint.textContent = state.apiKey ? 'Custom key active in this browser.' : '';
+      }
       generalSettingsModal?.classList.add('show');
     });
 
     closeGeneralSettingsBtn?.addEventListener('click', () => {
       generalSettingsModal?.classList.remove('show');
+    });
+
+    saveApiKeyBtn?.addEventListener('click', () => {
+      const val = (customApiKeyInput?.value || '').trim();
+      state.apiKey = val;
+      if (val) {
+        localStorage.setItem('atlas_openrouter_api_key', val);
+        if (apiKeyStatusHint) {
+          apiKeyStatusHint.textContent = 'Custom API key saved and active.';
+          apiKeyStatusHint.style.display = 'block';
+        }
+      } else {
+        localStorage.removeItem('atlas_openrouter_api_key');
+        if (apiKeyStatusHint) {
+          apiKeyStatusHint.textContent = 'Custom key cleared. Default server key active.';
+          apiKeyStatusHint.style.display = 'block';
+        }
+      }
     });
 
     clearAllDataBtn?.addEventListener('click', () => {

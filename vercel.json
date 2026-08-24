@@ -1,11 +1,10 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "src/server.js",
-      "use": "@vercel/node"
+  "functions": {
+    "src/server.js": {
+      "maxDuration": 60
     }
-  ],
+  },
   "rewrites": [
     {
       "source": "/(.*)",

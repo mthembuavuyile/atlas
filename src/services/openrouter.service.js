@@ -1,24 +1,24 @@
 const env = require('../config/env');
 const { APP } = require('../config/identity');
-const { CURATED_MODELS } = require('../config/models.config');
 
-// Resilient fallback candidate pool
+// Resilient fallback candidate pool (prioritizing high-availability & zero-cost models)
 const DEFAULT_FALLBACK_POOL = [
+  'stealth/ox-alpha',
   'openrouter/free',
   'google/gemma-4-26b-a4b-it:free',
   'cohere/north-mini-code:free',
   'z-ai/glm-5.2:free',
   'poolside/laguna-s-2.1:free',
-  'nvidia/nemotron-3-ultra-550b-a55b:free',
-  'stealth/ox-alpha'
+  'nvidia/nemotron-3-ultra-550b-a55b:free'
 ];
 
 class OpenRouterService {
   /**
    * Validate API Key
+   * @param {string} [customKey]
    */
-  hasApiKey() {
-    const key = env.OPENROUTER_API_KEY;
+  hasApiKey(customKey = null) {
+    const key = customKey || env.OPENROUTER_API_KEY;
     return Boolean(key && key.trim().length > 0 && key !== 'your_openrouter_api_key_here');
   }
 
@@ -38,8 +38,9 @@ class OpenRouterService {
    * @param {string} options.model
    * @param {number} options.temperature
    * @param {boolean} options.stream
-   * @param {string} options.referer
-   * @param {Set<string>} options.attemptedModels
+   * @param {string} [options.apiKey]
+   * @param {string} [options.referer]
+   * @param {Set<string>} [options.attemptedModels]
    */
   async createChatCompletion({
     messages,
@@ -47,11 +48,16 @@ class OpenRouterService {
     temperature = 0.7,
     stream = true,
     tools = undefined,
+    apiKey = null,
     referer = env.APP_URL || APP.url,
     attemptedModels = new Set()
   }) {
-    if (!this.hasApiKey()) {
-      throw new Error('OpenRouter API Key not configured. Set OPENROUTER_API_KEY in your environment variables.');
+    const activeKey = (apiKey && apiKey.trim()) || env.OPENROUTER_API_KEY;
+
+    if (!this.hasApiKey(activeKey)) {
+      const keyErr = new Error('OpenRouter API Key not configured. Please set OPENROUTER_API_KEY in Vercel Environment Variables or supply a custom key in Settings.');
+      keyErr.status = 401;
+      throw keyErr;
     }
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
@@ -70,14 +76,14 @@ class OpenRouterService {
 
     let response;
     try {
-      // 18s per-attempt timeout guard to prevent hanging on congested upstream hosts
+      // 12s per-attempt timeout guard to prevent hanging and stay well within Vercel execution bounds
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 18000);
+      const timeoutId = setTimeout(() => controller.abort(), 12000);
 
       response = await fetch(`${env.OPENROUTER_BASE_URL}/chat/completions`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${env.OPENROUTER_API_KEY}`,
+          'Authorization': `Bearer ${activeKey}`,
           'HTTP-Referer': referer,
           'X-Title': env.APP_TITLE,
           'Content-Type': 'application/json'
@@ -89,7 +95,7 @@ class OpenRouterService {
       clearTimeout(timeoutId);
     } catch (networkErr) {
       const isTimeout = networkErr.name === 'AbortError' || networkErr.message.includes('abort');
-      const msg = isTimeout ? `Upstream model ${model} timed out after 18s` : networkErr.message;
+      const msg = isTimeout ? `Upstream model ${model} timed out` : networkErr.message;
       console.warn(`[OpenRouter Network Guard] ${msg}. Attempting auto-rotation...`);
 
       return this.rotateToNextCandidate({
@@ -97,6 +103,8 @@ class OpenRouterService {
         failedModel: model,
         temperature,
         stream,
+        tools,
+        apiKey: activeKey,
         referer,
         attemptedModels,
         errorMessage: msg
@@ -111,23 +119,35 @@ class OpenRouterService {
       } catch (e) {
         errorJson = { message: errorText };
       }
-      const message = errorJson.error?.message || errorJson.message || `Atlas Engine API error (${response.status})`;
+      const rawMessage = errorJson.error?.message || errorJson.message || `Atlas Engine API error (${response.status})`;
+      const lower = rawMessage.toLowerCase();
+
+      // Check if account-level daily limit for free models was hit
+      const isDailyFreeLimitExceeded = lower.includes('free-models-per-day') || lower.includes('free tier daily') || lower.includes('purchase credits to raise');
+
+      if (isDailyFreeLimitExceeded) {
+        console.warn(`⚡ [Daily Free Quota Hit on OpenRouter]: ${rawMessage}. Skipping all remaining :free models.`);
+        // Mark all :free models as attempted so we don't spin wheels trying them
+        for (const candidate of DEFAULT_FALLBACK_POOL) {
+          if (candidate.endsWith(':free') || candidate === 'openrouter/free') {
+            attemptedModels.add(candidate);
+          }
+        }
+      }
 
       // Status codes eligible for automatic rotation:
       // 429 (Rate Limit / Concurrency), 500, 502, 503, 504 (Provider Down / Overloaded), 408 (Timeout)
       const isRetryable = [429, 500, 502, 503, 504, 408].includes(response.status) ||
-                          message.toLowerCase().includes('rate limit') ||
-                          message.toLowerCase().includes('overloaded') ||
-                          message.toLowerCase().includes('concurrency') ||
-                          message.toLowerCase().includes('temporarily unavailable');
+                          lower.includes('rate limit') ||
+                          lower.includes('overloaded') ||
+                          lower.includes('concurrency') ||
+                          lower.includes('temporarily unavailable');
 
       if (isRetryable) {
-        console.warn(`⚡ [Auto-Rotation Triggered]: Model "${model}" returned ${response.status} (${message}). Rotating to next available engine in pool...`);
+        console.warn(`⚡ [Auto-Rotation Triggered]: Model "${model}" returned ${response.status} (${rawMessage}). Rotating to next available engine in pool...`);
         
-        // Jittered backoff if rate limited
-        if (response.status === 429) {
-          await this.sleep(350);
-        }
+        // Fast 100ms jittered backoff
+        await this.sleep(100);
 
         return this.rotateToNextCandidate({
           messages,
@@ -135,14 +155,15 @@ class OpenRouterService {
           temperature,
           stream,
           tools,
+          apiKey: activeKey,
           referer,
           attemptedModels,
-          errorMessage: message,
+          errorMessage: rawMessage,
           status: response.status
         });
       }
 
-      const err = new Error(message);
+      const err = new Error(rawMessage);
       err.status = response.status;
       throw err;
     }
@@ -159,6 +180,7 @@ class OpenRouterService {
     temperature,
     stream,
     tools,
+    apiKey,
     referer,
     attemptedModels,
     errorMessage,
@@ -175,6 +197,7 @@ class OpenRouterService {
         temperature,
         stream,
         tools,
+        apiKey,
         referer,
         attemptedModels
       });
@@ -182,7 +205,11 @@ class OpenRouterService {
 
     // All models in pool exhausted
     console.error(`❌ [Auto-Rotation Exhausted]: All ${attemptedModels.size} free models in the pool were rate-limited or congested.`);
-    const exhaustedErr = new Error('The reasoning engines are experiencing high demand right now. Please try again in a few moments.');
+    const exhaustedErr = new Error(
+      errorMessage && (errorMessage.includes('free-models-per-day') || errorMessage.includes('credits'))
+        ? 'Daily free reasoning quota reached (50 requests/day). It resets at midnight UTC. You can also configure a custom OpenRouter key in Settings.'
+        : 'The reasoning engines are experiencing high demand right now. Please try again in a few moments.'
+    );
     exhaustedErr.status = status;
     throw exhaustedErr;
   }

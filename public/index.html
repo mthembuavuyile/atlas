@@ -635,6 +635,16 @@
 
       <div class="modal-body">
         <div class="settings-section">
+          <label class="settings-label" for="customApiKeyInput">Custom OpenRouter API Key (Optional)</label>
+          <p style="margin: 4px 0 10px 0; font-size: 0.82rem; color: var(--text-tertiary);">Supply your personal OpenRouter key for uninterrupted access with private quota. Stored securely in local browser storage.</p>
+          <div class="settings-flex-row" style="gap: 8px; align-items: center;">
+            <input type="password" id="customApiKeyInput" class="system-prompt-editor" style="height: 38px; padding: 6px 12px; font-family: monospace; font-size: 0.85rem; flex: 1;" placeholder="sk-or-v1-..." autocomplete="off">
+            <button id="saveApiKeyBtn" class="primary-modal-btn" style="white-space: nowrap; padding: 0 16px; height: 38px;">Save Key</button>
+          </div>
+          <div id="apiKeyStatusHint" style="display: none; font-size: 0.8rem; color: var(--text-secondary); margin-top: 6px;">Key active in local session.</div>
+        </div>
+
+        <div class="settings-section">
           <label class="settings-label">Data Management</label>
           <div class="settings-flex-row" style="margin-top: 10px;">
             <p style="margin: 0; font-size: 0.85rem; color: var(--text-tertiary);">Clear all stored investigations and local preferences. This action cannot be undone.</p>

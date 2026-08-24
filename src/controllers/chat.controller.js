@@ -44,8 +44,13 @@ class ChatController {
       temperature = 0.7,
       webSearch = false,
       mode = null,
-      systemPrompt: customSystemPrompt = null
+      systemPrompt: customSystemPrompt = null,
+      apiKey = null
     } = req.body;
+
+    const customApiKey = req.headers['x-openrouter-key'] ||
+                         (req.headers['authorization']?.startsWith('Bearer ') ? req.headers['authorization'].slice(7) : null) ||
+                         apiKey || null;
 
     try {
       // Filter out any raw client system messages and extract custom instructions
@@ -103,14 +108,19 @@ class ChatController {
         temperature,
         stream,
         tools: ATLAS_TOOLS,
+        apiKey: customApiKey,
         referer: env.APP_URL
       });
 
       if (stream) {
-        res.setHeader('Content-Type', 'text/event-stream');
-        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+        res.setHeader('Cache-Control', 'no-cache, no-transform');
         res.setHeader('Connection', 'keep-alive');
+        res.setHeader('X-Accel-Buffering', 'no');
         res.setHeader('Access-Control-Allow-Origin', '*');
+        if (typeof res.flushHeaders === 'function') {
+          res.flushHeaders();
+        }
 
         const reader = openRouterResponse.body.getReader();
         const decoder = new TextDecoder('utf-8');
@@ -228,6 +238,7 @@ class ChatController {
               model,
               temperature,
               stream: true,
+              apiKey: customApiKey,
               referer: env.APP_URL
             });
 
@@ -260,7 +271,10 @@ class ChatController {
   }
 
   async generateTitle(req, res) {
-    const { message, model = env.DEFAULT_MODEL } = req.body;
+    const { message, model = env.DEFAULT_MODEL, apiKey = null } = req.body;
+    const customApiKey = req.headers['x-openrouter-key'] ||
+                         (req.headers['authorization']?.startsWith('Bearer ') ? req.headers['authorization'].slice(7) : null) ||
+                         apiKey || null;
 
     if (!message) {
       return res.status(400).json({ error: 'Message content is required to generate a title.' });
@@ -283,6 +297,7 @@ class ChatController {
         model,
         temperature: 0.3,
         stream: false,
+        apiKey: customApiKey,
         referer: env.APP_URL
       });
 
