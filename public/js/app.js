@@ -1298,8 +1298,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const prompt = messageInput.value.trim();
     if (!prompt || state.isGenerating) return;
 
+    if (prompt.toLowerCase().trim() === '/settings') {
+      messageInput.value = '';
+      if (typeof autoResizeTextarea === 'function') autoResizeTextarea();
+      if (typeof openUnifiedSettings === 'function') openUnifiedSettings();
+      return;
+    }
+
     messageInput.value = '';
-    autoResizeTextarea();
+    if (typeof autoResizeTextarea === 'function') autoResizeTextarea();
 
     let session = getActiveSession();
     if (!session) {
@@ -1365,9 +1372,9 @@ document.addEventListener('DOMContentLoaded', () => {
       } else if (command === 'weather') {
         toolToCall = 'get_weather';
         argsPayload = { city: arg || 'London' };
-      } else if (command === 'space' || command === 'spacenews') {
+      } else if (command === 'space' || command === 'spacenews' || command === 'news') {
         toolToCall = 'get_space_news';
-        argsPayload = { topic: arg || 'astronomy' };
+        argsPayload = { topic: arg || 'technology' };
       } else if (command === 'bible' || command === 'verse') {
         toolToCall = 'get_bible_verse';
         argsPayload = { reference: arg || 'John 3:16' };
@@ -1376,6 +1383,19 @@ document.addEventListener('DOMContentLoaded', () => {
         argsPayload = {};
       } else if (command === 'advice') {
         toolToCall = 'give_advice';
+        argsPayload = {};
+      } else if (command === 'currency') {
+        const parts = arg.split(' ').map(p => p.trim()).filter(Boolean);
+        toolToCall = 'convert_currency';
+        argsPayload = { amount: parseFloat(parts[0]) || 1, from: parts[1] || 'USD', to: (parts[2] || parts[3]) || 'EUR' };
+      } else if (command === 'math') {
+        toolToCall = 'solve_math';
+        argsPayload = { expression: arg || '2+2', operation: 'simplify' };
+      } else if (command === 'image') {
+        toolToCall = 'search_images';
+        argsPayload = { query: arg || 'beautiful landscape' };
+      } else if (command === 'ocr') {
+        toolToCall = 'scan_ocr';
         argsPayload = {};
       }
       
@@ -2057,8 +2077,42 @@ document.addEventListener('DOMContentLoaded', () => {
       if (offlineBanner) offlineBanner.style.display = 'none';
     });
 
-    messageInput?.addEventListener('input', autoResizeTextarea);
+    messageInput?.addEventListener('input', (e) => {
+      if (typeof autoResizeTextarea === 'function') autoResizeTextarea(e);
+      handleSlashCommandInput(e);
+    });
+    
+    let slashSelectedIndex = 0;
+    
     messageInput?.addEventListener('keydown', (e) => {
+      const popup = document.getElementById('slashCommandsPopup');
+      const isPopupVisible = popup && popup.style.display === 'flex';
+      
+      if (isPopupVisible) {
+        const items = popup.querySelectorAll('.slash-command-item');
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          slashSelectedIndex = (slashSelectedIndex + 1) % items.length;
+          updateSlashCommandSelection(items);
+          return;
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          slashSelectedIndex = (slashSelectedIndex - 1 + items.length) % items.length;
+          updateSlashCommandSelection(items);
+          return;
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          if (items[slashSelectedIndex]) {
+            items[slashSelectedIndex].click();
+          }
+          return;
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          popup.style.display = 'none';
+          return;
+        }
+      }
+      
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         if (!state.isGenerating && messageInput.value.trim().length > 0) {
@@ -2070,6 +2124,71 @@ document.addEventListener('DOMContentLoaded', () => {
         createNewSession();
       }
     });
+    
+    function updateSlashCommandSelection(items) {
+      items.forEach((item, index) => {
+        if (index === slashSelectedIndex) {
+          item.classList.add('selected');
+          item.scrollIntoView({ block: 'nearest' });
+        } else {
+          item.classList.remove('selected');
+        }
+      });
+    }
+
+    const availableSlashCommands = [
+      { cmd: '/web', desc: 'Search the web for current information', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>' },
+      { cmd: '/image', desc: 'Generate an image using AI', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>' },
+      { cmd: '/analyze', desc: 'Deep analysis of uploaded files', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>' },
+      { cmd: '/code', desc: 'Generate advanced codebase', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>' },
+      { cmd: '/reddit', desc: 'Search Reddit discussions', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>' },
+      { cmd: '/crypto', desc: 'Check live crypto prices', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 6v2"/><path d="M12 16v2"/></svg>' },
+      { cmd: '/weather', desc: 'Get local weather forecasts', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>' },
+      { cmd: '/news', desc: 'Get latest news updates', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/></svg>' },
+      { cmd: '/settings', desc: 'Open unified settings', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>' }
+    ];
+
+    function handleSlashCommandInput(e) {
+      const val = messageInput.value;
+      const popup = document.getElementById('slashCommandsPopup');
+      if (!popup) return;
+      
+      if (val.startsWith('/')) {
+        const query = val.toLowerCase();
+        const filtered = availableSlashCommands.filter(c => c.cmd.startsWith(query));
+        
+        if (filtered.length > 0) {
+          popup.innerHTML = '';
+          filtered.forEach((cmd, idx) => {
+            const item = document.createElement('div');
+            item.className = 'slash-command-item' + (idx === 0 ? ' selected' : '');
+            item.innerHTML = `
+              <div class="slash-command-icon">${cmd.icon}</div>
+              <div class="slash-command-info">
+                <span class="slash-command-name">${cmd.cmd}</span>
+                <span class="slash-command-desc">${cmd.desc}</span>
+              </div>
+            `;
+            item.addEventListener('click', () => {
+              messageInput.value = cmd.cmd + ' ';
+              messageInput.focus();
+              popup.style.display = 'none';
+            });
+            item.addEventListener('mouseenter', () => {
+              slashSelectedIndex = idx;
+              updateSlashCommandSelection(popup.querySelectorAll('.slash-command-item'));
+            });
+            popup.appendChild(item);
+          });
+          slashSelectedIndex = 0;
+          popup.style.display = 'flex';
+        } else {
+          popup.style.display = 'none';
+        }
+      } else {
+        popup.style.display = 'none';
+      }
+    }
   }
 
   function closeMobileSidebar() {

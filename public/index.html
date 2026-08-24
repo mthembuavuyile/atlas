@@ -371,7 +371,10 @@
       <!-- INTEGRATED PROFESSIONAL COMPOSER (Zero AI Slop, No Floating Pill with Dot) -->
       <div class="composer-outer-wrapper">
         <form class="composer-form" id="chatForm">
-          <div class="composer-box" id="composerBox">
+          <div class="composer-box" id="composerBox" style="position: relative;">
+            <!-- Slash Commands Popup -->
+            <div id="slashCommandsPopup" class="slash-commands-popup" style="display: none;"></div>
+
             <!-- Textarea Area -->
             <textarea 
               id="messageInput" 
