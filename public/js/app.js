@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
       id: 'research',
       name: 'Research',
       desc: 'Literature synthesis, evidence evaluation, hypothesis formation, research maps',
+      actionHint: 'what literature or evidence shall we explore?',
       suggestions: [
         { label: 'Superconductivity Landscape', prompt: 'Synthesize the current approaches, contested claims, and experimental gaps in room-temperature superconductivity.' },
         { label: 'Contradicting Hypothesis', prompt: 'Why does this experimental result contradict the standard thermodynamic hypothesis? Identify confounding variables and competing explanations.' },
@@ -34,6 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
       id: 'solve',
       name: 'Solve',
       desc: 'Step-by-step derivation, calculation, verification, alternative solutions',
+      actionHint: 'what equations or derivations shall we solve?',
       suggestions: [
         { label: 'Schrödinger PDE Solution', prompt: 'Derive and solve the time-independent Schrödinger equation for a finite square well potential. Verify boundary conditions.' },
         { label: 'Navier-Stokes Derivation', prompt: 'Derive the Navier-Stokes equations from the Reynolds Transport Theorem and conservation of momentum.' },
@@ -42,8 +44,9 @@ document.addEventListener('DOMContentLoaded', () => {
     },
     build: {
       id: 'build',
-      desc: 'Architecture reasoning, code generation, debugging, testing, systems engineering',
       name: 'Build',
+      desc: 'Architecture reasoning, code generation, debugging, testing, systems engineering',
+      actionHint: 'what system or architecture shall we build?',
       suggestions: [
         { label: 'Sandboxed Python Runner', prompt: 'Design and write a high-throughput, secure Python code execution engine with memory cgroups and timeout guards.' },
         { label: 'Raft Consensus Node', prompt: 'Implement a complete Raft consensus state machine in TypeScript with leader election, log replication, and RPC handling.' },
@@ -54,6 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
       id: 'engineer',
       name: 'Engineer',
       desc: 'Systems constraints, scalability analysis, failure modes, cost analysis',
+      actionHint: 'what constraints or scalability shall we analyze?',
       suggestions: [
         { label: '10M Req/Min Architecture', prompt: 'Deconstruct the requirements, database partitioning, edge caching, and failure modes for a 10M requests/min system.' },
         { label: 'Multi-Region Active-Active', prompt: 'Design an active-active multi-region distributed system with CRDT conflict resolution and latency SLAs under 50ms.' },
@@ -64,6 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
       id: 'experiment',
       name: 'Experiment',
       desc: 'Data analysis, model fitting, hypothesis testing, visualization',
+      actionHint: 'what dataset or simulation shall we run?',
       suggestions: [
         { label: 'Dataset Anomaly Inspection', prompt: 'Analyse this dataset for non-linear correlations, statistical anomalies, and distribution shifts. Form hypotheses.' },
         { label: 'Monte Carlo Power Test', prompt: 'Run a Monte Carlo simulation to estimate sample size and statistical power for a multivariate randomized experiment.' },
@@ -74,6 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
       id: 'reason',
       name: 'Reason',
       desc: 'Multi-step logical decomposition, assumption identification, proof strategy',
+      actionHint: 'what logical breakdown shall we deconstruct?',
       suggestions: [
         { label: 'Formal Proof Strategy', prompt: 'Prove that no general algorithm can decide whether two context-free grammars generate the same language.' },
         { label: 'First-Principles Deconstruction', prompt: 'Deconstruct the computational and thermodynamic minimum energy required to erase one bit of information (Landauer Principle).' },
@@ -84,6 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
       id: 'discover',
       name: 'Discover',
       desc: 'Explore relationships, find anomalies, generate hypotheses',
+      actionHint: 'what cross-domain hypothesis shall we formulate?',
       suggestions: [
         { label: 'Cross-Domain Synthesis', prompt: 'Explore potential relationships between topological quantum field theory and error-correcting codes in neural networks.' },
         { label: 'Unexplained Patterns', prompt: 'What are the most compelling unexplained observations in recent high-energy astrophysics that challenge standard models?' },
@@ -384,6 +391,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (activeModeDesc) activeModeDesc.textContent = mode.desc;
     if (activePromptLabel) activePromptLabel.textContent = mode.name;
 
+    updateDynamicGreeting(mode.id);
+
     if (suggestionPillsContainer && mode.suggestions) {
       suggestionPillsContainer.innerHTML = '';
       mode.suggestions.forEach(item => {
@@ -401,15 +410,53 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // --- DYNAMIC GREETING ---
-  function updateDynamicGreeting() {
+  // --- DYNAMIC GREETING ENGINE ---
+  function updateDynamicGreeting(modeId) {
     if (!dynamicTimeGreeting) return;
     const hour = new Date().getHours();
-    let greeting = 'Good evening';
-    if (hour >= 5 && hour < 12) greeting = 'Good morning';
-    else if (hour >= 12 && hour < 17) greeting = 'Good afternoon';
-    else if (hour >= 22 || hour < 5) greeting = 'Good night';
-    dynamicTimeGreeting.textContent = `${greeting} — Scientific Reasoning`;
+    let salutation = 'Good evening';
+    let isLateNight = false;
+
+    if (hour >= 5 && hour < 12) {
+      salutation = 'Good morning';
+    } else if (hour >= 12 && hour < 17) {
+      salutation = 'Good afternoon';
+    } else if (hour >= 17 && hour < 22) {
+      salutation = 'Good evening';
+    } else {
+      salutation = 'Working late?';
+      isLateNight = true;
+    }
+
+    dynamicTimeGreeting.textContent = salutation;
+
+    const punctElem = document.getElementById('greetingPunct');
+    if (punctElem) {
+      punctElem.textContent = isLateNight ? '' : ',';
+    }
+
+    const actionElem = document.getElementById('dynamicGreetingAction');
+    if (actionElem) {
+      const targetModeId = modeId || state.activeMode;
+      const mode = (targetModeId && INVESTIGATION_MODES[targetModeId]) ? INVESTIGATION_MODES[targetModeId] : null;
+      if (mode && mode.actionHint) {
+        actionElem.textContent = isLateNight
+          ? `Let's investigate: ${mode.actionHint}`
+          : mode.actionHint;
+      } else {
+        if (isLateNight) {
+          actionElem.textContent = "Let's dive deep into the problem.";
+        } else if (hour >= 5 && hour < 9) {
+          actionElem.textContent = "where shall we begin today's research?";
+        } else if (hour >= 9 && hour < 12) {
+          actionElem.textContent = 'what are we investigating today?';
+        } else if (hour >= 12 && hour < 17) {
+          actionElem.textContent = 'what challenge shall we tackle?';
+        } else {
+          actionElem.textContent = 'synthesizing research or starting new inquiries?';
+        }
+      }
+    }
   }
 
   // --- BACKEND HEALTH & MODELS ---
@@ -600,6 +647,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (welcomeScreen) {
         messagesContainer.appendChild(welcomeScreen);
         welcomeScreen.style.display = 'flex';
+        updateDynamicGreeting(state.activeMode);
       }
       return;
     }
