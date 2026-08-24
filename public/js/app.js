@@ -1688,7 +1688,26 @@ document.addEventListener('DOMContentLoaded', () => {
       localStorage.setItem('omni_sys_prompt', state.systemPrompt);
       localStorage.setItem('omni_preset', state.activePreset);
       localStorage.setItem('omni_temp', state.temperature.toString());
-      closeSettingsModal();
+      updateActivePromptLabel();
+
+      const originalText = saveSettingsBtn.textContent;
+      saveSettingsBtn.textContent = 'Applied';
+      setTimeout(() => {
+        saveSettingsBtn.textContent = originalText;
+        closeUnifiedSettings();
+      }, 200);
+    });
+
+    unifiedSettingsModal?.addEventListener('click', (e) => {
+      if (e.target === unifiedSettingsModal) {
+        closeUnifiedSettings();
+      }
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && unifiedSettingsModal?.classList.contains('show')) {
+        closeUnifiedSettings();
+      }
     });
 
     document.addEventListener('click', (e) => {
@@ -1736,6 +1755,19 @@ document.addEventListener('DOMContentLoaded', () => {
     sidebarBackdrop.classList.remove('active');
   }
 
+  function updateActivePromptLabel() {
+    if (!activePromptLabel) return;
+    const presetNames = {
+      scientist: 'Scientist',
+      mathematician: 'Math',
+      engineer: 'Engineer',
+      builder: 'Builder',
+      reasoner: 'Reasoner',
+      concise: 'Concise'
+    };
+    activePromptLabel.textContent = presetNames[state.activePreset] || 'Personalization';
+  }
+
   function syncWebSearchUI() {
     if (!webSearchToggleBtn) return;
     webSearchToggleBtn.classList.toggle('active-web', state.isWebSearch);
@@ -1773,6 +1805,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function loadSavedSettings() {
     syncWebSearchUI();
+    updateActivePromptLabel();
     if (deepThinkToggleBtn) {
       deepThinkToggleBtn.classList.toggle('active-web', state.isDeepReasoning);
     }
