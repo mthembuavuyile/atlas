@@ -41,20 +41,21 @@ const COMPANY = {
     security: 'Vulnerability hardening, cloud security, and POPIA (Protection of Personal Information Act) compliance.',
   },
   products: {
-    vylexNexys: {
-      name: 'Vylex Nexys / VyLab',
-      website: 'https://vylexnexys.co.za',
-      description: 'An EdTech and STEM utility workstation featuring browser-based virtual science laboratories, STEM equation solvers, and AI-assisted learning tools targeted at South African students.',
+    vylexLabs: {
+      name: 'Vylex Labs',
+      website: 'https://vylex.co.za/labs',
+      description: 'The AI & Emerging Technology division of Vylex.',
     },
     atlas: {
       name: 'Atlas',
+      website: 'https://atlas.vylex.co.za',
       description: 'An AI reasoning and execution environment for science, mathematics, engineering, and technology. Atlas investigates problems through structured reasoning, computational tools, and multi-model intelligence — then executes actions with user approval.',
     },
   },
   domains: {
     'vylex.co.za': 'Official corporate portal for Vylex (Pty) Ltd; outlines B2B service packages, case studies, product lab initiatives, and company governance.',
     'avuyilemthembu.co.za': 'Personal engineering portfolio, technical blog, and software showcase for Avuyile Mthembu.',
-    'vylexnexys.co.za': 'Dedicated platform for Vylex Nexys STEM education and virtual laboratory solutions.',
+    'atlas.vylex.co.za': 'Dedicated platform for Atlas.',
   },
 };
 
