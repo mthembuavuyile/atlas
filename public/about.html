@@ -24,9 +24,12 @@
     content="An advanced, resilient orchestration proxy for OpenRouter. Provides zero-cost high availability, domain-specific cognitive prompt injections, and live tool execution. Built by Vylex Labs.">
   <meta property="twitter:image" content="https://atlas.vylex.co.za/atlas-og-image.jpg">
 
-  <meta name="author" content="Vylex Labs">
+  <meta name="author" content="Vylex Technologies">
 
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Google Fonts: DM Sans, Plus Jakarta Sans, JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/about.css">
 </head>
 
@@ -37,12 +40,19 @@
       <a href="/" class="logo">
         <span class="logo-symbol"
           style="background: transparent; width: auto; height: auto; display: flex; align-items: center;">
-          <svg width="24" height="24" viewBox="0 0 100 100">
-            <path fill="currentColor" d="M20 10 L50 70 L80 10 L100 10 L50 100 L0 10 Z" />
-            <rect fill="currentColor" x="42" y="10" width="16" height="30" />
+          <svg width="24" height="24" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="vylex-orange-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#FBA919" />
+                <stop offset="100%" stop-color="#D97706" />
+              </linearGradient>
+            </defs>
+            <path d="M 50 10 L 82 82 L 64 82 L 50 48 L 36 82 L 18 82 Z" fill="url(#vylex-orange-gradient)" />
+            <rect x="45" y="56" width="10" height="26" rx="2" fill="url(#vylex-orange-gradient)" />
+            <ellipse cx="50" cy="50" rx="46" ry="12" stroke="url(#vylex-orange-gradient)" stroke-width="3.5" fill="none" transform="rotate(-18 50 50)" />
           </svg>
         </span>
-        Atlas
+        Atlas <span class="logo-sub">by Vylex</span>
       </a>
       <nav class="nav-links">
         <a href="#features">Features</a>
@@ -63,6 +73,19 @@
 
   <main>
     <section class="hero container">
+      <div class="hero-logo-container">
+        <svg width="96" height="96" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" class="hero-logo-svg">
+          <defs>
+            <linearGradient id="hero-vylex-orange-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#FBA919" />
+              <stop offset="100%" stop-color="#D97706" />
+            </linearGradient>
+          </defs>
+          <path d="M 50 10 L 82 82 L 64 82 L 50 48 L 36 82 L 18 82 Z" fill="url(#hero-vylex-orange-gradient)" />
+          <rect x="45" y="56" width="10" height="26" rx="2" fill="url(#hero-vylex-orange-gradient)" />
+          <ellipse cx="50" cy="50" rx="46" ry="12" stroke="url(#hero-vylex-orange-gradient)" stroke-width="3.5" fill="none" transform="rotate(-18 50 50)" />
+        </svg>
+      </div>
       <h1>An Advanced LLM<br>Orchestration Proxy.</h1>
       <p>Atlas is built by Vylex Labs, the AI & Emerging Technology division of Vylex. Far more than a chat UI, it is a
         highly advanced orchestration proxy for OpenRouter that provides zero-cost high availability, domain-specific
