@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Atlas | Developer Workspace</title>
+  <meta name="description" content="A focused, locally hostable interface for working with language models via OpenRouter. Built by Vylex Technologies.">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/about.css">
+</head>
+<body>
+
+  <header>
+    <div class="container header-content">
+      <a href="/" class="logo">
+        <span class="logo-symbol" style="background: transparent; width: auto; height: auto; display: flex; align-items: center;">
+          <svg width="24" height="24" viewBox="0 0 100 100">
+            <path fill="currentColor" d="M20 10 L50 70 L80 10 L100 10 L50 100 L0 10 Z"/>
+            <rect fill="currentColor" x="42" y="10" width="16" height="30"/>
+          </svg>
+        </span>
+        Atlas
+      </a>
+      <nav class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#use-case">Use Case</a>
+        <a href="https://github.com" target="_blank" rel="noopener">GitHub</a>
+        <a href="/" class="btn-primary">Launch App</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero container">
+      <h1>A cleaner workspace<br>for language models.</h1>
+      <p>Atlas by Vylex under the Vylex Nexys AI education / research arm. It provides a focused, locally hostable interface connecting to OpenRouter, built for developers who need streaming responses, artifact rendering, and a distraction-free environment.</p>
+      
+      <div class="hero-actions">
+        <a href="/" class="btn-primary">Open Workspace</a>
+        <a href="#features" class="btn-secondary">Explore Features</a>
+      </div>
+
+      <div class="dashboard-preview">
+        <div class="window-dots">
+          <div class="window-dot"></div>
+          <div class="window-dot"></div>
+          <div class="window-dot"></div>
+        </div>
+        <div class="dashboard-inner">
+          <div class="preview-sidebar">
+            <div class="preview-item"></div>
+            <div class="preview-item"></div>
+            <div class="preview-item"></div>
+            <div class="preview-item"></div>
+          </div>
+          <div class="preview-main">
+            <div class="preview-message user">
+              <div class="preview-line medium"></div>
+            </div>
+            <div class="preview-message assistant">
+              <div class="preview-line"></div>
+              <div class="preview-line medium"></div>
+              <div class="preview-line"></div>
+              <div class="preview-line short"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="features" class="features container">
+      <h2 class="section-title">Core Capabilities</h2>
+      <div class="features-grid">
+        
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+          </div>
+          <h3>Model Agnostic</h3>
+          <p>Switch seamlessly between models provided by OpenRouter without altering your workflow or adapting to different UIs.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+          </div>
+          <h3>Real-Time Streaming</h3>
+          <p>Experience immediate feedback with token-by-token response rendering, ensuring you are never waiting in the dark.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
+          </div>
+          <h3>Artifacts Canvas</h3>
+          <p>A dedicated split-screen view for reading generated code, complete with syntax highlighting and live HTML previewing.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          </div>
+          <h3>Reasoning Display</h3>
+          <p>For models that provide internal reasoning structures, Atlas renders collapsible sections to keep the output clean while preserving context.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+          </div>
+          <h3>Local Privacy</h3>
+          <p>Host the interface on your own machine. Your API keys remain server-side and never reach the client browser.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+          </div>
+          <h3>Themes & Presets</h3>
+          <p>Tailor the environment with functional dark themes and pre-configured system personas for specialized development tasks.</p>
+        </div>
+
+      </div>
+    </section>
+
+    <section id="use-case" class="use-case">
+      <div class="container use-case-content">
+        <div class="use-case-text">
+          <h2>Built for technical workflows.</h2>
+          <p>Atlas is designed specifically for software engineers, architects, and technical professionals who rely on large language models for daily tasks.</p>
+          <p>Rather than dealing with bloated web interfaces, you get a clean, functional workspace that puts your code and context first.</p>
+          <ul class="use-case-list">
+            <li>Debugging and refactoring complex codebases</li>
+            <li>Generating and previewing web interfaces</li>
+            <li>Translating architectural requirements into implementations</li>
+            <li>Analyzing logs and formulating queries</li>
+          </ul>
+        </div>
+        <div class="use-case-image">
+          <div class="code-mockup">
+            <div class="code-mockup-line"><span class="code-comment">// Setup local environment</span></div>
+            <div class="code-mockup-line"><span class="code-keyword">const</span> <span class="code-function">initWorkspace</span> = () =&gt; {</div>
+            <div class="code-mockup-line">  &nbsp;&nbsp;<span class="code-keyword">const</span> config = <span class="code-keyword">new</span> <span class="code-function">Config</span>();</div>
+            <div class="code-mockup-line">  &nbsp;&nbsp;config.<span class="code-function">load</span>(<span class="code-string">'.env'</span>);</div>
+            <div class="code-mockup-line">  &nbsp;&nbsp;</div>
+            <div class="code-mockup-line">  &nbsp;&nbsp;<span class="code-keyword">return</span> <span class="code-function">connectOpenRouter</span>({</div>
+            <div class="code-mockup-line">  &nbsp;&nbsp;&nbsp;&nbsp;streaming: <span class="code-keyword">true</span>,</div>
+            <div class="code-mockup-line">  &nbsp;&nbsp;&nbsp;&nbsp;models: config.<span class="code-function">getModels</span>()</div>
+            <div class="code-mockup-line">  &nbsp;&nbsp;});</div>
+            <div class="code-mockup-line">};</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta container">
+      <h2>Ready to upgrade your workspace?</h2>
+      <p>Clone the repository, drop in your API key, and start interacting with your preferred models immediately.</p>
+      <a href="/" class="btn-primary">Start Using Atlas</a>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>Atlas by <a href="https://vylex.co.za" target="_blank" rel="noopener">Vylex</a> under the Vylex Nexys AI education / research arm.</p>
+      <p style="margin-top: 0.5rem; font-size: 0.8rem; opacity: 0.7;">&copy; 2026 Vylex Technologies. Licensed under MIT.</p>
+    </div>
+  </footer>
+
+</body>
+</html>
