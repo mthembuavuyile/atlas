@@ -929,6 +929,17 @@ a:hover {
   max-width: 440px;
 }
 
+.mode-selector-heading {
+  width: 100%;
+  margin-bottom: 4px;
+  color: var(--text-muted);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-align: left;
+}
+
 /* 7 Investigation Modes Selector Grid — Mobile Horizontal Scroll */
 .mode-selector-grid {
   display: flex;
@@ -1138,6 +1149,48 @@ a:hover {
   background: var(--message-user-bg);
   border: 1px solid var(--message-user-border);
   color: var(--text-main);
+}
+
+.message-attachments {
+  margin-bottom: 5px;
+  padding: 7px 9px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.025);
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+}
+
+.message-attachments-heading {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.message-attachments-icon {
+  display: inline-flex;
+  color: var(--accent-primary);
+}
+
+.message-attachments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+  padding-left: 18px;
+}
+
+.message-attachment-name,
+.message-attachment-more {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.message-attachment-more {
+  color: var(--text-muted);
 }
 
 .message-row.assistant .message-bubble {
@@ -1423,6 +1476,12 @@ a:hover {
   color: var(--text-muted);
 }
 
+.code-block-actions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
 .copy-code-btn {
   background: transparent;
   border: 1px solid var(--border-subtle);
@@ -1431,6 +1490,26 @@ a:hover {
   font-size: 0.65rem;
   color: var(--text-secondary);
   cursor: pointer;
+}
+
+.open-canvas-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 22px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: 3px;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.copy-code-btn:hover,
+.open-canvas-btn:hover {
+  color: var(--accent-primary);
+  border-color: var(--border-active);
 }
 
 pre {
@@ -1636,6 +1715,57 @@ code {
 
 .composer-box:focus-within {
   border-color: var(--border-active);
+}
+
+.project-context-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 12px 8px;
+  padding: 6px 8px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+}
+
+.project-context-bar[hidden] {
+  display: none;
+}
+
+.project-context-summary {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.project-context-icon {
+  color: var(--accent-primary);
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.project-context-clear {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  padding: 3px 6px;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.68rem;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.project-context-clear:hover {
+  color: var(--text-main);
 }
 
 .composer-textarea {
@@ -2365,7 +2495,7 @@ code {
 
 @media (min-width: 1024px) {
   .mode-selector-grid {
-    grid-template-columns: repeat(7, 1fr);
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 

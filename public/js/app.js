@@ -313,6 +313,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const webSearchToggleBtn = document.getElementById('webSearchToggleBtn');
   const webSearchLabel = document.getElementById('webSearchLabel');
   const attachFileMockBtn = document.getElementById('attachFileMockBtn');
+  const projectContextBar = document.getElementById('projectContextBar');
+  const projectContextLabel = document.getElementById('projectContextLabel');
+  const clearProjectContextBtn = document.getElementById('clearProjectContextBtn');
 
   // Canvas Panel
   const artifactsCanvasPanel = document.getElementById('artifactsCanvasPanel');
@@ -404,7 +407,8 @@ document.addEventListener('DOMContentLoaded', () => {
     activeArtifact: null,
     lastUserPrompt: '',
     isReadingResponse: false,
-    activeSpeechButton: null
+    activeSpeechButton: null,
+    projectFiles: []
   };
 
   // Configure marked with rich typography extensions
@@ -848,7 +852,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     session.messages.forEach(msg => {
-      renderMessageItem(msg.role, msg.content, msg.reasoning, false, msg.widgets || []);
+      renderMessageItem(msg.role, msg.content, msg.reasoning, false, msg.widgets || [], msg.attachments || []);
     });
 
     scrollToBottom(true);
@@ -900,7 +904,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
-  function renderMessageItem(role, content = '', reasoning = '', shouldScroll = true, widgets = []) {
+  function renderMessageItem(role, content = '', reasoning = '', shouldScroll = true, widgets = [], attachments = []) {
     if (welcomeScreen && welcomeScreen.parentNode) {
       welcomeScreen.style.display = 'none';
     }
@@ -967,6 +971,34 @@ document.addEventListener('DOMContentLoaded', () => {
     enhanceCodeBlocks(bubble);
     renderMathSafely(bubble);
     wrapper.appendChild(bubble);
+
+    if (role === 'user' && Array.isArray(attachments) && attachments.length > 0) {
+      const attachmentBlock = document.createElement('div');
+      attachmentBlock.className = 'message-attachments';
+      attachmentBlock.innerHTML = `
+        <div class="message-attachments-heading">
+          <span class="message-attachments-icon" aria-hidden="true">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.5A2.5 2.5 0 0 1 6.5 5h3l2 2h6A2.5 2.5 0 0 1 20 9.5v7A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5z"></path></svg>
+          </span>
+          <span>${attachments.length} attached file${attachments.length === 1 ? '' : 's'}</span>
+        </div>
+        <div class="message-attachments-list"></div>
+      `;
+      const attachmentList = attachmentBlock.querySelector('.message-attachments-list');
+      attachments.slice(0, 5).forEach(attachment => {
+        const fileName = document.createElement('span');
+        fileName.className = 'message-attachment-name';
+        fileName.textContent = attachment.path || 'Attached file';
+        attachmentList.appendChild(fileName);
+      });
+      if (attachments.length > 5) {
+        const remaining = document.createElement('span');
+        remaining.className = 'message-attachment-more';
+        remaining.textContent = `+${attachments.length - 5} more`;
+        attachmentList.appendChild(remaining);
+      }
+      wrapper.insertBefore(attachmentBlock, bubble);
+    }
 
     if (role === 'assistant') {
       const actionsBar = document.createElement('div');
@@ -1301,7 +1333,10 @@ document.addEventListener('DOMContentLoaded', () => {
       header.className = 'code-block-header';
       header.innerHTML = `
         <span>${language.toUpperCase()}</span>
-        <button class="copy-code-btn" type="button">Copy</button>
+        <span class="code-block-actions">
+          <button class="copy-code-btn" type="button">Copy</button>
+          <button class="open-canvas-btn" type="button" title="Open in Canvas" aria-label="Open code in Canvas">${ICONS.canvas || 'Canvas'}</button>
+        </span>
       `;
 
       header.querySelector('.copy-code-btn')?.addEventListener('click', (e) => {
@@ -1309,6 +1344,10 @@ document.addEventListener('DOMContentLoaded', () => {
           e.target.textContent = 'Copied';
           setTimeout(() => { e.target.textContent = 'Copy'; }, 1500);
         });
+      });
+
+      header.querySelector('.open-canvas-btn')?.addEventListener('click', () => {
+        openCodeInCanvas(codeText, language);
       });
 
       pre.parentNode?.insertBefore(wrapper, pre);
@@ -1329,6 +1368,18 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
     });
+  }
+
+  function openCodeInCanvas(codeText, language) {
+    updateCanvasArtifact({
+      title: `Code (${language})`,
+      codeText,
+      language,
+      type: 'Code Snippet'
+    });
+    artifactsCanvasPanel?.classList.add('open');
+    toggleCanvasBtn?.classList.add('active');
+    switchCanvasTab(language === 'html' ? 'preview' : 'code');
   }
 
   function updateCanvasArtifact({ title, codeText, language, type }) {
@@ -1417,12 +1468,13 @@ document.addEventListener('DOMContentLoaded', () => {
       fetchSessionTitle(prompt, session.id);
     }
 
-    session.messages.push({ role: 'user', content: prompt });
+    const messageAttachments = state.projectFiles.map(file => ({ path: file.path }));
+    session.messages.push({ role: 'user', content: prompt, attachments: messageAttachments });
     session.updatedAt = new Date().toISOString();
     saveSessions();
     renderHistoryTree();
 
-    renderMessageItem('user', prompt, '', true);
+    renderMessageItem('user', prompt, '', true, [], messageAttachments);
     updateSessionMetrics();
 
     // Prepare assistant message bubble & status animator
@@ -1437,6 +1489,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const payloadMessages = session.messages
       .filter(m => m && (m.role === 'user' || m.role === 'assistant'))
       .map(m => ({ role: m.role, content: m.content }));
+    const projectContext = buildProjectContext();
+    if (projectContext && payloadMessages.length > 0) {
+      payloadMessages[payloadMessages.length - 1].content += projectContext;
+    }
 
     let accumulatedContent = '';
     let accumulatedReasoning = '';
@@ -2031,19 +2087,32 @@ document.addEventListener('DOMContentLoaded', () => {
     attachFileMockBtn?.addEventListener('click', () => {
       const fileInput = document.createElement('input');
       fileInput.type = 'file';
-      fileInput.accept = '.txt,.js,.json,.html,.css,.py,.md,.csv';
+      fileInput.accept = '.html,.css,.js,.json,.md,.txt,.py,.ts,.jsx,.tsx';
+      fileInput.multiple = true;
+      fileInput.webkitdirectory = true;
       fileInput.onchange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
+        const files = Array.from(e.target.files || []).filter(file => file.size <= 200000);
+        if (!files.length) return;
+
+        Promise.all(files.map(file => new Promise(resolve => {
           const reader = new FileReader();
-          reader.onload = (evt) => {
-            messageInput.value += `\n\n--- Attachment: ${file.name} ---\n${evt.target.result}\n--- End Attachment ---\n`;
-            autoResizeTextarea();
-          };
+          reader.onload = () => resolve({
+            path: file.webkitRelativePath || file.name,
+            content: String(reader.result || '')
+          });
+          reader.onerror = () => resolve(null);
           reader.readAsText(file);
-        }
+        }))).then(importedFiles => {
+          state.projectFiles = importedFiles.filter(Boolean).sort((a, b) => a.path.localeCompare(b.path));
+          syncProjectContextUI();
+        });
       };
       fileInput.click();
+    });
+
+    clearProjectContextBtn?.addEventListener('click', () => {
+      state.projectFiles = [];
+      syncProjectContextUI();
     });
 
     openSysPromptModalBtn?.addEventListener('click', () => openUnifiedSettings('studio-parameters'));
@@ -2398,6 +2467,29 @@ document.addEventListener('DOMContentLoaded', () => {
     if (profileMenuAvatar) profileMenuAvatar.textContent = initials;
     if (profileMenuName) profileMenuName.textContent = displayName;
     if (accountNameInput) accountNameInput.value = displayName;
+  }
+
+  function syncProjectContextUI() {
+    const fileCount = state.projectFiles.length;
+    if (projectContextBar) projectContextBar.hidden = fileCount === 0;
+    if (projectContextLabel) {
+      projectContextLabel.textContent = fileCount
+        ? `${fileCount} file${fileCount === 1 ? '' : 's'} attached for analysis`
+        : 'Attached files';
+    }
+  }
+
+  function buildProjectContext() {
+    if (!state.projectFiles.length) return '';
+    const maxContextCharacters = 120000;
+    let usedCharacters = 0;
+    const files = state.projectFiles.map(file => {
+      const section = `\n--- ${file.path} ---\n${file.content}\n--- End ${file.path} ---`;
+      if (usedCharacters + section.length > maxContextCharacters) return '';
+      usedCharacters += section.length;
+      return section;
+    }).join('');
+    return `\n\nPROJECT CONTEXT\nThe user supplied the website files below. Analyze the existing implementation before changing it. If a change is requested, respond with an approval-ready unified diff, list the affected files, and explain how to apply it. Do not invent files or claim that changes were applied. Files larger than the context limit are omitted; ask the user to import only the relevant files when needed.${files}`;
   }
 
   function populateVoiceOptions() {

@@ -311,9 +311,11 @@
               <span id="dynamicTimeGreeting">Good morning</span><span class="greeting-punct" id="greetingPunct">,</span> <span class="greeting-action" id="dynamicGreetingAction">what would you like to work on today?</span>
             </h1>
             <p class="welcome-subtitle" id="welcomeSubtitle">
-              Ask anything. Atlas adapts its reasoning to the work in front of you.
+              Ask a question, explore a topic, solve a problem, or build something. Atlas adapts to the work in front of you.
             </p>
           </div>
+
+          <div class="mode-selector-heading">Choose how you want to work</div>
 
           <!-- Optional response modes (Zero Emojis, Pure SVGs) -->
           <div class="mode-selector-grid" id="modeSelectorGrid">
@@ -420,6 +422,18 @@
               rows="1"
               autofocus
             ></textarea>
+            <div id="projectContextBar" class="project-context-bar" hidden>
+              <div class="project-context-summary">
+                <span class="project-context-icon" aria-hidden="true">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7.5A2.5 2.5 0 0 1 6.5 5h3l2 2h6A2.5 2.5 0 0 1 20 9.5v7A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5z"></path></svg>
+                </span>
+                <span id="projectContextLabel">Attached files</span>
+              </div>
+              <button type="button" id="clearProjectContextBtn" class="project-context-clear" title="Remove attached files" aria-label="Remove attached files">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="m19 6-1 14H6L5 6"></path><path d="M10 11v5"></path><path d="M14 11v5"></path></svg>
+                <span>Remove</span>
+              </button>
+            </div>
 
             <!-- Integrated Bottom Action Bar -->
             <div class="composer-bottom-bar">
@@ -440,7 +454,7 @@
                   <span id="webSearchLabel">Web Off</span>
                 </button>
 
-                <button type="button" class="composer-icon-btn" id="attachFileMockBtn" title="Attach file or dataset" aria-label="Attach File">
+                <button type="button" class="composer-icon-btn" id="attachFileMockBtn" title="Attach files for analysis" aria-label="Attach files for analysis">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
                   </svg>

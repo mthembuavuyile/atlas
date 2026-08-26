@@ -18,6 +18,7 @@ Built by [Vylex Technologies](https://vylex.co.za)
 - **Visual Themes**: Choose from three functional, low-distraction dark themes (Vylex, Obsidian, Carbon).
 - **System Presets**: Pre-configured system prompts tailored for coding, architecture, and deep technical analysis.
 - **File Attachments**: Drag and drop text or code files directly into your prompts.
+- **Project Context**: Import a website folder into the composer so Atlas can inspect relevant files and propose an approval-ready unified diff. Files are never overwritten automatically.
 - **Export Options**: Download conversation history in Markdown or JSON formats for documentation or sharing.
 - **Terminal CLI**: Included command-line interface for when you prefer working straight from the terminal.
 
