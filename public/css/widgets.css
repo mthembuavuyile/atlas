@@ -1127,3 +1127,45 @@
     opacity: 0.85;
     text-decoration: underline;
 }
+
+/* ─────────────────────────────────────────────────────────────
+   CRYPTO WIDGET & MULTI-ASSET
+   ───────────────────────────────────────────────────────────── */
+.atlas-crypto-price {
+    font-size: 1.6rem;
+    font-weight: 700;
+    font-family: var(--font-mono, monospace);
+    color: #34d399;
+    margin-bottom: 2px;
+}
+
+.crypto-multi-container {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 4px;
+}
+
+.crypto-multi-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+    border-radius: 4px;
+}
+
+.crypto-coin-symbol {
+    font-weight: 700;
+    font-size: 0.85rem;
+    font-family: var(--font-mono, monospace);
+    color: var(--accent-primary, #fba919);
+}
+
+.atlas-crypto-price-sm {
+    font-size: 1.1rem;
+    font-weight: 700;
+    font-family: var(--font-mono, monospace);
+    color: #34d399;
+}

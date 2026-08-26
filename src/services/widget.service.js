@@ -383,9 +383,49 @@ class WidgetService {
     }
 
     // 2. Crypto (Cached 2 min)
+    // 2. Crypto (Cached 2 min)
     async getCryptoPrice(coin) {
-        const coinMap = { 'btc': 'bitcoin', 'eth': 'ethereum', 'doge': 'dogecoin', 'sol': 'solana', 'xrp': 'ripple', 'ada': 'cardano' };
-        const cleanCoin = (coin || 'bitcoin').trim().toLowerCase();
+        const rawCoin = (coin || 'bitcoin').trim();
+        const coinMap = { 'btc': 'bitcoin', 'eth': 'ethereum', 'doge': 'dogecoin', 'sol': 'solana', 'xrp': 'ripple', 'ada': 'cardano', 'dot': 'polkadot', 'avax': 'avalanche-2', 'link': 'chainlink' };
+
+        // Check if multiple coins are specified (e.g. "bitcoin and solana", "btc, eth, sol")
+        const splitCoins = rawCoin.split(/,|\band\b|&|\+/i).map(c => c.trim()).filter(c => c.length > 0);
+
+        if (splitCoins.length > 1) {
+            const items = [];
+            for (const singleCoin of splitCoins) {
+                const singleClean = singleCoin.toLowerCase();
+                const singleId = coinMap[singleClean] || singleClean;
+                const cacheKey = `crypto:${singleId}`;
+                let cached = cache.get(cacheKey);
+                if (cached && cached.data?.price) {
+                    items.push({ coin: singleId, price: cached.data.price });
+                    continue;
+                }
+
+                try {
+                    const res = await fetchWithTimeout(`https://api.coingecko.com/api/v3/simple/price?ids=${singleId}&vs_currencies=usd`, { signal: AbortSignal.timeout(3000) });
+                    const data = await res.json();
+                    if (data[singleId]?.usd !== undefined) {
+                        const price = data[singleId].usd;
+                        items.push({ coin: singleId, price });
+                        cache.set(cacheKey, { type: 'crypto', data: { coin: singleId, price, source: 'CoinGecko' } }, 120);
+                    }
+                } catch (e) {}
+            }
+
+            if (items.length > 0) {
+                return {
+                    type: 'crypto',
+                    data: {
+                        items,
+                        source: 'CoinGecko'
+                    }
+                };
+            }
+        }
+
+        const cleanCoin = rawCoin.toLowerCase();
         const coinId = coinMap[cleanCoin] || cleanCoin;
         const cacheKey = `crypto:${coinId}`;
         const cached = cache.get(cacheKey);
@@ -393,7 +433,7 @@ class WidgetService {
         
         try {
             // Attempt CoinGecko
-            const res = await fetchWithTimeout(`https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd`);
+            const res = await fetchWithTimeout(`https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd`, { signal: AbortSignal.timeout(3500) });
             const data = await res.json();
             
             if (data[coinId]?.usd !== undefined) {
@@ -409,7 +449,7 @@ class WidgetService {
         }
 
         try {
-            const res = await fetchWithTimeout(`https://api.coincap.io/v2/assets/${coinId}`);
+            const res = await fetchWithTimeout(`https://api.coincap.io/v2/assets/${coinId}`, { signal: AbortSignal.timeout(3500) });
             if (res.ok) {
                 const data = await res.json();
                 const price = parseFloat(data.data?.priceUsd);

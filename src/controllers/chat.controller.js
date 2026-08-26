@@ -132,141 +132,175 @@ class ChatController {
           res.flushHeaders();
         }
 
-        const reader = openRouterResponse.body.getReader();
         const decoder = new TextDecoder('utf-8');
-        
-        let toolCallBuffer = [];
-        let isToolCall = false;
-        let toolCallId = '';
-        let toolName = '';
-        let sseBuffer = '';
+        let currentMessages = [...normalizedMessages];
+        let iteration = 0;
+        const maxIterations = 5;
 
-        try {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            
-            const chunk = decoder.decode(value, { stream: true });
-            sseBuffer += chunk;
-            const lines = sseBuffer.split('\n');
-            sseBuffer = lines.pop() || '';
+        while (iteration < maxIterations) {
+          iteration++;
 
-            for (const line of lines) {
-              const trimmed = line.trim();
-              if (!trimmed || !trimmed.startsWith('data:')) continue;
-              const dataStr = trimmed.replace(/^data:\s*/, '');
-              if (dataStr === '[DONE]') continue;
+          const openRouterResponse = await openrouterService.createChatCompletion({
+            messages: currentMessages,
+            model,
+            temperature,
+            stream: true,
+            tools: ATLAS_TOOLS,
+            maxTokens: safeMaxTokens,
+            reasoning: reasoningConfig,
+            apiKey: customApiKey,
+            referer: env.APP_URL
+          });
 
-              try {
-                const data = JSON.parse(dataStr);
-                const delta = data.choices?.[0]?.delta;
-                if (delta?.tool_calls && Array.isArray(delta.tool_calls)) {
-                  isToolCall = true;
-                  const tc = delta.tool_calls[0];
-                  if (tc.id) toolCallId = tc.id;
-                  if (tc.function?.name) toolName = tc.function.name;
-                  if (tc.function?.arguments) toolCallBuffer.push(tc.function.arguments);
-                } else if (!isToolCall) {
-                  res.write(`data: ${dataStr}\n\n`);
-                }
-              } catch (e) {
-                if (!isToolCall) {
-                  res.write(`${line}\n\n`);
-                }
-              }
-            }
-          }
-        } catch (streamErr) {
-          console.error('[Stream Read Error]:', streamErr.message);
-          if (!res.writableEnded) {
-            res.write(`data: ${JSON.stringify({ error: 'Stream interrupted. Please try again.' })}\n\n`);
-          }
-        }
+          const reader = openRouterResponse.body.getReader();
+          const toolCallsMap = new Map();
+          let sseBuffer = '';
 
-        if (isToolCall && toolName) {
           try {
-            const rawArgsStr = toolCallBuffer.join('').trim();
-            let args = {};
-            if (rawArgsStr) {
-              try {
-                args = JSON.parse(rawArgsStr);
-              } catch (e) {
-                args = {};
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              
+              const chunk = decoder.decode(value, { stream: true });
+              sseBuffer += chunk;
+              const lines = sseBuffer.split('\n');
+              sseBuffer = lines.pop() || '';
+
+              for (const line of lines) {
+                const trimmed = line.trim();
+                if (!trimmed || !trimmed.startsWith('data:')) continue;
+                const dataStr = trimmed.replace(/^data:\s*/, '');
+                if (dataStr === '[DONE]') continue;
+
+                try {
+                  const data = JSON.parse(dataStr);
+                  const delta = data.choices?.[0]?.delta;
+                  if (delta?.tool_calls && Array.isArray(delta.tool_calls)) {
+                    for (const tc of delta.tool_calls) {
+                      const idx = tc.index ?? 0;
+                      if (!toolCallsMap.has(idx)) {
+                        toolCallsMap.set(idx, {
+                          id: tc.id || `call_${idx}`,
+                          name: tc.function?.name || '',
+                          argsChunks: []
+                        });
+                      }
+                      const existing = toolCallsMap.get(idx);
+                      if (tc.id) existing.id = tc.id;
+                      if (tc.function?.name) existing.name = tc.function.name;
+                      if (tc.function?.arguments) existing.argsChunks.push(tc.function.arguments);
+                    }
+                  } else if (toolCallsMap.size === 0) {
+                    res.write(`data: ${dataStr}\n\n`);
+                  }
+                } catch (e) {
+                  if (toolCallsMap.size === 0) {
+                    res.write(`${line}\n\n`);
+                  }
+                }
               }
             }
+          } catch (streamErr) {
+            console.error('[Stream Read Error]:', streamErr.message);
+            if (!res.writableEnded) {
+              res.write(`data: ${JSON.stringify({ error: 'Stream interrupted. Please try again.' })}\n\n`);
+            }
+            break;
+          }
 
-            let widgetResult;
-            res.write(`data: ${JSON.stringify({ __tool_start__: { name: toolName, args } })}\n\n`);
+          // If no tool calls were requested in this iteration, final text has been streamed to client!
+          if (toolCallsMap.size === 0) {
+            break;
+          }
 
-            switch (toolName) {
-              case 'get_current_time': widgetResult = await widgetService.getCurrentTime(args.timezone); break;
-              case 'convert_units': widgetResult = await widgetService.convertUnits(args.value, args.from, args.to); break;
-              case 'search_places': widgetResult = await widgetService.searchPlaces(args.query, args.near); break;
-              case 'fetch_webpage': widgetResult = await widgetService.fetchWebpage(args.url); break;
-              case 'get_weather': widgetResult = await widgetService.getWeather(args.city); break;
-              case 'get_crypto_price': widgetResult = await widgetService.getCryptoPrice(args.coin); break;
-              case 'get_bible_verse': widgetResult = await widgetService.getBibleVerse(args.reference); break;
-              case 'search_images': widgetResult = await widgetService.searchImages(args.query); break;
-              case 'get_space_news': widgetResult = await widgetService.getSpaceNews(args.topic); break;
-              case 'get_reddit_posts': widgetResult = await widgetService.getRedditPosts(args.subreddit); break;
-              case 'define_word': widgetResult = await widgetService.defineWord(args.word); break;
-              case 'convert_currency': widgetResult = await widgetService.convertCurrency(args.amount, args.from, args.to); break;
-              case 'solve_math': widgetResult = await widgetService.solveMath(args.expression, args.operation); break;
-              case 'tell_joke': widgetResult = await widgetService.tellJoke(); break;
-              case 'give_advice': widgetResult = await widgetService.giveAdvice(); break;
-              case 'scan_ocr': widgetResult = await widgetService.scanOcr(); break;
-              default: widgetResult = { error: `Unknown tool: ${toolName}` };
+          // Execute all tool calls generated in this iteration
+          try {
+            const assistantToolCalls = [];
+            const toolResultsForLlm = [];
+
+            for (const [idx, tc] of toolCallsMap.entries()) {
+              const rawArgsStr = tc.argsChunks.join('').trim();
+              let args = {};
+              if (rawArgsStr) {
+                try {
+                  args = JSON.parse(rawArgsStr);
+                } catch (e) {
+                  args = {};
+                }
+              }
+
+              const toolName = tc.name;
+              const toolCallId = tc.id || `call_${idx}`;
+
+              res.write(`data: ${JSON.stringify({ __tool_start__: { name: toolName, args } })}\n\n`);
+
+              let widgetResult;
+              switch (toolName) {
+                case 'get_current_time': widgetResult = await widgetService.getCurrentTime(args.timezone); break;
+                case 'convert_units': widgetResult = await widgetService.convertUnits(args.value, args.from, args.to); break;
+                case 'search_places': widgetResult = await widgetService.searchPlaces(args.query, args.near); break;
+                case 'fetch_webpage': widgetResult = await widgetService.fetchWebpage(args.url); break;
+                case 'get_weather': widgetResult = await widgetService.getWeather(args.city); break;
+                case 'get_crypto_price': widgetResult = await widgetService.getCryptoPrice(args.coin); break;
+                case 'get_bible_verse': widgetResult = await widgetService.getBibleVerse(args.reference); break;
+                case 'search_images': widgetResult = await widgetService.searchImages(args.query); break;
+                case 'get_space_news': widgetResult = await widgetService.getSpaceNews(args.topic); break;
+                case 'get_reddit_posts': widgetResult = await widgetService.getRedditPosts(args.subreddit); break;
+                case 'define_word': widgetResult = await widgetService.defineWord(args.word); break;
+                case 'convert_currency': widgetResult = await widgetService.convertCurrency(args.amount, args.from, args.to); break;
+                case 'solve_math': widgetResult = await widgetService.solveMath(args.expression, args.operation); break;
+                case 'tell_joke': widgetResult = await widgetService.tellJoke(); break;
+                case 'give_advice': widgetResult = await widgetService.giveAdvice(); break;
+                case 'scan_ocr': widgetResult = await widgetService.scanOcr(); break;
+                default: widgetResult = { error: `Unknown tool: ${toolName}` };
+              }
+
+              // Send widget payload to client
+              res.write(`data: ${JSON.stringify({ __widget__: { type: widgetResult.type, data: widgetResult.data, error: widgetResult.error } })}\n\n`);
+              res.write(`data: ${JSON.stringify({ __tool_done__: { name: toolName, success: !widgetResult.error } })}\n\n`);
+
+              // Structure tool response for LLM
+              let toolContentForLlm = widgetResult;
+              if (toolName === 'search_images' && widgetResult.data?.images) {
+                toolContentForLlm = {
+                  status: 'success',
+                  query: widgetResult.data.query,
+                  image_count: widgetResult.data.images.length,
+                  titles: widgetResult.data.images.slice(0, 5).map(img => img.title),
+                  instruction: `Visual references gallery containing ${widgetResult.data.images.length} images for "${widgetResult.data.query}" has already been displayed directly above. Provide a concise, helpful summary or fascinating scientific context about the subject. Do NOT output markdown image syntax or raw image links.`
+                };
+              }
+
+              assistantToolCalls.push({
+                id: toolCallId,
+                type: 'function',
+                function: {
+                  name: toolName,
+                  arguments: JSON.stringify(args)
+                }
+              });
+
+              toolResultsForLlm.push({
+                role: 'tool',
+                tool_call_id: toolCallId,
+                name: toolName,
+                content: JSON.stringify(toolContentForLlm)
+              });
             }
 
-            // Send widget payload to client
-            res.write(`data: ${JSON.stringify({ __widget__: { type: widgetResult.type, data: widgetResult.data, error: widgetResult.error } })}\n\n`);
-            res.write(`data: ${JSON.stringify({ __tool_done__: { name: toolName, success: !widgetResult.error } })}\n\n`);
-
-            // Structure tool response for LLM's second pass
-            let toolContentForLlm = widgetResult;
-            if (toolName === 'search_images' && widgetResult.data?.images) {
-              toolContentForLlm = {
-                status: 'success',
-                query: widgetResult.data.query,
-                image_count: widgetResult.data.images.length,
-                titles: widgetResult.data.images.slice(0, 5).map(img => img.title),
-                instruction: `Visual references gallery containing ${widgetResult.data.images.length} images for "${widgetResult.data.query}" has already been displayed directly above. Provide a concise, helpful summary or fascinating scientific context about the subject. Do NOT output markdown image syntax or raw image links.`
-              };
-            }
-
-            // Second pass for assistant reasoning
-            normalizedMessages.push({
+            // Append assistant tool calls and tool responses for the next loop pass
+            currentMessages.push({
               role: 'assistant',
               content: null,
-              tool_calls: [{ id: toolCallId || 'call_0', type: 'function', function: { name: toolName, arguments: JSON.stringify(args) } }]
+              tool_calls: assistantToolCalls
             });
-            normalizedMessages.push({
-              role: 'tool',
-              tool_call_id: toolCallId || 'call_0',
-              name: toolName,
-              content: JSON.stringify(toolContentForLlm)
-            });
-
-            const secondPass = await openrouterService.createChatCompletion({
-              messages: normalizedMessages,
-              model,
-              temperature,
-              stream: true,
-              maxTokens: safeMaxTokens,
-              reasoning: reasoningConfig,
-              apiKey: customApiKey,
-              referer: env.APP_URL
-            });
-
-            const reader2 = secondPass.body.getReader();
-            while (true) {
-              const { done, value } = await reader2.read();
-              if (done) break;
-              res.write(decoder.decode(value, { stream: true }));
+            for (const toolResultMsg of toolResultsForLlm) {
+              currentMessages.push(toolResultMsg);
             }
           } catch (e) {
-            console.error("[ChatController Tool Error]:", e);
+            console.error("[ChatController Tool Loop Error]:", e);
             res.write(`data: ${JSON.stringify({ error: "Tool execution encountered an unexpected issue." })}\n\n`);
+            break;
           }
         }
 

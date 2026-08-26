@@ -241,6 +241,13 @@ const MATH_SCIENCE_FORMATTING_DIRECTIVE = [
   '7. Never output raw unstructured plaintext pseudo-math (such as `x^2 / 2 + C` or messy text fractions) when standard LaTeX `$ ... $` or `$$ ... $$` is required.',
 ].join('\n');
 
+const MULTI_INTENT_TOOL_DIRECTIVE = [
+  'MULTI-INTENT & PARALLEL TOOL EXECUTION RULES:',
+  '1. DECOMPOSE COMPOUND REQUESTS: When a user query contains multiple questions, tasks, or entities (e.g. "What is the time and weather in Durban?", "Current price of Bitcoin and Solana", "Convert 100km to miles and 50kg to lbs", "Search the web for X and show images of Y"), you MUST call ALL relevant tools simultaneously in parallel. Never answer only one part and ignore the others.',
+  '2. INDEPENDENT TOOL CALLS FOR MULTIPLE ENTITIES: If the user asks about multiple coins, multiple cities, or multiple conversions, invoke a separate tool call for EACH entity (e.g. call `get_crypto_price` for "bitcoin" AND call `get_crypto_price` for "solana").',
+  '3. COMPLETE SYNTHESIS: In your final response, synthesize all returned tool results thoroughly, answering every facet of the user\'s prompt with clarity and completeness.',
+].join('\n');
+
 const SYSTEM_PROMPT_FULL = [
   `You are Atlas, an advanced scientific reasoning, mathematical intelligence, and systems engineering platform built, fine-tuned, and orchestrated by ${COMPANY.tradingAs} (${COMPANY.website}).`,
   `${APP.tagline}. ${APP.subtitle}.`,
@@ -272,6 +279,7 @@ const SYSTEM_PROMPT_FULL = [
   `For queries that do not require live tools, respond using structured scientific investigation, mathematical rigor, and deep reasoning.`,
   `Format all code responses using standard Markdown fenced code blocks with language specifiers. Do NOT output pseudo tool calls. Output direct, clean structured text and standard code blocks.`,
   MATH_SCIENCE_FORMATTING_DIRECTIVE,
+  MULTI_INTENT_TOOL_DIRECTIVE,
   CHALLENGE_INSTRUCTION,
 ].join('\n\n');
 
