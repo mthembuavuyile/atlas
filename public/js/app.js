@@ -336,6 +336,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const presetPills = document.querySelectorAll('.preset-pill');
 
   // General Settings
+  const sidebarProfileMenu = document.getElementById('sidebarProfileMenu');
+  const sidebarProfileAvatar = document.getElementById('sidebarProfileAvatar');
+  const profileMenuAvatar = document.getElementById('profileMenuAvatar');
+  const profileMenuName = document.getElementById('profileMenuName');
+  const profileSettingsBtn = document.getElementById('profileSettingsBtn');
+  const accountNameInput = document.getElementById('accountNameInput');
+  const saveProfileNameBtn = document.getElementById('saveProfileNameBtn');
+  const defaultVoiceSelect = document.getElementById('defaultVoiceSelect');
   const clearAllDataBtn = document.getElementById('clearAllDataBtn');
   const customApiKeyInput = document.getElementById('customApiKeyInput');
   const saveApiKeyBtn = document.getElementById('saveApiKeyBtn');
@@ -368,9 +376,11 @@ document.addEventListener('DOMContentLoaded', () => {
     models: FREE_MODELS,
     apiKey: localStorage.getItem('atlas_openrouter_api_key') || '',
     activeMode: localStorage.getItem('atlas_mode') || 'research',
+    accountName: localStorage.getItem('atlas_account_name') || 'Your Name',
     systemPrompt: localStorage.getItem('omni_sys_prompt') || PERSONA_PRESETS.scientist,
     activePreset: localStorage.getItem('omni_preset') || 'scientist',
     temperature: parseFloat(localStorage.getItem('omni_temp') || '0.7'),
+    defaultVoiceName: localStorage.getItem('atlas_default_voice') || '',
     isDeepReasoning: localStorage.getItem('omni_deep_reasoning') === 'true',
     isWebSearch: localStorage.getItem('omni_web_search') === 'true',
     sessions: initialSessions,
@@ -378,7 +388,9 @@ document.addEventListener('DOMContentLoaded', () => {
     isGenerating: false,
     abortController: null,
     activeArtifact: null,
-    lastUserPrompt: ''
+    lastUserPrompt: '',
+    isReadingResponse: false,
+    activeSpeechButton: null
   };
 
   // Configure marked with rich typography extensions
@@ -963,13 +975,61 @@ document.addEventListener('DOMContentLoaded', () => {
       speakBtn.className = 'action-btn speak-btn';
       speakBtn.innerHTML = ICONS.speaker || 'Speak';
       speakBtn.title = 'Speak response';
-      
+
+      const setSpeechButtonState = (isSpeaking) => {
+        speakBtn.classList.toggle('is-speaking', isSpeaking);
+        speakBtn.title = isSpeaking ? 'Stop reading response' : 'Speak response';
+        speakBtn.innerHTML = isSpeaking ? (ICONS.stop || 'Stop') : (ICONS.speaker || 'Speak');
+      };
+
       speakBtn.addEventListener('click', () => {
-        if ('speechSynthesis' in window) {
+        if (!('speechSynthesis' in window)) return;
+
+        if (state.isReadingResponse && state.activeSpeechButton === speakBtn) {
           window.speechSynthesis.cancel();
-          const utterance = new SpeechSynthesisUtterance(bubble.innerText);
-          window.speechSynthesis.speak(utterance);
+          state.isReadingResponse = false;
+          state.activeSpeechButton = null;
+          setSpeechButtonState(false);
+          return;
         }
+
+        if (state.activeSpeechButton && state.activeSpeechButton !== speakBtn) {
+          state.activeSpeechButton.innerHTML = ICONS.speaker || 'Speak';
+          state.activeSpeechButton.title = 'Speak response';
+          state.activeSpeechButton.classList.remove('is-speaking');
+        }
+
+        const voices = window.speechSynthesis.getVoices ? window.speechSynthesis.getVoices() : [];
+        const selectedVoice = voices.find(v => v.name === state.defaultVoiceName)
+          || voices.find(v => v.name.toLowerCase() === (state.defaultVoiceName || '').toLowerCase())
+          || voices.find(v => v.default)
+          || voices[0]
+          || null;
+
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(bubble.innerText);
+        if (selectedVoice) utterance.voice = selectedVoice;
+        utterance.rate = 1;
+        utterance.pitch = 1;
+        utterance.onend = () => {
+          if (state.activeSpeechButton === speakBtn) {
+            state.isReadingResponse = false;
+            state.activeSpeechButton = null;
+            setSpeechButtonState(false);
+          }
+        };
+        utterance.onerror = () => {
+          if (state.activeSpeechButton === speakBtn) {
+            state.isReadingResponse = false;
+            state.activeSpeechButton = null;
+            setSpeechButtonState(false);
+          }
+        };
+
+        state.isReadingResponse = true;
+        state.activeSpeechButton = speakBtn;
+        setSpeechButtonState(true);
+        window.speechSynthesis.speak(utterance);
       });
       
       actionsBar.appendChild(copyBtn);
@@ -1969,7 +2029,21 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     openSysPromptModalBtn?.addEventListener('click', () => openUnifiedSettings('studio-parameters'));
-    settingsSidebarBtn?.addEventListener('click', () => openUnifiedSettings('studio-parameters'));
+    settingsSidebarBtn?.addEventListener('click', (event) => {
+      event.stopPropagation();
+      const isOpen = sidebarProfileMenu && !sidebarProfileMenu.hidden;
+      if (sidebarProfileMenu) {
+        sidebarProfileMenu.hidden = isOpen;
+      }
+      if (settingsSidebarBtn) {
+        settingsSidebarBtn.setAttribute('aria-expanded', String(!isOpen));
+      }
+    });
+    profileSettingsBtn?.addEventListener('click', () => {
+      if (sidebarProfileMenu) sidebarProfileMenu.hidden = true;
+      if (settingsSidebarBtn) settingsSidebarBtn.setAttribute('aria-expanded', 'false');
+      openUnifiedSettings('general-settings');
+    });
     closeUnifiedSettingsBtn?.addEventListener('click', () => closeUnifiedSettings());
 
     // Settings Navigation Tabs Logic
@@ -1997,6 +2071,14 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
       });
+    });
+
+    saveProfileNameBtn?.addEventListener('click', () => {
+      const nextName = (accountNameInput?.value || '').trim() || 'Your Name';
+      state.accountName = nextName;
+      localStorage.setItem('atlas_account_name', nextName);
+      syncSidebarProfileUI();
+      if (accountNameInput) accountNameInput.value = nextName;
     });
 
     saveApiKeyBtn?.addEventListener('click', () => {
@@ -2048,9 +2130,11 @@ document.addEventListener('DOMContentLoaded', () => {
     saveSettingsBtn?.addEventListener('click', () => {
       state.systemPrompt = customSystemPrompt.value.trim();
       state.temperature = parseFloat(temperatureSlider.value);
+      state.defaultVoiceName = defaultVoiceSelect ? defaultVoiceSelect.value : '';
       localStorage.setItem('omni_sys_prompt', state.systemPrompt);
       localStorage.setItem('omni_preset', state.activePreset);
       localStorage.setItem('omni_temp', state.temperature.toString());
+      localStorage.setItem('atlas_default_voice', state.defaultVoiceName);
       updateActivePromptLabel();
 
       const originalText = saveSettingsBtn.textContent;
@@ -2247,6 +2331,52 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function syncSidebarProfileUI() {
+    const displayName = (state.accountName || '').trim() || 'Your Name';
+    const initials = displayName
+      .split(/\s+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map(part => part.charAt(0).toUpperCase())
+      .join('') || 'U';
+
+    if (sidebarProfileAvatar) sidebarProfileAvatar.textContent = initials;
+    if (profileMenuAvatar) profileMenuAvatar.textContent = initials;
+    if (profileMenuName) profileMenuName.textContent = displayName;
+    if (accountNameInput) accountNameInput.value = displayName;
+  }
+
+  function populateVoiceOptions() {
+    if (!defaultVoiceSelect) return;
+
+    const voices = 'speechSynthesis' in window && window.speechSynthesis.getVoices ? window.speechSynthesis.getVoices() : [];
+    const currentValue = state.defaultVoiceName || '';
+
+    defaultVoiceSelect.innerHTML = '';
+
+    const browserDefaultOption = document.createElement('option');
+    browserDefaultOption.value = '';
+    browserDefaultOption.textContent = 'Use browser default';
+    defaultVoiceSelect.appendChild(browserDefaultOption);
+
+    voices.forEach(voice => {
+      const option = document.createElement('option');
+      option.value = voice.name;
+      option.textContent = `${voice.name} (${voice.lang})`;
+      defaultVoiceSelect.appendChild(option);
+    });
+
+    if (voices.length === 0) {
+      const loadingOption = document.createElement('option');
+      loadingOption.value = '';
+      loadingOption.textContent = 'Voice list not ready yet';
+      defaultVoiceSelect.appendChild(loadingOption);
+    }
+
+    const selectedVoiceExists = voices.some(voice => voice.name === currentValue);
+    defaultVoiceSelect.value = selectedVoiceExists ? currentValue : '';
+  }
+
   function openUnifiedSettings(defaultTab = 'studio-parameters') {
     // Populate Studio Parameters
     if (customSystemPrompt) customSystemPrompt.value = state.systemPrompt;
@@ -2260,6 +2390,8 @@ document.addEventListener('DOMContentLoaded', () => {
       apiKeyStatusHint.style.display = state.apiKey ? 'block' : 'none';
       apiKeyStatusHint.textContent = state.apiKey ? 'Custom key active in this browser.' : '';
     }
+    if (accountNameInput) accountNameInput.value = (state.accountName || '').trim() || 'Your Name';
+    populateVoiceOptions();
     
     // Select the default tab
     const tabToSelect = Array.from(settingsNavBtns).find(btn => btn.getAttribute('data-tab') === defaultTab);
@@ -2274,8 +2406,22 @@ document.addEventListener('DOMContentLoaded', () => {
     unifiedSettingsModal?.classList.remove('show');
   }
 
+  document.addEventListener('click', (event) => {
+    if (sidebarProfileMenu && !event.target.closest('.sidebar-profile-wrapper') && !event.target.closest('.profile-settings-btn')) {
+      sidebarProfileMenu.hidden = true;
+      if (settingsSidebarBtn) settingsSidebarBtn.setAttribute('aria-expanded', 'false');
+    }
+  });
+
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.onvoiceschanged = populateVoiceOptions;
+  }
+
+  populateVoiceOptions();
+
   function loadSavedSettings() {
     syncWebSearchUI();
+    syncSidebarProfileUI();
     updateActivePromptLabel();
     if (deepThinkToggleBtn) {
       deepThinkToggleBtn.classList.toggle('active-web', state.isDeepReasoning);

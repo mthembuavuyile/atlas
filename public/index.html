@@ -160,15 +160,31 @@
 
       <!-- Sidebar Footer -->
       <div class="sidebar-footer">
-        <button id="settingsSidebarBtn" class="sidebar-tool-btn">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line>
-            <line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line>
-            <line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line>
-            <line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line>
-          </svg>
-          <span>Settings</span>
-        </button>
+        <div class="sidebar-profile-wrapper">
+          <button id="settingsSidebarBtn" class="sidebar-profile-trigger" type="button" aria-expanded="false" aria-controls="sidebarProfileMenu">
+            <span class="profile-avatar" id="sidebarProfileAvatar">U</span>
+          </button>
+
+          <div id="sidebarProfileMenu" class="sidebar-profile-menu" hidden>
+            <div class="profile-menu-card">
+              <div class="profile-menu-header">
+                <div class="profile-menu-avatar" id="profileMenuAvatar">U</div>
+                <div class="profile-menu-meta">
+                  <span class="profile-menu-name" id="profileMenuName">Your Name</span>
+                  <span class="profile-menu-label">Account</span>
+                </div>
+              </div>
+
+              <button id="profileSettingsBtn" class="profile-settings-btn" type="button">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="3"></circle>
+                  <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                </svg>
+                <span>Settings</span>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </aside>
 
@@ -670,6 +686,14 @@
             <div class="settings-pane" id="pane-general-settings">
               <div class="settings-pane-scrollable">
                 <div class="settings-section">
+                  <label class="settings-label" for="accountNameInput">Your Name</label>
+                  <div class="settings-flex-row" style="gap: 8px; align-items: center;">
+                    <input id="accountNameInput" class="system-prompt-editor" style="height: 38px; padding: 6px 12px; font-size: 0.85rem; flex: 1;" placeholder="Enter your name" autocomplete="name">
+                    <button id="saveProfileNameBtn" class="primary-modal-btn" style="white-space: nowrap; padding: 0 16px; height: 38px;">Save Name</button>
+                  </div>
+                </div>
+
+                <div class="settings-section">
                   <label class="settings-label" for="customApiKeyInput">Custom OpenRouter API Key (Optional)</label>
                   <p style="margin: 4px 0 10px 0; font-size: 0.82rem; color: var(--text-tertiary);">Supply your personal OpenRouter key for uninterrupted access with private quota. Stored securely in local browser storage.</p>
                   <div class="settings-flex-row" style="gap: 8px; align-items: center;">
@@ -677,6 +701,14 @@
                     <button id="saveApiKeyBtn" class="primary-modal-btn" style="white-space: nowrap; padding: 0 16px; height: 38px;">Save Key</button>
                   </div>
                   <div id="apiKeyStatusHint" style="display: none; font-size: 0.8rem; color: var(--text-secondary); margin-top: 6px;">Key active in local session.</div>
+                </div>
+
+                <div class="settings-section">
+                  <label class="settings-label" for="defaultVoiceSelect">Default Read-Aloud Voice</label>
+                  <p style="margin: 4px 0 10px 0; font-size: 0.82rem; color: var(--text-tertiary);">Choose the voice used when you tap the speaker button on assistant replies.</p>
+                  <select id="defaultVoiceSelect" class="system-prompt-editor" style="height: 38px; padding: 6px 12px; font-size: 0.85rem; width: 100%;">
+                    <option value="">Loading voices...</option>
+                  </select>
                 </div>
 
                 <div class="settings-section">
