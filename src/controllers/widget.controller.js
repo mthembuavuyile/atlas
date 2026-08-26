@@ -37,6 +37,9 @@ class WidgetController {
                 case 'search_images':
                     result = await widgetService.searchImages(args.query);
                     break;
+                case 'get_news_headlines':
+                    result = await widgetService.getNewsHeadlines(args.topic);
+                    break;
                 case 'get_space_news':
                     result = await widgetService.getSpaceNews(args.topic);
                     break;

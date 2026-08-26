@@ -109,19 +109,6 @@ class ChatController {
 
       const safeMaxTokens = Math.min(Math.max(Number(maxTokens) || 4096, 256), 8192);
 
-      // First pass: Call OpenRouter with tools
-      const openRouterResponse = await openrouterService.createChatCompletion({
-        messages: normalizedMessages,
-        model,
-        temperature,
-        stream,
-        tools: ATLAS_TOOLS,
-        maxTokens: safeMaxTokens,
-        reasoning: reasoningConfig,
-        apiKey: customApiKey,
-        referer: env.APP_URL
-      });
-
       if (stream) {
         res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
         res.setHeader('Cache-Control', 'no-cache, no-transform');
@@ -244,6 +231,7 @@ class ChatController {
                 case 'get_crypto_price': widgetResult = await widgetService.getCryptoPrice(args.coin); break;
                 case 'get_bible_verse': widgetResult = await widgetService.getBibleVerse(args.reference); break;
                 case 'search_images': widgetResult = await widgetService.searchImages(args.query); break;
+                case 'get_news_headlines': widgetResult = await widgetService.getNewsHeadlines(args.topic); break;
                 case 'get_space_news': widgetResult = await widgetService.getSpaceNews(args.topic); break;
                 case 'get_reddit_posts': widgetResult = await widgetService.getRedditPosts(args.subreddit); break;
                 case 'define_word': widgetResult = await widgetService.defineWord(args.word); break;
@@ -307,6 +295,17 @@ class ChatController {
         res.write('data: [DONE]\n\n');
         return res.end();
       } else {
+        const openRouterResponse = await openrouterService.createChatCompletion({
+          messages: normalizedMessages,
+          model,
+          temperature,
+          stream,
+          tools: ATLAS_TOOLS,
+          maxTokens: safeMaxTokens,
+          reasoning: reasoningConfig,
+          apiKey: customApiKey,
+          referer: env.APP_URL
+        });
         const data = await openRouterResponse.json();
         return res.json(data);
       }

@@ -680,10 +680,124 @@ class WidgetService {
             if (!data.results || !data.results.length) {
                 return { error: "No recent aerospace news found for the requested topic." };
             }
-            return { type: 'news', data: { topic, articles: data.results } };
+            return { type: 'news', data: { topic, category: 'Space & Astronomy News', articles: data.results } };
         } catch (err) {
             return { error: "Failed to fetch live aerospace news data." };
         }
+    }
+
+    // 5.1 General News Headlines
+    async getNewsHeadlines(topic = '') {
+        const cleanTopic = (topic || 'top stories').toString().trim().slice(0, 80) || 'top stories';
+        const cacheKey = `headlines:${cleanTopic.toLowerCase()}`;
+        const cached = cache.get(cacheKey);
+        if (cached) return cached;
+
+        const articles = [];
+        const seen = new Set();
+
+        const addArticle = (article) => {
+            const url = article.url || article.link;
+            const title = article.title || article.name;
+            if (!url || !title || seen.has(url) || articles.length >= 6) return;
+            seen.add(url);
+            articles.push({
+                title,
+                url,
+                news_site: article.news_site || article.source || article.domain || 'News',
+                summary: article.summary || article.snippet || article.description || '',
+                published_at: article.published_at || article.seendate || article.date || new Date().toISOString(),
+                image_url: article.image_url || article.socialimage || article.image || ''
+            });
+        };
+
+        try {
+            const isTopStories = cleanTopic === 'top stories';
+            const newsQuery = isTopStories ? '' : `search?q=${encodeURIComponent(`${cleanTopic} when:2d`)}&`;
+            const googleNewsUrl = `https://news.google.com/rss/${newsQuery}hl=en-US&gl=US&ceid=US:en`;
+            const rssRes = await fetchWithTimeout(googleNewsUrl, {
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (compatible; AtlasReasoningStudio/1.0; +https://vylex.co.za)',
+                    'Accept': 'application/rss+xml, application/xml, text/xml'
+                },
+                signal: AbortSignal.timeout(4500)
+            });
+
+            if (rssRes.ok) {
+                const xml = await rssRes.text();
+                const itemRegex = /<item>([\s\S]*?)<\/item>/gi;
+                let match;
+                while ((match = itemRegex.exec(xml)) !== null && articles.length < 6) {
+                    const item = match[1];
+                    const readTag = (tag) => {
+                        const tagMatch = item.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, 'i'));
+                        if (!tagMatch) return '';
+                        return searchService.cleanHtmlEntities(tagMatch[1].replace(/^<!\[CDATA\[/, '').replace(/\]\]>$/, '').trim());
+                    };
+
+                    const sourceMatch = item.match(/<source[^>]*>([\s\S]*?)<\/source>/i);
+                    const title = readTag('title');
+                    addArticle({
+                        title,
+                        url: readTag('link'),
+                        source: sourceMatch ? searchService.cleanHtmlEntities(sourceMatch[1].trim()) : (title.split(' - ').pop() || 'Google News'),
+                        summary: readTag('description').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim(),
+                        published_at: readTag('pubDate')
+                    });
+                }
+            }
+        } catch (e) {}
+
+        try {
+            const query = cleanTopic === 'top stories' ? 'breaking news' : `${cleanTopic} news`;
+            const gdeltUrl = `https://api.gdeltproject.org/api/v2/doc/doc?query=${encodeURIComponent(query)}&mode=ArtList&format=json&maxrecords=6&sort=HybridRel`;
+            const gdeltRes = await fetchWithTimeout(gdeltUrl, {
+                headers: { 'User-Agent': 'AtlasReasoningStudio/1.0 (https://vylex.co.za; hello@vylex.co.za)' },
+                signal: AbortSignal.timeout(4500)
+            });
+
+            if (gdeltRes.ok) {
+                const data = await gdeltRes.json();
+                const gdeltArticles = Array.isArray(data.articles) ? data.articles : [];
+                gdeltArticles.forEach(item => addArticle({
+                    title: item.title,
+                    url: item.url,
+                    source: item.sourcecountry ? `${item.domain || 'GDELT'} (${item.sourcecountry})` : item.domain,
+                    summary: item.seendate ? `Seen by GDELT on ${item.seendate}.` : '',
+                    seendate: item.seendate,
+                    socialimage: item.socialimage
+                }));
+            }
+        } catch (e) {}
+
+        if (articles.length === 0) {
+            try {
+                const searchResults = await searchService.searchWeb(`${cleanTopic} latest news`, 6);
+                searchResults.forEach(item => addArticle({
+                    title: item.title,
+                    url: item.url,
+                    source: item.source,
+                    summary: item.snippet,
+                    published_at: new Date().toISOString()
+                }));
+            } catch (e) {}
+        }
+
+        if (articles.length === 0) {
+            return { error: `No current headlines found for "${cleanTopic}".` };
+        }
+
+        const result = {
+            type: 'news',
+            data: {
+                topic: cleanTopic,
+                category: 'General News',
+                articles
+            }
+        };
+
+        cache.set(cacheKey, result, 300);
+        return result;
     }
 
     // 6. Reddit & Community Discussions

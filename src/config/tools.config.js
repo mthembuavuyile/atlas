@@ -115,6 +115,19 @@ const ATLAS_TOOLS = [
   {
     type: 'function',
     function: {
+      name: 'get_news_headlines',
+      description: 'Get latest general news headlines for a topic, region, technology area, or current event.',
+      parameters: {
+        type: 'object',
+        properties: {
+          topic: { type: 'string', description: 'Optional topic or region, e.g. "technology", "South Africa", "AI", "world". Leave empty for top headlines.' }
+        }
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
       name: 'get_space_news',
       description: 'Get the latest spaceflight, NASA, and astronomy news.',
       parameters: {

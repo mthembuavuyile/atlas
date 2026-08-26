@@ -1493,6 +1493,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (projectContext && payloadMessages.length > 0) {
       payloadMessages[payloadMessages.length - 1].content += projectContext;
     }
+    let requestWebSearch = state.isWebSearch;
 
     let accumulatedContent = '';
     let accumulatedReasoning = '';
@@ -1501,6 +1502,155 @@ document.addEventListener('DOMContentLoaded', () => {
     let lastRenderTime = 0;
 
     state.abortController = new AbortController();
+
+    const runLocalWidget = async (toolToCall, argsPayload, statusText) => {
+      if (statusAnimator) { statusAnimator.stop(); statusAnimator = null; }
+      const res = await fetch(`${API_BASE}/api/widget/execute`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        signal: state.abortController.signal,
+        body: JSON.stringify({ tool: toolToCall, args: argsPayload })
+      });
+
+      if (!res.ok) throw new Error('Widget service failed');
+      const widgetResult = await res.json();
+
+      accumulatedWidgets.push(widgetResult);
+
+      if (window.atlasRenderWidget) {
+        const widgetHtml = window.atlasRenderWidget(widgetResult.type, widgetResult.data);
+        if (widgetHtml && widgetsContainer) {
+          const widgetBox = document.createElement('div');
+          widgetBox.className = 'widget-mount-point';
+          widgetBox.innerHTML = widgetHtml;
+          widgetsContainer.appendChild(widgetBox);
+        }
+      }
+
+      bubble.innerHTML = parseMarkdownSafely(statusText, false);
+
+      session.messages.push({
+        role: 'assistant',
+        content: statusText,
+        widgets: accumulatedWidgets
+      });
+      session.updatedAt = new Date().toISOString();
+      saveSessions();
+      updateSessionMetrics();
+
+      state.isGenerating = false;
+      if (stopGenerationBtn) stopGenerationBtn.style.display = 'none';
+      if (sendBtn) sendBtn.style.display = 'flex';
+      if (streamingIndicator) streamingIndicator.style.display = 'none';
+      scrollToBottom(true);
+    };
+
+    const detectLocalWidgetIntent = (text) => {
+      const trimmed = text.trim();
+      const lower = trimmed.toLowerCase();
+
+      const stripTrailing = (value) => value.replace(/[?.!]+$/g, '').trim();
+      const pickMatch = (patterns) => {
+        for (const pattern of patterns) {
+          const match = trimmed.match(pattern);
+          if (match?.[1]) return stripTrailing(match[1]);
+        }
+        return '';
+      };
+
+      if (/\b(scan|read|extract)\b.*\b(text|writing|words)\b.*\b(image|photo|camera|screenshot|picture)\b/i.test(trimmed)) {
+        return { tool: 'scan_ocr', args: {}, label: 'Opened OCR scanner.' };
+      }
+
+      const currency = trimmed.match(/\b(?:convert\s+)?(\d+(?:\.\d+)?)\s*([a-z]{3})\s+(?:to|in|into)\s+([a-z]{3})\b/i);
+      if (currency) {
+        return {
+          tool: 'convert_currency',
+          args: { amount: parseFloat(currency[1]), from: currency[2].toUpperCase(), to: currency[3].toUpperCase() },
+          label: 'Converted live currency rate.'
+        };
+      }
+
+      const unit = trimmed.match(/\b(?:convert\s+)?(-?\d+(?:\.\d+)?)\s*([a-zA-Z°/ ]{1,22})\s+(?:to|in|into)\s+([a-zA-Z°/ ]{1,22})\b/i);
+      if (unit && !/^[a-z]{3}$/i.test(unit[2].trim()) && !/^[a-z]{3}$/i.test(unit[3].trim())) {
+        return {
+          tool: 'convert_units',
+          args: { value: parseFloat(unit[1]), from: unit[2].trim(), to: unit[3].trim() },
+          label: 'Converted units.'
+        };
+      }
+
+      const bible = pickMatch([
+        /\b(?:bible verse|scripture|verse)\s+(?:for|about|from)?\s*(.+)$/i,
+        /\b([1-3]?\s*[a-z]+(?:\s+[a-z]+)?\s+\d+:\d+(?:-\d+)?)\b/i
+      ]);
+      if (bible || /\b(a bible verse|random scripture|give me a scripture)\b/i.test(trimmed)) {
+        return { tool: 'get_bible_verse', args: { reference: bible || '' }, label: 'Fetched scripture.' };
+      }
+
+      const definition = pickMatch([/\b(?:define|meaning of|what does)\s+["']?([a-z][a-z-]*)["']?(?:\s+mean)?$/i]);
+      if (definition) {
+        return { tool: 'define_word', args: { word: definition }, label: 'Fetched dictionary definition.' };
+      }
+
+      const weather = pickMatch([/\bweather\s+(?:in|for|at)\s+(.+)$/i, /\b(?:forecast|temperature)\s+(?:in|for|at)\s+(.+)$/i]);
+      if (weather) {
+        return { tool: 'get_weather', args: { city: weather }, label: 'Fetched live weather.' };
+      }
+
+      const crypto = pickMatch([/\b(?:price of|price for|crypto price of)\s+([a-z0-9 ,&+.-]+)$/i, /\b([a-z0-9 ,&+.-]+)\s+(?:price|crypto price|price right now)$/i]);
+      if (crypto && /\b(bitcoin|btc|ethereum|eth|solana|sol|xrp|doge|cardano|ada|crypto)\b/i.test(crypto)) {
+        return { tool: 'get_crypto_price', args: { coin: crypto.replace(/\bcrypto\b/gi, '').trim() || 'bitcoin' }, label: 'Fetched live crypto price.' };
+      }
+
+      const subreddit = pickMatch([/\b(?:show me\s+)?(?:reddit|subreddit)\s+(?:posts|news|threads|discussions)?\s*(?:from|for|in)?\s*\/?r\/?([a-z0-9_]+)$/i, /\br\/([a-z0-9_]+)\s+(?:top|hot|posts|news|threads)?/i]);
+      if (subreddit || /\breddit news\b/i.test(lower)) {
+        return { tool: 'get_reddit_posts', args: { subreddit: subreddit || 'news' }, label: 'Fetched live discussions.' };
+      }
+
+      const image = pickMatch([/\b(?:show me|find|search)\s+(?:an?\s+)?(?:image|photo|picture|visual)\s+(?:of|for)\s+(.+)$/i, /\b(?:image|photo|picture)\s+(?:of|for)\s+(.+)$/i]);
+      if (image) {
+        return { tool: 'search_images', args: { query: image }, label: 'Fetched visual references.' };
+      }
+
+      const math = pickMatch([/\b(?:derivative|integral|simplify|factor|solve|limit)\s+(?:of\s+)?(.+)$/i]);
+      if (math && /[0-9x-z=+\-*/^()]/i.test(math)) {
+        const opMatch = lower.match(/\b(derivative|integral|simplify|factor|solve|limit)\b/);
+        const operation = opMatch ? opMatch[1] : 'simplify';
+        return { tool: 'solve_math', args: { expression: math, operation }, label: 'Solved math expression.' };
+      }
+
+      const spaceTopic = pickMatch([/\b(?:space|spacex|nasa|mars|artemis|jwst)\s+(?:news|updates|headlines)\s*(.*)$/i]);
+      if (spaceTopic || /\b(space news|spacex updates|nasa news|mars rover|artemis mission|jwst discoveries)\b/i.test(lower)) {
+        return { tool: 'get_space_news', args: { topic: spaceTopic }, label: 'Fetched space intelligence.' };
+      }
+
+      const newsTopic = pickMatch([/\b(?:show me\s+)?(?:latest|current|today'?s)?\s*(?:news|headlines|top stories)\s*(?:about|on|for|in)?\s*(.*)$/i]);
+      if (/\b(news|headlines|top stories)\b/i.test(lower) && !/\bspace|spacex|nasa|mars|artemis|jwst\b/i.test(lower)) {
+        return { tool: 'get_news_headlines', args: { topic: newsTopic || 'top stories' }, label: 'Fetched live headlines.' };
+      }
+
+      const time = pickMatch([/\b(?:time|date)\s+(?:in|for|at)\s+(.+)$/i]);
+      if (time || /^(what'?s\s+)?(?:the\s+)?(?:current\s+)?time\??$/i.test(trimmed)) {
+        return { tool: 'get_current_time', args: { timezone: time }, label: 'Resolved live time.' };
+      }
+
+      const place = pickMatch([/\b(?:find|search for|show me)\s+(.+?)\s+(?:near|in)\s+(.+)$/i]);
+      if (place && /\b(restaurant|coffee|cafe|hotel|clinic|hospital|library|school|museum|landmark|shop|store|atm|bank|park)\b/i.test(place)) {
+        const match = trimmed.match(/\b(?:find|search for|show me)\s+(.+?)\s+(?:near|in)\s+(.+)$/i);
+        return { tool: 'search_places', args: { query: stripTrailing(match[1]), near: stripTrailing(match[2]) }, label: 'Searched places.' };
+      }
+
+      if (/\b(tell me a joke|another joke|daily humor)\b/i.test(lower)) {
+        return { tool: 'tell_joke', args: {}, label: 'Fetched a joke.' };
+      }
+
+      if (/\b(give me some advice|words of wisdom|life advice)\b/i.test(lower)) {
+        return { tool: 'give_advice', args: {}, label: 'Fetched advice.' };
+      }
+
+      return null;
+    };
 
     // ----------------------------------------------------
     // OFFLINE CAPABILITIES: SLASH COMMAND ROUTING
@@ -1516,6 +1666,11 @@ document.addEventListener('DOMContentLoaded', () => {
       if (command === 'crypto') {
         toolToCall = 'get_crypto_price';
         argsPayload = { coin: arg || 'bitcoin' };
+      } else if (command === 'web') {
+        requestWebSearch = true;
+        if (arg && payloadMessages.length > 0) {
+          payloadMessages[payloadMessages.length - 1].content = `${arg}${projectContext || ''}`;
+        }
       } else if (command === 'define' || command === 'dict') {
         toolToCall = 'define_word';
         argsPayload = { word: arg || 'intelligence' };
@@ -1525,9 +1680,12 @@ document.addEventListener('DOMContentLoaded', () => {
       } else if (command === 'weather') {
         toolToCall = 'get_weather';
         argsPayload = { city: arg || 'London' };
-      } else if (command === 'space' || command === 'spacenews' || command === 'news') {
+      } else if (command === 'space' || command === 'spacenews') {
         toolToCall = 'get_space_news';
-        argsPayload = { topic: arg || 'technology' };
+        argsPayload = { topic: arg || '' };
+      } else if (command === 'news' || command === 'headlines') {
+        toolToCall = 'get_news_headlines';
+        argsPayload = { topic: arg || 'top stories' };
       } else if (command === 'bible' || command === 'verse') {
         toolToCall = 'get_bible_verse';
         argsPayload = { reference: arg || 'John 3:16' };
@@ -1537,10 +1695,13 @@ document.addEventListener('DOMContentLoaded', () => {
       } else if (command === 'advice') {
         toolToCall = 'give_advice';
         argsPayload = {};
-      } else if (command === 'currency') {
+      } else if (command === 'currency' || command === 'convert') {
         const parts = arg.split(' ').map(p => p.trim()).filter(Boolean);
         toolToCall = 'convert_currency';
-        argsPayload = { amount: parseFloat(parts[0]) || 1, from: parts[1] || 'USD', to: (parts[2] || parts[3]) || 'EUR' };
+        const convertMatch = arg.match(/(\d+(?:\.\d+)?)\s*([a-z]{3})\s+(?:to|in|into)?\s*([a-z]{3})/i);
+        argsPayload = convertMatch
+          ? { amount: parseFloat(convertMatch[1]), from: convertMatch[2].toUpperCase(), to: convertMatch[3].toUpperCase() }
+          : { amount: parseFloat(parts[0]) || 1, from: parts[1] || 'USD', to: (parts[2] || parts[3]) || 'EUR' };
       } else if (command === 'math') {
         toolToCall = 'solve_math';
         argsPayload = { expression: arg || '2+2', operation: 'simplify' };
@@ -1550,50 +1711,27 @@ document.addEventListener('DOMContentLoaded', () => {
       } else if (command === 'ocr') {
         toolToCall = 'scan_ocr';
         argsPayload = {};
+      } else if (command === 'time') {
+        toolToCall = 'get_current_time';
+        argsPayload = { timezone: arg || '' };
+      } else if (command === 'unit') {
+        const unitMatch = arg.match(/(-?\d+(?:\.\d+)?)\s*([a-zA-Z°/ ]{1,22})\s+(?:to|in|into)\s+([a-zA-Z°/ ]{1,22})/i);
+        toolToCall = 'convert_units';
+        argsPayload = unitMatch
+          ? { value: parseFloat(unitMatch[1]), from: unitMatch[2].trim(), to: unitMatch[3].trim() }
+          : { value: 1, from: 'km', to: 'miles' };
+      } else if (command === 'places' || command === 'place') {
+        const nearMatch = arg.match(/(.+?)\s+(?:near|in)\s+(.+)$/i);
+        toolToCall = 'search_places';
+        argsPayload = nearMatch
+          ? { query: nearMatch[1].trim(), near: nearMatch[2].trim() }
+          : { query: arg || 'coffee shop' };
       }
       
       if (toolToCall) {
         try {
-          if (statusAnimator) { statusAnimator.stop(); statusAnimator = null; }
-          const res = await fetch(`${API_BASE}/api/widget/execute`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            signal: state.abortController.signal,
-            body: JSON.stringify({ tool: toolToCall, args: argsPayload })
-          });
-          
-          if (!res.ok) throw new Error('Widget service failed');
-          const widgetResult = await res.json();
-          
-          accumulatedWidgets.push(widgetResult);
-          
-          if (window.atlasRenderWidget) {
-            const widgetHtml = window.atlasRenderWidget(widgetResult.type, widgetResult.data);
-            if (widgetHtml && widgetsContainer) {
-              const widgetBox = document.createElement('div');
-              widgetBox.className = 'widget-mount-point';
-              widgetBox.innerHTML = widgetHtml;
-              widgetsContainer.appendChild(widgetBox);
-            }
-          }
-          
-          bubble.innerHTML = parseMarkdownSafely(`Executed local command \`/${command}\`.`, false);
-          
-          session.messages.push({
-            role: 'assistant',
-            content: `Executed local command \`/${command}\`.`,
-            widgets: accumulatedWidgets
-          });
-          session.updatedAt = new Date().toISOString();
-          saveSessions();
-          updateSessionMetrics();
-          
-          state.isGenerating = false;
-          if (stopGenerationBtn) stopGenerationBtn.style.display = 'none';
-          if (sendBtn) sendBtn.style.display = 'flex';
-          if (streamingIndicator) streamingIndicator.style.display = 'none';
-          scrollToBottom(true);
-          return; // Skip LLM call entirely
+          await runLocalWidget(toolToCall, argsPayload, `Executed local command \`/${command}\`.`);
+          return;
         } catch (err) {
            // Fall through to standard error handler
            throw err;
@@ -1601,6 +1739,16 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
     // ----------------------------------------------------
+
+    const localIntent = detectLocalWidgetIntent(prompt);
+    if (localIntent) {
+      try {
+        await runLocalWidget(localIntent.tool, localIntent.args, localIntent.label);
+        return;
+      } catch (err) {
+        throw err;
+      }
+    }
 
     try {
       const response = await fetch(`${API_BASE}/api/chat`, {
@@ -1617,7 +1765,7 @@ document.addEventListener('DOMContentLoaded', () => {
           mode: state.activeMode,
           systemPrompt: state.systemPrompt,
           temperature: state.temperature,
-          webSearch: state.isWebSearch,
+          webSearch: requestWebSearch,
           reasoning: state.isDeepReasoning,
           maxTokens: 4096,
           apiKey: state.apiKey || undefined
@@ -2366,15 +2514,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const availableSlashCommands = [
       { cmd: '/web', desc: 'Search the web for current information', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>' },
-      { cmd: '/image', desc: 'Generate an image using AI', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>' },
+      { cmd: '/image', desc: 'Search visual references', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>' },
       { cmd: '/analyze', desc: 'Deep analysis of uploaded files', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>' },
       { cmd: '/code', desc: 'Generate advanced codebase', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>' },
       { cmd: '/reddit', desc: 'Search Reddit discussions', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>' },
       { cmd: '/crypto', desc: 'Check live crypto prices', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 6v2"/><path d="M12 16v2"/></svg>' },
       { cmd: '/weather', desc: 'Get local weather forecasts', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>' },
-      { cmd: '/news', desc: 'Get latest news updates', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/></svg>' },
+      { cmd: '/news', desc: 'Get latest general headlines', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/></svg>' },
+      { cmd: '/space', desc: 'Get space and NASA intelligence', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.5 16.5c-1.5 1.26-2 3-2 3s1.74-.5 3-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>' },
       { cmd: '/math', desc: 'Solve mathematical equations', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><line x1="16" x2="16" y1="14" y2="18"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/></svg>' },
       { cmd: '/convert', desc: 'Convert currency values', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="12" x="2" y="6" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>' },
+      { cmd: '/unit', desc: 'Convert measurements', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>' },
+      { cmd: '/time', desc: 'Resolve live time and date', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>' },
+      { cmd: '/places', desc: 'Search places and landmarks', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>' },
       { cmd: '/define', desc: 'Get precise dictionary definitions', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>' },
       { cmd: '/bible', desc: 'Look up Bible verses', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/><path d="M12 8v6"/><path d="M10 10h4"/></svg>' },
       { cmd: '/joke', desc: 'Hear a joke or humor', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/></svg>' },

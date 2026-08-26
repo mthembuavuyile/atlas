@@ -368,6 +368,61 @@ header {
   font-size: 0.95rem;
 }
 
+.capability-matrix {
+  padding: 0 0 6rem;
+}
+
+.section-lead {
+  max-width: 760px;
+  margin: -1.5rem auto 2rem;
+  color: var(--text-secondary);
+  text-align: center;
+  font-size: 1.05rem;
+}
+
+.capability-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  background: rgba(10, 46, 92, 0.25);
+}
+
+.capability-table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+}
+
+.capability-table th,
+.capability-table td {
+  padding: 1rem 1.1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--card-border);
+  vertical-align: top;
+}
+
+.capability-table th {
+  color: var(--accent-color);
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  letter-spacing: 0;
+  background: rgba(3, 18, 39, 0.65);
+}
+
+.capability-table td {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.capability-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.capability-table td:first-child {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
 /* Use Case Section */
 .use-case {
   padding: 6rem 0;

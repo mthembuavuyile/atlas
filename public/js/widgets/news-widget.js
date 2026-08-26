@@ -5,14 +5,15 @@ export function renderNewsWidget(data) {
 
     const articles = data.articles || [];
     if (!articles.length) {
-        return `<div class="atlas-widget-empty">No aerospace or astronomy news found${data.topic ? ` for "${escapeHtml(data.topic)}"` : ''}.</div>`;
+        const category = data.category || 'Space & Astronomy News';
+        return `<div class="atlas-widget-empty">No ${escapeHtml(category.toLowerCase())} found${data.topic ? ` for "${escapeHtml(data.topic)}"` : ''}.</div>`;
     }
 
     let html = '<div class="atlas-news-list">';
     for (const article of articles) {
         const title = escapeHtml(article.title || 'Untitled Article');
         const url = escapeHtml(article.url || '#');
-        const site = escapeHtml(article.news_site || 'Space Wire');
+        const site = escapeHtml(article.news_site || 'News Wire');
         const summary = article.summary ? escapeHtml(article.summary) : '';
         const timeAgo = formatTimeAgo(article.published_at);
         const imageUrl = article.image_url ? escapeHtml(article.image_url) : '';
@@ -43,6 +44,6 @@ export function renderNewsWidget(data) {
     html += '</div>';
 
     const topicLabel = data.topic ? `: ${escapeHtml(data.topic)}` : '';
-    return createWidgetShell('news', WIDGET_ICONS.news, `Space & Astronomy News${topicLabel}`, html);
+    const category = data.category || 'Space & Astronomy News';
+    return createWidgetShell('news', WIDGET_ICONS.news, `${category}${topicLabel}`, html);
 }
-

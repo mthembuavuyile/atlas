@@ -19,8 +19,21 @@ Built by [Vylex Technologies](https://vylex.co.za)
 - **System Presets**: Pre-configured system prompts tailored for coding, architecture, and deep technical analysis.
 - **File Attachments**: Drag and drop text or code files directly into your prompts.
 - **Project Context**: Import a website folder into the composer so Atlas can inspect relevant files and propose an approval-ready unified diff. Files are never overwritten automatically.
+- **Live API Widgets**: Deterministic widgets for weather, crypto, currency, math, general news, spaceflight intelligence, Reddit discussions, dictionary definitions, visual search, advice, jokes, Bible verses, OCR, places, time zones, unit conversion, and webpage extraction.
+- **Natural-Language Tool Triggers**: Common prompts like "weather in Durban", "Bitcoin price", "convert 100 USD to ZAR", "define resilient", "SpaceX updates", and "scan text from image" can open the right widget directly.
 - **Export Options**: Download conversation history in Markdown or JSON formats for documentation or sharing.
 - **Terminal CLI**: Included command-line interface for when you prefer working straight from the terminal.
+
+## Atlas vs Nexora
+
+Atlas includes Nexora's live-data assistant surface, then extends beyond it:
+
+| Capability Area | Atlas Coverage |
+| :--- | :--- |
+| Nexora-style live modules | Weather, crypto, currency conversion, Newton math, Reddit/community feeds, dictionary, OCR, visual photo search, advice, jokes, Bible verses, and spaceflight intelligence |
+| Added live utilities | General headlines, time zones, unit conversion, OpenStreetMap place search, webpage extraction, and multi-source web grounding |
+| Reasoning layer | Multi-model OpenRouter chat, specialist investigation modes, tool synthesis, and streamed answers |
+| Builder workspace | Artifacts canvas, live HTML preview, syntax highlighting, file attachments, project context import, Markdown/JSON export, and CLI |
 
 ---
 

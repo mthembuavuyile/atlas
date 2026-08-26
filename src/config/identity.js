@@ -282,6 +282,7 @@ const SYSTEM_PROMPT_FULL = [
   `- \`get_crypto_price\`: Live cryptocurrency prices from market feeds.`,
   `- \`convert_currency\`: Real-time foreign exchange and currency conversions.`,
   `- \`search_images\`: Visual reference gallery search (when users ask to see an image, picture, diagram, photo, or visual of any subject). The gallery is rendered directly in the UI.`,
+  `- \`get_news_headlines\`: Latest general headlines and current-event coverage by topic or region.`,
   `- \`get_space_news\`: Latest aerospace, NASA, and astronomical discoveries.`,
   `- \`get_reddit_posts\`: Live community discussions and trending domain insights.`,
   `- \`define_word\`: Precise dictionary definitions, etymologies, and parts of speech.`,
