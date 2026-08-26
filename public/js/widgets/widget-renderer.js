@@ -9,8 +9,14 @@ import { renderCurrencyWidget } from './currency-widget.js';
 import { renderMathWidget } from './math-widget.js';
 import { renderJokeWidget } from './joke-widget.js';
 import { renderAdviceWidget } from './advice-widget.js';
+import { renderTimeWidget } from './time-widget.js';
+import { renderUnitWidget } from './unit-widget.js';
+import { renderPlacesWidget } from './places-widget.js';
 
 const RENDERERS = {
+    time: renderTimeWidget,
+    unit: renderUnitWidget,
+    places: renderPlacesWidget,
     weather: renderWeatherWidget,
     crypto: renderCryptoWidget,
     bible: renderBibleWidget,

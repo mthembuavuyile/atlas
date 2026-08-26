@@ -947,3 +947,183 @@
     font-size: 0.8rem;
     color: #64748b;
 }
+
+/* ─────────────────────────────────────────────────────────────
+   TIME WIDGET
+   ───────────────────────────────────────────────────────────── */
+.time-widget-display {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.time-main-row {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+}
+
+.time-value-highlight {
+    font-size: 1.8rem;
+    font-weight: 700;
+    font-family: var(--font-mono, monospace);
+    color: var(--accent-primary, #fba919);
+    letter-spacing: -0.02em;
+}
+
+.time-12h-label {
+    font-size: 0.95rem;
+    color: var(--text-secondary, #cbd5e1);
+    font-family: var(--font-mono, monospace);
+}
+
+.time-date-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: var(--text-main, #f8fafc);
+}
+
+.time-day-badge {
+    font-weight: 600;
+    color: var(--accent-primary, #fba919);
+}
+
+.time-zone-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+    font-size: 0.75rem;
+    color: var(--text-muted, #94a3b8);
+}
+
+.time-tz-name {
+    font-family: var(--font-mono, monospace);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   UNIT CONVERSION WIDGET
+   ───────────────────────────────────────────────────────────── */
+.unit-widget-display {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.unit-from-label {
+    font-size: 0.85rem;
+    color: var(--text-muted, #94a3b8);
+}
+
+.unit-code {
+    font-weight: 600;
+    color: var(--text-secondary, #cbd5e1);
+}
+
+.unit-result-value {
+    font-size: 1.6rem;
+    font-weight: 700;
+    font-family: var(--font-mono, monospace);
+    color: #38bdf8;
+    margin-bottom: 4px;
+}
+
+.unit-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+    color: var(--text-muted, #94a3b8);
+}
+
+.unit-formula {
+    font-family: var(--font-mono, monospace);
+    color: var(--text-secondary, #cbd5e1);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   PLACES & LOCAL BUSINESS WIDGET
+   ───────────────────────────────────────────────────────────── */
+.places-widget-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.places-item {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+    border-radius: 5px;
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.places-item:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(251, 169, 25, 0.3);
+}
+
+.places-item-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.places-item-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: rgba(251, 169, 25, 0.15);
+    color: var(--accent-primary, #fba919);
+    font-size: 0.72rem;
+    font-weight: 700;
+    font-family: var(--font-mono, monospace);
+}
+
+.places-item-title-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.places-item-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--text-main, #f8fafc);
+}
+
+.places-item-address {
+    font-size: 0.8rem;
+    color: var(--text-secondary, #cbd5e1);
+    line-height: 1.4;
+    padding-left: 28px;
+}
+
+.places-item-footer {
+    padding-left: 28px;
+    margin-top: 4px;
+}
+
+.places-map-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.75rem;
+    color: var(--accent-primary, #fba919);
+    text-decoration: none;
+    transition: opacity 0.15s ease;
+}
+
+.places-map-link:hover {
+    opacity: 0.85;
+    text-decoration: underline;
+}

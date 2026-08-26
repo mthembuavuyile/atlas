@@ -2,6 +2,64 @@ const ATLAS_TOOLS = [
   {
     type: 'function',
     function: {
+      name: 'get_current_time',
+      description: 'Get the exact live time, date, day of week, and timezone information for any location or timezone.',
+      parameters: {
+        type: 'object',
+        properties: {
+          timezone: { type: 'string', description: 'City name, country, or IANA timezone string, e.g. "Africa/Johannesburg", "Durban", "Tokyo", "London", "New York", "UTC".' }
+        }
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'convert_units',
+      description: 'Convert values between units of measurement (length, weight/mass, temperature, speed, area, volume, digital storage).',
+      parameters: {
+        type: 'object',
+        properties: {
+          value: { type: 'number', description: 'The numeric quantity to convert.' },
+          from: { type: 'string', description: 'Source unit symbol or name (e.g. "km", "miles", "kg", "lbs", "C", "F", "m/s", "km/h", "litres", "gallons", "MB", "GB").' },
+          to: { type: 'string', description: 'Target unit symbol or name (e.g. "miles", "km", "lbs", "kg", "F", "C", "km/h", "m/s", "gallons", "litres", "GB", "MB").' }
+        },
+        required: ['value', 'from', 'to']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'search_places',
+      description: 'Search for places, local businesses, addresses, attractions, or landmarks using OpenStreetMap.',
+      parameters: {
+        type: 'object',
+        properties: {
+          query: { type: 'string', description: 'Place, landmark, or business category, e.g. "coffee shop", "library", "Durban beachfront".' },
+          near: { type: 'string', description: 'Optional city or locality filter, e.g. "Durban", "Johannesburg", "Cape Town".' }
+        },
+        required: ['query']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'fetch_webpage',
+      description: 'Fetch and extract clean readable text or markdown from a specific target webpage URL.',
+      parameters: {
+        type: 'object',
+        properties: {
+          url: { type: 'string', description: 'The full URL of the webpage to read (e.g. "https://en.wikipedia.org/wiki/Quantum_computing").' }
+        },
+        required: ['url']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
       name: 'get_weather',
       description: 'Get current weather for a city or location',
       parameters: {

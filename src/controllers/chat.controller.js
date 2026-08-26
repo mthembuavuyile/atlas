@@ -199,6 +199,10 @@ class ChatController {
             res.write(`data: ${JSON.stringify({ __tool_start__: { name: toolName, args } })}\n\n`);
 
             switch (toolName) {
+              case 'get_current_time': widgetResult = await widgetService.getCurrentTime(args.timezone); break;
+              case 'convert_units': widgetResult = await widgetService.convertUnits(args.value, args.from, args.to); break;
+              case 'search_places': widgetResult = await widgetService.searchPlaces(args.query, args.near); break;
+              case 'fetch_webpage': widgetResult = await widgetService.fetchWebpage(args.url); break;
               case 'get_weather': widgetResult = await widgetService.getWeather(args.city); break;
               case 'get_crypto_price': widgetResult = await widgetService.getCryptoPrice(args.coin); break;
               case 'get_bible_verse': widgetResult = await widgetService.getBibleVerse(args.reference); break;

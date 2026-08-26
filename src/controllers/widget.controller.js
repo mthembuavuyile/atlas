@@ -13,6 +13,18 @@ class WidgetController {
             
             // Map the tool name from the LLM to our widgetService methods
             switch (tool) {
+                case 'get_current_time':
+                    result = await widgetService.getCurrentTime(args.timezone);
+                    break;
+                case 'convert_units':
+                    result = await widgetService.convertUnits(args.value, args.from, args.to);
+                    break;
+                case 'search_places':
+                    result = await widgetService.searchPlaces(args.query, args.near);
+                    break;
+                case 'fetch_webpage':
+                    result = await widgetService.fetchWebpage(args.url);
+                    break;
                 case 'get_weather':
                     result = await widgetService.getWeather(args.city);
                     break;

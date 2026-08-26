@@ -1,8 +1,332 @@
 const { fetchWithTimeout } = require('../utils/fetchWithTimeout');
+const cache = require('../utils/cache');
+const searchService = require('./search.service');
 
 class WidgetService {
-    // 1. Weather
+    // 0. Live Time & Timezone Engine (100% Deterministic native Intl)
+    async getCurrentTime(timezone) {
+        try {
+            const rawTz = (timezone || '').toString().trim();
+            const cityTimezones = {
+                'durban': 'Africa/Johannesburg',
+                'johannesburg': 'Africa/Johannesburg',
+                'joburg': 'Africa/Johannesburg',
+                'cape town': 'Africa/Johannesburg',
+                'pretoria': 'Africa/Johannesburg',
+                'london': 'Europe/London',
+                'new york': 'America/New_York',
+                'nyc': 'America/New_York',
+                'los angeles': 'America/Los_Angeles',
+                'la': 'America/Los_Angeles',
+                'chicago': 'America/Chicago',
+                'tokyo': 'Asia/Tokyo',
+                'paris': 'Europe/Paris',
+                'berlin': 'Europe/Berlin',
+                'sydney': 'Australia/Sydney',
+                'dubai': 'Asia/Dubai',
+                'singapore': 'Asia/Singapore',
+                'toronto': 'America/Toronto',
+                'beijing': 'Asia/Shanghai',
+                'hong kong': 'Asia/Hong_Kong',
+                'mumbai': 'Asia/Kolkata',
+                'delhi': 'Asia/Kolkata',
+                'nairobi': 'Africa/Nairobi',
+                'cairo': 'Africa/Cairo',
+                'lagos': 'Africa/Lagos',
+                'utc': 'UTC',
+                'gmt': 'UTC'
+            };
+
+            let resolvedTimezone = cityTimezones[rawTz.toLowerCase()] || rawTz;
+            if (!resolvedTimezone) {
+                resolvedTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Africa/Johannesburg';
+            }
+
+            const now = new Date();
+            let formatter24, formatter12, dateFormatter, dayFormatter, tzAbbrFormatter;
+
+            try {
+                formatter24 = new Intl.DateTimeFormat('en-GB', {
+                    timeZone: resolvedTimezone,
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                });
+                formatter12 = new Intl.DateTimeFormat('en-US', {
+                    timeZone: resolvedTimezone,
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: true
+                });
+                dateFormatter = new Intl.DateTimeFormat('en-US', {
+                    timeZone: resolvedTimezone,
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+                dayFormatter = new Intl.DateTimeFormat('en-US', {
+                    timeZone: resolvedTimezone,
+                    weekday: 'long'
+                });
+                tzAbbrFormatter = new Intl.DateTimeFormat('en-US', {
+                    timeZone: resolvedTimezone,
+                    timeZoneName: 'short'
+                });
+            } catch (err) {
+                // Invalid timezone fallback to UTC
+                resolvedTimezone = 'UTC';
+                formatter24 = new Intl.DateTimeFormat('en-GB', { timeZone: 'UTC', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+                formatter12 = new Intl.DateTimeFormat('en-US', { timeZone: 'UTC', hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true });
+                dateFormatter = new Intl.DateTimeFormat('en-US', { timeZone: 'UTC', year: 'numeric', month: 'long', day: 'numeric' });
+                dayFormatter = new Intl.DateTimeFormat('en-US', { timeZone: 'UTC', weekday: 'long' });
+                tzAbbrFormatter = new Intl.DateTimeFormat('en-US', { timeZone: 'UTC', timeZoneName: 'short' });
+            }
+
+            const time24 = formatter24.format(now);
+            const time12 = formatter12.format(now);
+            const dateStr = dateFormatter.format(now);
+            const dayOfWeek = dayFormatter.format(now);
+            const tzParts = tzAbbrFormatter.formatToParts(now);
+            const tzAbbr = tzParts.find(p => p.type === 'timeZoneName')?.value || resolvedTimezone;
+
+            return {
+                type: 'time',
+                data: {
+                    timezone: resolvedTimezone,
+                    time24,
+                    time12,
+                    date: dateStr,
+                    day: dayOfWeek,
+                    timezoneAbbr: tzAbbr,
+                    iso: now.toISOString(),
+                    requestedLocation: rawTz || resolvedTimezone
+                }
+            };
+        } catch (err) {
+            return { error: "Failed to resolve date and time." };
+        }
+    }
+
+    // 0.1 Unit Converter Engine (Deterministic mathematical conversion)
+    async convertUnits(value, fromUnit, toUnit) {
+        if (value === undefined || value === null || isNaN(Number(value))) {
+            return { error: "Please provide a valid numeric value for unit conversion." };
+        }
+
+        const val = Number(value);
+        const from = (fromUnit || '').trim().toLowerCase();
+        const to = (toUnit || '').trim().toLowerCase();
+
+        // Conversion Categories
+        const conversionTables = {
+            length: {
+                units: {
+                    'm': 1, 'meter': 1, 'meters': 1, 'metre': 1, 'metres': 1,
+                    'km': 1000, 'kilometer': 1000, 'kilometers': 1000, 'kilometre': 1000,
+                    'cm': 0.01, 'centimeter': 0.01, 'centimeters': 0.01,
+                    'mm': 0.001, 'millimeter': 0.001, 'millimeters': 0.001,
+                    'mi': 1609.344, 'mile': 1609.344, 'miles': 1609.344,
+                    'yd': 0.9144, 'yard': 0.9144, 'yards': 0.9144,
+                    'ft': 0.3048, 'foot': 0.3048, 'feet': 0.3048,
+                    'in': 0.0254, 'inch': 0.0254, 'inches': 0.0254,
+                    'nm': 1852, 'nautical mile': 1852, 'nautical miles': 1852
+                },
+                base: 'meters'
+            },
+            mass: {
+                units: {
+                    'kg': 1, 'kilogram': 1, 'kilograms': 1, 'kilo': 1, 'kilos': 1,
+                    'g': 0.001, 'gram': 0.001, 'grams': 0.001,
+                    'mg': 0.000001, 'milligram': 0.000001, 'milligrams': 0.000001,
+                    'lb': 0.45359237, 'lbs': 0.45359237, 'pound': 0.45359237, 'pounds': 0.45359237,
+                    'oz': 0.028349523125, 'ounce': 0.028349523125, 'ounces': 0.028349523125,
+                    'stone': 6.35029318, 'st': 6.35029318,
+                    'ton': 907.18474, 'tons': 907.18474, 'tonne': 1000, 'tonnes': 1000, 'metric ton': 1000
+                },
+                base: 'kilograms'
+            },
+            speed: {
+                units: {
+                    'm/s': 1, 'mps': 1, 'meter per second': 1,
+                    'km/h': 0.2777777777777778, 'kmh': 0.2777777777777778, 'kph': 0.2777777777777778,
+                    'mph': 0.44704, 'mile per hour': 0.44704, 'miles per hour': 0.44704,
+                    'knot': 0.5144444444444445, 'knots': 0.5144444444444445, 'kt': 0.5144444444444445,
+                    'ft/s': 0.3048, 'fps': 0.3048
+                },
+                base: 'm/s'
+            },
+            volume: {
+                units: {
+                    'l': 1, 'litre': 1, 'litres': 1, 'liter': 1, 'liters': 1,
+                    'ml': 0.001, 'millilitre': 0.001, 'millilitres': 0.001,
+                    'gal': 3.785411784, 'gallon': 3.785411784, 'gallons': 3.785411784,
+                    'qt': 0.946352946, 'quart': 0.946352946, 'quarts': 0.946352946,
+                    'pt': 0.473176473, 'pint': 0.473176473, 'pints': 0.473176473,
+                    'cup': 0.24, 'cups': 0.24,
+                    'fl oz': 0.0295735295625, 'floz': 0.0295735295625, 'fluid ounce': 0.0295735295625,
+                    'm3': 1000, 'cubic meter': 1000, 'cubic meters': 1000
+                },
+                base: 'litres'
+            },
+            digital: {
+                units: {
+                    'b': 1, 'byte': 1, 'bytes': 1,
+                    'kb': 1024, 'kilobyte': 1024, 'kilobytes': 1024,
+                    'mb': 1048576, 'megabyte': 1048576, 'megabytes': 1048576,
+                    'gb': 1073741824, 'gigabyte': 1073741824, 'gigabytes': 1073741824,
+                    'tb': 1099511627776, 'terabyte': 1099511627776, 'terabytes': 1099511627776,
+                    'pb': 1125899906842624, 'petabyte': 1125899906842624, 'petabytes': 1125899906842624
+                },
+                base: 'bytes'
+            }
+        };
+
+        // Temperature Special Case
+        const isTempFrom = ['c', 'celsius', '°c', 'f', 'fahrenheit', '°f', 'k', 'kelvin'].includes(from);
+        const isTempTo = ['c', 'celsius', '°c', 'f', 'fahrenheit', '°f', 'k', 'kelvin'].includes(to);
+
+        if (isTempFrom && isTempTo) {
+            let celsius;
+            if (from === 'c' || from === 'celsius' || from === '°c') celsius = val;
+            else if (from === 'f' || from === 'fahrenheit' || from === '°f') celsius = (val - 32) * (5 / 9);
+            else if (from === 'k' || from === 'kelvin') celsius = val - 273.15;
+
+            let result;
+            let formula = '';
+            if (to === 'c' || to === 'celsius' || to === '°c') {
+                result = celsius;
+                formula = '°C';
+            } else if (to === 'f' || to === 'fahrenheit' || to === '°f') {
+                result = (celsius * (9 / 5)) + 32;
+                formula = '(°C × 9/5) + 32';
+            } else if (to === 'k' || to === 'kelvin') {
+                result = celsius + 273.15;
+                formula = '°C + 273.15';
+            }
+
+            const formatted = Number(result.toFixed(4)).toString();
+            return {
+                type: 'unit',
+                data: {
+                    value: val,
+                    from: fromUnit,
+                    to: toUnit,
+                    result: Number(result.toFixed(6)),
+                    formattedResult: `${formatted} ${toUnit}`,
+                    category: 'Temperature',
+                    formula
+                }
+            };
+        }
+
+        // Search category tables
+        for (const [categoryName, table] of Object.entries(conversionTables)) {
+            if (table.units[from] !== undefined && table.units[to] !== undefined) {
+                const baseValue = val * table.units[from];
+                const converted = baseValue / table.units[to];
+                const formatted = Number(converted.toFixed(6)).toString();
+
+                return {
+                    type: 'unit',
+                    data: {
+                        value: val,
+                        from: fromUnit,
+                        to: toUnit,
+                        result: converted,
+                        formattedResult: `${formatted} ${toUnit}`,
+                        category: categoryName.charAt(0).toUpperCase() + categoryName.slice(1),
+                        formula: `1 ${fromUnit} = ${(table.units[from] / table.units[to]).toFixed(6).replace(/\.?0+$/, '')} ${toUnit}`
+                    }
+                };
+            }
+        }
+
+        return { error: `Cannot convert between "${fromUnit}" and "${toUnit}". Units are incompatible or unrecognized.` };
+    }
+
+    // 0.2 Places & Local Business Search (100% Free OpenStreetMap Nominatim)
+    async searchPlaces(query, near = '') {
+        const fullQuery = near ? `${query}, ${near}` : query;
+        const cleanQuery = (fullQuery || 'coffee shop').trim();
+        const cacheKey = `places:${cleanQuery.toLowerCase()}`;
+        const cached = cache.get(cacheKey);
+        if (cached) return cached;
+
+        try {
+            const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cleanQuery)}&format=json&addressdetails=1&limit=5`;
+            const res = await fetchWithTimeout(url, {
+                headers: {
+                    'User-Agent': 'AtlasReasoningStudio/1.0 (https://vylex.co.za; hello@vylex.co.za)',
+                    'Accept-Language': 'en'
+                },
+                signal: AbortSignal.timeout(4500)
+            });
+
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+
+            if (!Array.isArray(data) || data.length === 0) {
+                return { error: `No places found matching "${cleanQuery}".` };
+            }
+
+            const places = data.map(item => {
+                const lat = parseFloat(item.lat);
+                const lon = parseFloat(item.lon);
+                const name = item.name || item.display_name.split(',')[0] || 'Location';
+                const type = item.type ? (item.type.replace(/_/g, ' ')) : (item.class || 'place');
+                const address = item.display_name;
+
+                return {
+                    name,
+                    category: type.toUpperCase(),
+                    address,
+                    latitude: lat,
+                    longitude: lon,
+                    mapUrl: `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=16/${lat}/${lon}`
+                };
+            });
+
+            const result = {
+                type: 'places',
+                data: {
+                    query: cleanQuery,
+                    count: places.length,
+                    places
+                }
+            };
+
+            cache.set(cacheKey, result, 3600); // Cache places for 1 hour
+            return result;
+        } catch (err) {
+            return { error: `Unable to retrieve map locations for "${cleanQuery}".` };
+        }
+    }
+
+    // 0.3 Fetch Webpage Content Tool
+    async fetchWebpage(url) {
+        try {
+            const text = await searchService.fetchPageText(url, 3500);
+            return {
+                type: 'webpage',
+                data: {
+                    url,
+                    content: text,
+                    length: text.length
+                }
+            };
+        } catch (err) {
+            return { error: `Failed to fetch content from ${url}: ${err.message}` };
+        }
+    }
+
+    // 1. Weather (Cached 10 min)
     async getWeather(city) {
+        const cacheKey = `weather:${(city || 'durban').toLowerCase().trim()}`;
+        const cached = cache.get(cacheKey);
+        if (cached) return cached;
+
         try {
             const geoRes = await fetchWithTimeout(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1`);
             if (!geoRes.ok) throw new Error('Geocoding service unavailable');
@@ -28,7 +352,7 @@ class WidgetService {
             const resolvedTimezone = weatherData.timezone || timezone || 'auto';
             const tzAbbr = weatherData.timezone_abbreviation || '';
 
-            return {
+            const result = {
                 type: 'weather',
                 data: {
                     name,
@@ -49,17 +373,23 @@ class WidgetService {
                     }
                 }
             };
+
+            cache.set(cacheKey, result, 600); // 10 min TTL
+            return result;
         } catch (err) {
             console.error('[Weather Error]:', err.message);
             return { error: "Unable to retrieve meteorological data. Please try again shortly." };
         }
     }
 
-    // 2. Crypto
+    // 2. Crypto (Cached 2 min)
     async getCryptoPrice(coin) {
         const coinMap = { 'btc': 'bitcoin', 'eth': 'ethereum', 'doge': 'dogecoin', 'sol': 'solana', 'xrp': 'ripple', 'ada': 'cardano' };
         const cleanCoin = (coin || 'bitcoin').trim().toLowerCase();
         const coinId = coinMap[cleanCoin] || cleanCoin;
+        const cacheKey = `crypto:${coinId}`;
+        const cached = cache.get(cacheKey);
+        if (cached) return cached;
         
         try {
             // Attempt CoinGecko
@@ -67,10 +397,12 @@ class WidgetService {
             const data = await res.json();
             
             if (data[coinId]?.usd !== undefined) {
-                return {
+                const result = {
                     type: 'crypto',
                     data: { coin: coinId, price: data[coinId].usd, source: 'CoinGecko' }
                 };
+                cache.set(cacheKey, result, 120);
+                return result;
             }
         } catch (e) {
             // Fallback to CoinCap
@@ -82,10 +414,12 @@ class WidgetService {
                 const data = await res.json();
                 const price = parseFloat(data.data?.priceUsd);
                 if (!isNaN(price)) {
-                    return {
+                    const result = {
                         type: 'crypto',
                         data: { coin: data.data.name || coinId, price, source: 'CoinCap' }
                     };
+                    cache.set(cacheKey, result, 120);
+                    return result;
                 }
             }
         } catch (e) {}
@@ -183,7 +517,7 @@ class WidgetService {
             } catch (e) {}
         }
 
-        // 3. Free Wikimedia Commons API (High-performance thumbnail generation via iiurlwidth=800)
+        // 3. Free Wikimedia Commons API
         if (allImages.length < targetLimit) {
             try {
                 const wikiUrl = `https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(cleanQuery)}&gsrlimit=24&gsrnamespace=6&prop=imageinfo&iiprop=url|mime|extmetadata|size&iiurlwidth=800&format=json`;
@@ -237,7 +571,7 @@ class WidgetService {
             }
         }
 
-        // 4. Free Wikipedia Page Images Search (Augment if still below target)
+        // 4. Free Wikipedia Page Images Search
         if (allImages.length < targetLimit) {
             try {
                 const wpUrl = `https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(cleanQuery)}&gsrlimit=10&prop=pageimages|extracts&pithumbsize=800&piprop=thumbnail|original&format=json`;
@@ -320,7 +654,7 @@ class WidgetService {
         const posts = [];
         let sourceName = 'Community Discussions';
 
-        // Tier 1: Photon / Arctic Shift Reddit API (High Reliability & Real-Time)
+        // Tier 1: Photon / Arctic Shift Reddit API
         try {
             const photonRes = await fetchWithTimeout(`https://arctic-shift.photon-reddit.com/api/posts/search?subreddit=${encodeURIComponent(finalSub)}&limit=15`, { timeoutMs: 3500 }, 3500);
             if (photonRes.ok) {
@@ -395,7 +729,7 @@ class WidgetService {
             } catch (e) {}
         }
 
-        // Tier 3: Lemmy Federated Community Discussions Fallback
+        // Tier 3: Lemmy Federated Fallback
         if (posts.length === 0) {
             try {
                 const lemmyRes = await fetchWithTimeout(`https://lemmy.world/api/v3/post/list?community_name=${encodeURIComponent(finalSub)}&limit=10`, { timeoutMs: 2500 }, 2500);
@@ -481,29 +815,52 @@ class WidgetService {
         }
     }
 
-    // 8. Currency
+    // 8. Currency (Cached 30 min)
     async convertCurrency(amount, from, to) {
         try {
             from = (from || 'USD').toUpperCase();
             to = (to || 'EUR').toUpperCase();
             const numAmount = parseFloat(amount) || 1;
+            const cacheKey = `fx:${from}:${to}`;
+            const cachedRate = cache.get(cacheKey);
+
+            if (cachedRate) {
+                return {
+                    type: 'currency',
+                    data: {
+                        amount: numAmount,
+                        from,
+                        to,
+                        rate: cachedRate,
+                        converted: numAmount * cachedRate,
+                        source: 'ExchangeRate-API (Cached)'
+                    }
+                };
+            }
+
             const res = await fetchWithTimeout(`https://api.frankfurter.app/latest?from=${from}&to=${to}`);
-            if (!res.ok) throw new Error();
-            const data = await res.json();
-            const rate = data.rates?.[to];
-            if (!rate) throw new Error();
-            return { type: 'currency', data: { amount: numAmount, from, to, rate, converted: numAmount * rate, source: 'Frankfurter (ECB)' } };
-        } catch (e) {
-            try {
-                const res2 = await fetchWithTimeout(`https://open.er-api.com/v6/latest/${from}`);
-                if (!res2.ok) throw new Error();
+            if (res.ok) {
+                const data = await res.json();
+                const rate = data.rates?.[to];
+                if (rate) {
+                    cache.set(cacheKey, rate, 1800); // 30 min TTL
+                    return { type: 'currency', data: { amount: numAmount, from, to, rate, converted: numAmount * rate, source: 'Frankfurter (ECB)' } };
+                }
+            }
+
+            const res2 = await fetchWithTimeout(`https://open.er-api.com/v6/latest/${from}`);
+            if (res2.ok) {
                 const data2 = await res2.json();
                 const rate2 = data2.rates?.[to];
-                if (!rate2) throw new Error();
-                return { type: 'currency', data: { amount: parseFloat(amount) || 1, from, to, rate: rate2, converted: (parseFloat(amount) || 1) * rate2, source: 'ExchangeRate-API' } };
-            } catch (e2) {
-                return { error: `Unable to compute currency conversion for ${from} → ${to}.` };
+                if (rate2) {
+                    cache.set(cacheKey, rate2, 1800);
+                    return { type: 'currency', data: { amount: numAmount, from, to, rate: rate2, converted: numAmount * rate2, source: 'ExchangeRate-API' } };
+                }
             }
+
+            return { error: `Unable to compute currency conversion for ${from} → ${to}.` };
+        } catch (e) {
+            return { error: `Unable to compute currency conversion for ${from} → ${to}.` };
         }
     }
 
@@ -523,11 +880,11 @@ class WidgetService {
             }
         }
 
-        // 1. Try Newton API (vercel.app / now.sh)
+        // 1. Try Newton API
         try {
-            let res = await fetchWithTimeout(`https://newton.vercel.app/api/v2/${apiOperation}/${encodeURIComponent(cleanedExpr)}`, { signal: AbortSignal.timeout(4000) });
+            let res = await fetchWithTimeout(`https://newton.vercel.app/api/v2/${apiOperation}/${encodeURIComponent(cleanedExpr)}`, { signal: AbortSignal.timeout(3500) });
             if (!res.ok) {
-                res = await fetchWithTimeout(`https://newton.now.sh/api/v2/${apiOperation}/${encodeURIComponent(cleanedExpr)}`, { signal: AbortSignal.timeout(3000) });
+                res = await fetchWithTimeout(`https://newton.now.sh/api/v2/${apiOperation}/${encodeURIComponent(cleanedExpr)}`, { signal: AbortSignal.timeout(2500) });
             }
             if (res.ok) {
                 const data = await res.json();
@@ -537,7 +894,7 @@ class WidgetService {
             }
         } catch (err) {}
 
-        // 2. Safe arithmetic-only evaluation fallback (no eval/Function)
+        // 2. Safe arithmetic-only evaluation fallback
         try {
             const sanitized = cleanedExpr.replace(/[^0-9+\-*/().^ eE]/g, '');
             if (sanitized && !/[a-zA-Z]/.test(sanitized)) {
