@@ -24,13 +24,13 @@ Built by [Vylex Technologies](https://vylex.co.za)
 - **Export Options**: Download conversation history in Markdown or JSON formats for documentation or sharing.
 - **Terminal CLI**: Included command-line interface for when you prefer working straight from the terminal.
 
-## Atlas vs Nexora
+## Atlas Capabilities
 
-Atlas includes Nexora's live-data assistant surface, then extends beyond it:
+Atlas combines live-data tools, technical reasoning, and an execution workspace:
 
 | Capability Area | Atlas Coverage |
 | :--- | :--- |
-| Nexora-style live modules | Weather, crypto, currency conversion, Newton math, Reddit/community feeds, dictionary, OCR, visual photo search, advice, jokes, Bible verses, and spaceflight intelligence |
+| Live-data tools | Weather, crypto, currency conversion, Newton math, Reddit/community feeds, dictionary, OCR, visual photo search, advice, jokes, Bible verses, and spaceflight intelligence |
 | Added live utilities | General headlines, time zones, unit conversion, OpenStreetMap place search, webpage extraction, and multi-source web grounding |
 | Reasoning layer | Multi-model OpenRouter chat, specialist investigation modes, tool synthesis, and streamed answers |
 | Builder workspace | Artifacts canvas, live HTML preview, syntax highlighting, file attachments, project context import, Markdown/JSON export, and CLI |

@@ -27,7 +27,7 @@ if (process.env.NODE_ENV !== 'production') {
   router.post('/tool/execute', toolLimiter, (req, res) => toolController.execute(req, res));
 }
 
-// Widget endpoint (Nexora tools)
+// Atlas widget endpoint
 router.post('/widget/execute', toolLimiter, (req, res) => widgetController.execute(req, res));
 
 module.exports = router;
