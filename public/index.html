@@ -122,7 +122,7 @@
             <line x1="12" y1="5" x2="12" y2="19"></line>
             <line x1="5" y1="12" x2="19" y2="12"></line>
           </svg>
-          <span>New Investigation</span>
+          <span>New Session</span>
           <kbd class="shortcut-badge">Ctrl K</kbd>
         </button>
       </div>
@@ -308,16 +308,23 @@
               </svg>
             </div>
             <h1 class="welcome-heading">
-              <span id="dynamicTimeGreeting">Good morning</span><span class="greeting-punct" id="greetingPunct">,</span> <span class="greeting-action" id="dynamicGreetingAction">what are we investigating today?</span>
+              <span id="dynamicTimeGreeting">Good morning</span><span class="greeting-punct" id="greetingPunct">,</span> <span class="greeting-action" id="dynamicGreetingAction">what would you like to work on today?</span>
             </h1>
             <p class="welcome-subtitle" id="welcomeSubtitle">
-              Multi-model technical reasoning, computational verification, and live tool grounding.
+              Ask anything. Atlas adapts its reasoning to the work in front of you.
             </p>
           </div>
 
-          <!-- 7 Investigation Modes Selector Grid (Zero Emojis, Pure SVGs) -->
+          <!-- Optional response modes (Zero Emojis, Pure SVGs) -->
           <div class="mode-selector-grid" id="modeSelectorGrid">
-            <div class="mode-card-pill active" data-mode="research">
+            <div class="mode-card-pill active" data-mode="auto">
+              <span class="mode-icon">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M8 12h8"></path><path d="M12 8v8"></path></svg>
+              </span>
+              <span class="mode-name">Auto</span>
+              <span class="mode-desc-hint">Adapts to your question</span>
+            </div>
+            <div class="mode-card-pill" data-mode="research">
               <span class="mode-icon">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
               </span>
@@ -371,14 +378,14 @@
           <!-- Active Mode Info Banner -->
           <div class="active-mode-banner" id="activeModeBanner">
             <div class="active-mode-banner-left">
-              <span class="active-mode-tag" id="activeModeTag">Mode: Research</span>
-              <span id="activeModeDesc">Literature synthesis, evidence evaluation, hypothesis formation, research maps</span>
+              <span class="active-mode-tag" id="activeModeTag">Mode: Auto</span>
+              <span id="activeModeDesc">Adapts the response to your question while preserving clear, useful reasoning</span>
             </div>
           </div>
 
-          <!-- Mode-Tailored Suggested Investigations -->
+          <!-- Mode-Tailored Suggested Prompts -->
           <div class="welcome-suggestions">
-            <span class="suggestion-label">Suggested Inquiries</span>
+            <span class="suggestion-label">Suggested Prompts</span>
             <div class="suggestion-pills" id="suggestionPillsContainer">
               <button class="prompt-card suggestion-pill" data-prompt="Synthesize the current approaches, contested claims, and experimental gaps in room-temperature superconductivity.">Superconductivity Landscape</button>
               <button class="prompt-card suggestion-pill" data-prompt="Why does this experimental result contradict the standard thermodynamic hypothesis? Identify confounding variables.">Contradicting Hypothesis</button>
@@ -409,7 +416,7 @@
             <textarea 
               id="messageInput" 
               class="composer-textarea" 
-              placeholder="What would you like to investigate?" 
+              placeholder="What would you like to work on?"
               rows="1"
               autofocus
             ></textarea>
@@ -464,7 +471,7 @@
                 </button>
 
                 <!-- Send Button -->
-                <button type="submit" id="sendBtn" class="send-btn" aria-label="Run Investigation" title="Investigate (Enter)">
+                <button type="submit" id="sendBtn" class="send-btn" aria-label="Send message" title="Send (Enter)">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="12" y1="19" x2="12" y2="5"></line>
                     <polyline points="5 12 12 5 19 12"></polyline>
@@ -610,7 +617,7 @@
         <div class="settings-content-area">
           <div class="settings-content-header">
             <div class="settings-content-title">
-              <h3 id="activeSettingsTitle">Reasoning Persona & Parameters</h3>
+              <h3 id="activeSettingsTitle">Response Style & Parameters</h3>
               <p id="activeSettingsDesc">Configure model instructions, temperature, and domain presets</p>
             </div>
             <button id="closeUnifiedSettingsBtn" class="icon-btn" aria-label="Close Settings">
@@ -624,9 +631,14 @@
               <div class="settings-pane-scrollable">
                 <!-- Preset Personas -->
                 <div class="settings-section">
-                  <label class="settings-label">Domain Intelligence Presets</label>
+                    <label class="settings-label">Response Style Presets</label>
+                    <p class="settings-help">These presets guide how Atlas responds. You can ask any question without choosing one.</p>
                   <div class="preset-pills-grid">
-                    <button class="preset-pill active" data-preset="scientist">
+                    <button class="preset-pill active" data-preset="auto">
+                      <span class="preset-name">Adaptive</span>
+                      <span class="preset-desc">Chooses an appropriate level of detail and approach for each request</span>
+                    </button>
+                    <button class="preset-pill" data-preset="scientist">
                       <span class="preset-name">Scientific Researcher</span>
                       <span class="preset-desc">Hypothesis formation, evidence evaluation, and uncertainty quantification</span>
                     </button>

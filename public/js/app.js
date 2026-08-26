@@ -20,6 +20,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- 7 Investigation Modes Definitions (Zero Emojis) ---
   const INVESTIGATION_MODES = {
+    auto: {
+      id: 'auto',
+      name: 'Auto',
+      desc: 'Adapts the response to your question while preserving clear, useful reasoning',
+      actionHint: 'what would you like to work on?',
+      suggestions: [
+        { label: 'Explain a Difficult Idea', prompt: 'Explain a difficult idea to me clearly, using an example and checking my likely assumptions.' },
+        { label: 'Help Me Decide', prompt: 'Help me think through an important decision. Ask only the questions needed, then compare the options and trade-offs.' },
+        { label: 'Review My Work', prompt: 'Review the work below, identify the most important problems, and suggest practical improvements.' }
+      ]
+    },
     research: {
       id: 'research',
       name: 'Research',
@@ -351,6 +362,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Persona Presets for Domain Intelligence
   const PERSONA_PRESETS = {
+    auto: 'You are an adaptive technical assistant. Match your depth, structure, tone, and method to the user request. Answer any reasonable question directly, using rigorous analysis, code, examples, or concise guidance when helpful. Do not force a specialist format onto a general question.',
     scientist: 'You are a rigorous scientific researcher. Apply the scientific method to every problem. Form hypotheses, gather evidence, test rigorously, and always quantify your uncertainty. Distinguish clearly between what is established, what is probable, and what is speculative.',
     mathematician: 'You are a mathematician. Approach every problem with mathematical rigor. Provide formal definitions, state theorems precisely, prove claims step by step, and verify results.',
     engineer: 'You are a principal systems engineer. Focus on architecture, scalability, reliability, and operational excellence. Always present trade-offs, identify failure modes, and consider cost.',
@@ -375,10 +387,10 @@ document.addEventListener('DOMContentLoaded', () => {
     currentModel: localStorage.getItem('omni_model') || 'openrouter/free',
     models: FREE_MODELS,
     apiKey: localStorage.getItem('atlas_openrouter_api_key') || '',
-    activeMode: localStorage.getItem('atlas_mode') || 'research',
+    activeMode: localStorage.getItem('atlas_mode') || 'auto',
     accountName: localStorage.getItem('atlas_account_name') || 'Your Name',
-    systemPrompt: localStorage.getItem('omni_sys_prompt') || PERSONA_PRESETS.scientist,
-    activePreset: localStorage.getItem('omni_preset') || 'scientist',
+    systemPrompt: localStorage.getItem('omni_sys_prompt') || PERSONA_PRESETS.auto,
+    activePreset: localStorage.getItem('omni_preset') || 'auto',
     temperature: parseFloat(localStorage.getItem('omni_temp') || '0.7'),
     defaultVoiceName: localStorage.getItem('atlas_default_voice') || '',
     isDeepReasoning: localStorage.getItem('omni_deep_reasoning') === 'true',
@@ -511,7 +523,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function syncModeDisplay(modeId) {
-    const mode = INVESTIGATION_MODES[modeId] || INVESTIGATION_MODES.research;
+    const mode = INVESTIGATION_MODES[modeId] || INVESTIGATION_MODES.auto;
 
     if (modeSelectorGrid) {
       modeSelectorGrid.querySelectorAll('.mode-card-pill').forEach(pill => {
@@ -576,15 +588,15 @@ document.addEventListener('DOMContentLoaded', () => {
           : mode.actionHint;
       } else {
         if (isLateNight) {
-          actionElem.textContent = "Let's dive deep into the problem.";
+          actionElem.textContent = "Let's work through it together.";
         } else if (hour >= 5 && hour < 9) {
-          actionElem.textContent = "where shall we begin today's research?";
+          actionElem.textContent = "what would you like to work on today?";
         } else if (hour >= 9 && hour < 12) {
-          actionElem.textContent = 'what are we investigating today?';
+          actionElem.textContent = 'what would you like to work on today?';
         } else if (hour >= 12 && hour < 17) {
           actionElem.textContent = 'what challenge shall we tackle?';
         } else {
-          actionElem.textContent = 'synthesizing research or starting new inquiries?';
+          actionElem.textContent = 'what would be useful to work through?';
         }
       }
     }
@@ -671,7 +683,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const newSession = {
       id: 'inv_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
-      title: 'New Investigation',
+      title: 'New Session',
       mode: state.activeMode,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -2120,7 +2132,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     resetModalPromptBtn?.addEventListener('click', () => {
-      customSystemPrompt.value = PERSONA_PRESETS.scientist;
+      customSystemPrompt.value = PERSONA_PRESETS.auto;
     });
 
     temperatureSlider?.addEventListener('input', (e) => {
@@ -2258,7 +2270,7 @@ document.addEventListener('DOMContentLoaded', () => {
       { cmd: '/advice', desc: 'Get wisdom and advice', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>' },
       { cmd: '/ocr', desc: 'Extract text from images', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 7h10"/><path d="M7 12h10"/><path d="M7 17h10"/></svg>' },
       { cmd: '/clear', desc: 'Clear conversation history', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>' },
-      { cmd: '/exit', desc: 'Exit to new investigation', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>' },
+      { cmd: '/exit', desc: 'Exit to new session', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>' },
       { cmd: '/settings', desc: 'Open unified settings', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>' }
     ];
 

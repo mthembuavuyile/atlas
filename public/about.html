@@ -4,24 +4,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Atlas | Advanced LLM Orchestration Proxy</title>
+  <title>Atlas | Technical Reasoning Workspace</title>
   <meta name="description"
-    content="An advanced, resilient orchestration proxy for OpenRouter. Provides zero-cost high availability, domain-specific cognitive prompt injections, and live tool execution. Built by Vylex Labs.">
+    content="A focused workspace for research, mathematics, code, systems, and practical problem solving. Built by Vylex Labs.">
 
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://atlas.vylex.co.za/">
-  <meta property="og:title" content="Atlas | Advanced LLM Orchestration Proxy">
+  <meta property="og:title" content="Atlas | Technical Reasoning Workspace">
   <meta property="og:description"
-    content="An advanced, resilient orchestration proxy for OpenRouter. Provides zero-cost high availability, domain-specific cognitive prompt injections, and live tool execution. Built by Vylex Labs.">
+    content="A focused workspace for research, mathematics, code, systems, and practical problem solving. Built by Vylex Labs.">
   <meta property="og:image" content="https://atlas.vylex.co.za/atlas-og-image.jpg">
 
   <!-- Twitter -->
   <meta property="twitter:card" content="summary_large_image">
   <meta property="twitter:url" content="https://atlas.vylex.co.za/">
-  <meta property="twitter:title" content="Atlas | Advanced LLM Orchestration Proxy">
+  <meta property="twitter:title" content="Atlas | Technical Reasoning Workspace">
   <meta property="twitter:description"
-    content="An advanced, resilient orchestration proxy for OpenRouter. Provides zero-cost high availability, domain-specific cognitive prompt injections, and live tool execution. Built by Vylex Labs.">
+    content="A focused workspace for research, mathematics, code, systems, and practical problem solving. Built by Vylex Labs.">
   <meta property="twitter:image" content="https://atlas.vylex.co.za/atlas-og-image.jpg">
 
   <meta name="author" content="Vylex Technologies">
@@ -86,10 +86,10 @@
           <ellipse cx="50" cy="50" rx="46" ry="12" stroke="url(#hero-vylex-orange-gradient)" stroke-width="3.5" fill="none" transform="rotate(-18 50 50)" />
         </svg>
       </div>
-      <h1>An Advanced LLM<br>Orchestration Proxy.</h1>
-      <p>Atlas is built by Vylex Labs, the AI & Emerging Technology division of Vylex. Far more than a chat UI, it is a
-        highly advanced orchestration proxy for OpenRouter that provides zero-cost high availability, domain-specific
-        cognitive prompt injections, and live tool execution.</p>
+      <h1>A focused workspace<br>for technical work.</h1>
+      <p>Atlas is built by Vylex Labs for people working through research, mathematics, code, systems, and other
+        difficult problems. Choose a response mode when it helps, attach context, and keep the useful output in one
+        workspace.</p>
 
       <div class="hero-actions">
         <a href="/" class="btn-primary">Open Workspace</a>
@@ -109,9 +109,9 @@
               <path d="M4 6h16M4 12h16m-7 6h7"></path>
             </svg>
           </div>
-          <h3>Zero-Cost High Availability</h3>
-          <p>Built-in resilient load-balancing. Atlas seamlessly auto-rotates between OpenRouter's free-tier frontier
-            models if rate limits or quotas are hit, ensuring uninterrupted reasoning at zero cost.</p>
+          <h3>Model Routing</h3>
+          <p>Switch between configured OpenRouter models from the same workspace. Atlas can rotate through its fallback
+            models when a selected model is unavailable or rate-limited.</p>
         </div>
 
         <div class="feature-card">
@@ -157,9 +157,9 @@
               <line x1="12" y1="3" x2="12" y2="15"></line>
             </svg>
           </div>
-          <h3>Cognitive Prompt Injections</h3>
-          <p>Atlas actively intercepts and injects massive, domain-specific system prompts (Research, Solve, Engineer)
-            forcing standard models to rigorously verify assumptions and output pristine LaTeX.</p>
+          <h3>Response Modes</h3>
+          <p>Optional modes give a request a useful structure, from research and mathematical derivation to coding,
+            systems analysis, experimentation, and open-ended reasoning. You can also simply ask a question.</p>
         </div>
 
         <div class="feature-card">
@@ -170,8 +170,8 @@
             </svg>
           </div>
           <h3>Live UI Widgets & Tools</h3>
-          <p>A true two-pass execution engine. Atlas intercepts LLM function calls (Weather, Math, Crypto, OCR), renders
-            native UI widgets, and passes the live data back for a final reasoning pass.</p>
+          <p>Built-in tools can fetch live weather, time, places, news, currency, and other information, then return the
+            result to the conversation as part of the response.</p>
         </div>
 
       </div>
@@ -194,22 +194,14 @@
         </div>
         <div class="use-case-image">
           <div class="code-mockup">
-            <div class="code-mockup-line"><span class="code-comment">// Setup local environment</span></div>
-            <div class="code-mockup-line"><span class="code-keyword">const</span> <span
-                class="code-function">initWorkspace</span> = () =&gt; {</div>
-            <div class="code-mockup-line"> &nbsp;&nbsp;<span class="code-keyword">const</span> config = <span
-                class="code-keyword">new</span> <span class="code-function">Config</span>();</div>
-            <div class="code-mockup-line"> &nbsp;&nbsp;config.<span class="code-function">load</span>(<span
-                class="code-string">'.env'</span>);</div>
-            <div class="code-mockup-line"> &nbsp;&nbsp;</div>
-            <div class="code-mockup-line"> &nbsp;&nbsp;<span class="code-keyword">return</span> <span
-                class="code-function">connectOpenRouter</span>({</div>
-            <div class="code-mockup-line"> &nbsp;&nbsp;&nbsp;&nbsp;streaming: <span class="code-keyword">true</span>,
-            </div>
-            <div class="code-mockup-line"> &nbsp;&nbsp;&nbsp;&nbsp;models: config.<span
-                class="code-function">getModels</span>()</div>
-            <div class="code-mockup-line"> &nbsp;&nbsp;});</div>
-            <div class="code-mockup-line">};</div>
+            <div class="code-mockup-line"><span class="code-comment">// Generated artifact</span></div>
+            <div class="code-mockup-line"><span class="code-keyword">async function</span> <span
+              class="code-function">reviewRequest</span>(request) {</div>
+            <div class="code-mockup-line"> &nbsp;&nbsp;<span class="code-keyword">const</span> risks = <span
+              class="code-keyword">await</span> <span class="code-function">findRisks</span>(request);</div>
+            <div class="code-mockup-line"> &nbsp;&nbsp;<span class="code-keyword">return</span> risks.<span
+              class="code-function">filter</span>(risk =&gt; risk.severity === <span class="code-string">'high'</span>);</div>
+            <div class="code-mockup-line">}</div>
           </div>
         </div>
       </div>
