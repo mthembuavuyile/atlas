@@ -2555,6 +2555,13 @@ code {
   background: var(--bg-app);
 }
 
+.settings-status-hint {
+  min-height: 18px;
+  margin-top: 7px;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
 /* Mobile Responsiveness for Settings */
 @media (max-width: 768px) {
   .unified-settings-dialog {

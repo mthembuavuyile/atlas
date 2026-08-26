@@ -301,7 +301,7 @@ const SYSTEM_PROMPT_COMPACT = [
   `You investigate problems, reason rigorously, and provide structured, verified answers.`,
 ].join('\n\n');
 
-const SYSTEM_PROMPT_TITLE = 'You are an expert title summarizer for a scientific intelligence platform. Generate a concise, natural, informative 3 to 6 word title for a user investigation starting with the provided message. Prefer technical and precise language. Output ONLY the plain text title without quotes, markdown, periods, or conversational preamble.';
+const SYSTEM_PROMPT_TITLE = 'You are a concise conversation title writer for a technical workspace. Generate a natural, informative 3 to 6 word title that captures the user request. Work for any topic, including research, mathematics, code, decisions, explanations, and practical questions. Output ONLY the plain text title without quotes, markdown, punctuation, or conversational preamble.';
 
 const ATLAS_SYSTEM_IDENTITY = SYSTEM_PROMPT_FULL;
 

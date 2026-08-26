@@ -355,6 +355,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const accountNameInput = document.getElementById('accountNameInput');
   const saveProfileNameBtn = document.getElementById('saveProfileNameBtn');
   const defaultVoiceSelect = document.getElementById('defaultVoiceSelect');
+  const saveGeneralSettingsBtn = document.getElementById('saveGeneralSettingsBtn');
+  const voiceStatusHint = document.getElementById('voiceStatusHint');
   const clearAllDataBtn = document.getElementById('clearAllDataBtn');
   const customApiKeyInput = document.getElementById('customApiKeyInput');
   const saveApiKeyBtn = document.getElementById('saveApiKeyBtn');
@@ -766,9 +768,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const query = searchQuery.toLowerCase();
     const validSessions = state.sessions.filter(s => s && Array.isArray(s.messages) && s.messages.length > 0);
-    const filtered = validSessions.filter(s =>
-      !query || s.title.toLowerCase().includes(query) || (s.messages && s.messages.some(m => m.content && m.content.toLowerCase().includes(query)))
-    );
+    const filtered = validSessions.filter(s => {
+      const title = s.title || s.messages.find(m => m.role === 'user' && m.content)?.content || 'New Session';
+      return !query || title.toLowerCase().includes(query) || (s.messages && s.messages.some(m => m.content && m.content.toLowerCase().includes(query)));
+    });
 
     if (filtered.length === 0) {
       if (emptyHistoryState) emptyHistoryState.style.display = 'block';
@@ -788,8 +791,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const item = document.createElement('div');
       item.className = `history-item ${session.id === state.activeSessionId ? 'active' : ''}`;
+      const sessionTitle = session.title || session.messages.find(m => m.role === 'user' && m.content)?.content || 'New Session';
       item.innerHTML = `
-        <span class="history-item-title">${escapeHtml(session.title)}</span>
+        <span class="history-item-title">${escapeHtml(sessionTitle.slice(0, 60))}</span>
         <button class="history-item-del-btn" title="Delete" aria-label="Delete">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
@@ -1892,11 +1896,13 @@ document.addEventListener('DOMContentLoaded', () => {
           apiKey: state.apiKey || undefined
         })
       });
+      if (!res.ok) throw new Error(`Title request failed with status ${res.status}`);
       const data = await res.json();
-      if (data.title) {
+      const title = typeof data.title === 'string' ? data.title.trim() : '';
+      if (title) {
         const session = state.sessions.find(s => s.id === sessionId);
         if (session) {
-          session.title = data.title;
+          session.title = title;
           saveSessions();
           renderHistoryTree();
         }
@@ -2091,6 +2097,42 @@ document.addEventListener('DOMContentLoaded', () => {
       localStorage.setItem('atlas_account_name', nextName);
       syncSidebarProfileUI();
       if (accountNameInput) accountNameInput.value = nextName;
+    });
+
+    saveGeneralSettingsBtn?.addEventListener('click', () => {
+      const nextName = (accountNameInput?.value || '').trim() || 'Your Name';
+      const nextApiKey = (customApiKeyInput?.value || '').trim();
+      const nextVoiceName = defaultVoiceSelect?.value || '';
+
+      state.accountName = nextName;
+      state.apiKey = nextApiKey;
+      state.defaultVoiceName = nextVoiceName;
+      localStorage.setItem('atlas_account_name', nextName);
+      localStorage.setItem('atlas_default_voice', nextVoiceName);
+
+      if (nextApiKey) {
+        localStorage.setItem('atlas_openrouter_api_key', nextApiKey);
+      } else {
+        localStorage.removeItem('atlas_openrouter_api_key');
+      }
+
+      syncSidebarProfileUI();
+      if (apiKeyStatusHint) {
+        apiKeyStatusHint.textContent = nextApiKey
+          ? 'Custom API key saved and active.'
+          : 'Custom key cleared. Default server key active.';
+        apiKeyStatusHint.style.display = 'block';
+      }
+      if (voiceStatusHint) {
+        voiceStatusHint.textContent = nextVoiceName ? 'Voice preference saved.' : 'Browser default voice saved.';
+      }
+
+      const originalText = saveGeneralSettingsBtn.textContent;
+      saveGeneralSettingsBtn.textContent = 'Saved';
+      setTimeout(() => {
+        saveGeneralSettingsBtn.textContent = originalText;
+        closeUnifiedSettings();
+      }, 700);
     });
 
     saveApiKeyBtn?.addEventListener('click', () => {
@@ -2387,6 +2429,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const selectedVoiceExists = voices.some(voice => voice.name === currentValue);
     defaultVoiceSelect.value = selectedVoiceExists ? currentValue : '';
+    if (voiceStatusHint) {
+      voiceStatusHint.textContent = currentValue && !selectedVoiceExists
+        ? 'Saved voice is unavailable in this browser. Choose another voice or use the browser default.'
+        : '';
+    }
   }
 
   function openUnifiedSettings(defaultTab = 'studio-parameters') {

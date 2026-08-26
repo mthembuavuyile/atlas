@@ -717,10 +717,11 @@
 
                 <div class="settings-section">
                   <label class="settings-label" for="defaultVoiceSelect">Default Read-Aloud Voice</label>
-                  <p style="margin: 4px 0 10px 0; font-size: 0.82rem; color: var(--text-tertiary);">Choose the voice used when you tap the speaker button on assistant replies.</p>
+                  <p style="margin: 4px 0 10px 0; font-size: 0.82rem; color: var(--text-tertiary);">Choose the voice used when you tap the speaker button on assistant replies. Changes apply to the next reply you read aloud.</p>
                   <select id="defaultVoiceSelect" class="system-prompt-editor" style="height: 38px; padding: 6px 12px; font-size: 0.85rem; width: 100%;">
                     <option value="">Loading voices...</option>
                   </select>
+                  <div id="voiceStatusHint" class="settings-status-hint" role="status" aria-live="polite"></div>
                 </div>
 
                 <div class="settings-section">
@@ -730,6 +731,9 @@
                     <button id="clearAllDataBtn" class="primary-modal-btn" style="background: var(--vylex-danger, #ef4444); border-color: var(--vylex-danger, #ef4444); white-space: nowrap; margin-left: 10px;">Delete All Data</button>
                   </div>
                 </div>
+              </div>
+              <div class="modal-footer">
+                <button id="saveGeneralSettingsBtn" class="primary-modal-btn">Save Preferences</button>
               </div>
             </div>
           </div>
