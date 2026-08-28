@@ -1,0 +1,18 @@
+<svg width="155" height="40" viewBox="0 0 155 40" xmlns="http://www.w3.org/2000/svg">
+    <!-- Icon -->
+    <g transform="translate(0, 2) scale(0.36)">
+        <!-- Orbital Ring -->
+        <ellipse cx="50" cy="50" rx="58" ry="16" fill="none" stroke="#fba919" stroke-width="6" transform="rotate(-15 50 50)" />
+        
+        <!-- The Inverted V (Atlas A) -->
+        <path d="M20 90 L50 30 L80 90 L100 90 L50 0 L0 90 Z" fill="#fba919" />
+        
+        <!-- Vertical Block -->
+        <rect x="42" y="60" width="16" height="30" fill="#fba919" />
+    </g>
+    
+    <!-- Typography -->
+    <text x="44" y="30" font-family="Inter, sans-serif" font-weight="800" font-size="28" letter-spacing="-0.04em" fill="#051b38">
+        atlas<tspan fill="#fba919">.ai</tspan>
+    </text>
+</svg>
