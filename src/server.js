@@ -59,13 +59,24 @@ app.use(express.static(publicDir));
 // 4. Mount API Routes
 app.use(routes);
 
-// 5. Root page handler
+// 5. Web page handlers
 app.get('/', (req, res) => {
   res.sendFile(path.join(publicDir, 'index.html'));
 });
 
+app.get('/about', (req, res) => {
+  res.sendFile(path.join(publicDir, 'about.html'));
+});
+
+app.get('/404', (req, res) => {
+  res.status(404).sendFile(path.join(publicDir, '404.html'));
+});
+
 // 6. Global 404 Handler
 app.use((req, res) => {
+  if (req.accepts('html') && !req.path.startsWith('/api/')) {
+    return res.status(404).sendFile(path.join(publicDir, '404.html'));
+  }
   res.status(404).json({
     error: 'The requested resource was not found.'
   });

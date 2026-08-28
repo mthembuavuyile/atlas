@@ -628,3 +628,200 @@ footer a:hover {
   .preview-sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--card-border); padding-bottom: 1rem;}
   .use-case-image { height: 300px; }
 }
+
+/* ==========================================================================
+   404 ERROR PAGE STYLES
+   ========================================================================== */
+
+.error-hero {
+  min-height: calc(85svh - 73px);
+  padding: clamp(3rem, 6vh, 4.5rem) 2rem clamp(2.5rem, 5vh, 3.5rem);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.error-badge-wrapper {
+  margin-bottom: 1.25rem;
+}
+
+.error-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.9rem;
+  background: rgba(251, 169, 25, 0.08);
+  border: 1px solid rgba(251, 169, 25, 0.25);
+  border-radius: 9999px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.82rem;
+  letter-spacing: 0.5px;
+}
+
+.error-badge-code {
+  font-weight: 700;
+  color: var(--accent-color);
+}
+
+.error-badge-dot {
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+.error-badge-label {
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 0.72rem;
+}
+
+.error-visual-container {
+  margin-bottom: 1.25rem;
+  display: flex;
+  justify-content: center;
+}
+
+.error-visual-svg {
+  filter: drop-shadow(0 0 20px rgba(251, 169, 25, 0.18));
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), filter 0.4s ease;
+}
+
+.error-visual-svg:hover {
+  transform: scale(1.05) rotate(-2deg);
+  filter: drop-shadow(0 0 30px rgba(251, 169, 25, 0.35));
+}
+
+.error-title {
+  font-family: var(--font-display);
+  font-size: clamp(2.2rem, 5vw, 3.25rem);
+  font-weight: 800;
+  letter-spacing: -1.2px;
+  margin-bottom: 1rem;
+  line-height: 1.15;
+  background: linear-gradient(135deg, #FFFFFF 35%, #CBD5E1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.error-desc {
+  font-size: 1.15rem;
+  color: var(--text-secondary);
+  max-width: 580px;
+  margin: 0 auto 2.25rem;
+  line-height: 1.6;
+}
+
+.path-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.9em;
+  background: rgba(2, 11, 24, 0.85);
+  border: 1px solid rgba(251, 169, 25, 0.35);
+  color: var(--accent-color);
+  padding: 0.15rem 0.55rem;
+  border-radius: 4px;
+  word-break: break-all;
+}
+
+.error-actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.btn-back {
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+.error-destinations {
+  padding: 3rem 0 5rem;
+  border-top: 1px solid var(--card-border);
+}
+
+.error-destinations-title {
+  font-size: 1.75rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.error-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.5rem;
+}
+
+.error-card {
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-radius: 10px;
+  padding: 1.75rem;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.error-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(251, 169, 25, 0.35);
+  background: rgba(14, 61, 122, 0.45);
+}
+
+.error-card h3 {
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  margin-bottom: 0.5rem;
+}
+
+.error-card p {
+  color: var(--text-secondary);
+  font-size: 0.92rem;
+  line-height: 1.5;
+  margin-bottom: 1.25rem;
+  flex-grow: 1;
+}
+
+.card-link-label {
+  color: var(--accent-color);
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: gap 0.2s ease, color 0.2s ease;
+}
+
+.error-card:hover .card-link-label {
+  gap: 0.6rem;
+  color: #FBBF24;
+}
+
+@media (max-width: 768px) {
+  .error-hero {
+    min-height: auto;
+    padding: 3.5rem 1.5rem 2.5rem;
+  }
+  
+  .error-actions {
+    flex-direction: column;
+    width: 100%;
+    max-width: 320px;
+  }
+  
+  .error-actions .btn-primary,
+  .error-actions .btn-secondary {
+    width: 100%;
+    text-align: center;
+  }
+  
+  .error-grid {
+    grid-template-columns: 1fr;
+  }
+}
