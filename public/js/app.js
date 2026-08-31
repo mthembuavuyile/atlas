@@ -207,12 +207,12 @@ document.addEventListener('DOMContentLoaded', () => {
       desc: 'Smart auto-router that automatically selects from available high-performance models based on task requirements.'
     },
     {
-      id: 'stealth/ox-alpha',
+      id: 'nvidia/nemotron-3.5-lightning:free',
       name: 'Atlas Reasoning Core',
-      badge: '1.05M',
+      badge: '1M',
       isFree: true,
-      context: '1,048,576 tokens',
-      desc: 'Advanced reasoning model for deep mathematical derivation, multi-step proofs, and sustained investigative work.'
+      context: '1,000,000 tokens',
+      desc: 'High-speed frontier reasoning model for deep derivation, multi-step analysis, and code synthesis.'
     },
     {
       id: 'nvidia/nemotron-3-ultra-550b-a55b:free',

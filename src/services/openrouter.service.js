@@ -3,13 +3,12 @@ const { APP } = require('../config/identity');
 
 // Resilient fallback candidate pool (prioritizing high-availability & zero-cost models)
 const DEFAULT_FALLBACK_POOL = [
-  'stealth/ox-alpha',
-  'openrouter/free',
-  'google/gemma-4-26b-a4b-it:free',
+  'nvidia/nemotron-3-ultra-550b-a55b:free',
   'cohere/north-mini-code:free',
-  'z-ai/glm-5.2:free',
+  'nvidia/nemotron-3.5-lightning:free',
+  'minimax/minimax-m3:free',
   'poolside/laguna-s-2.1:free',
-  'nvidia/nemotron-3-ultra-550b-a55b:free'
+  'google/gemma-4-31b-it:free'
 ];
 
 class OpenRouterService {
@@ -83,9 +82,9 @@ class OpenRouterService {
 
     let response;
     try {
-      // 12s per-attempt timeout guard to prevent hanging and stay well within Vercel execution bounds
+      // 30s per-attempt timeout guard to allow high-load reasoning models to begin streaming
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 12000);
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
 
       response = await fetch(`${env.OPENROUTER_BASE_URL}/chat/completions`, {
         method: 'POST',

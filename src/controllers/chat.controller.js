@@ -124,6 +124,9 @@ class ChatController {
         let iteration = 0;
         const maxIterations = 5;
 
+        // In build mode, allocate 100% of token budget to code generation without tool schema overhead
+        const activeTools = mode === 'build' ? undefined : ATLAS_TOOLS;
+
         while (iteration < maxIterations) {
           iteration++;
 
@@ -132,7 +135,7 @@ class ChatController {
             model,
             temperature,
             stream: true,
-            tools: ATLAS_TOOLS,
+            tools: activeTools,
             maxTokens: safeMaxTokens,
             reasoning: reasoningConfig,
             apiKey: customApiKey,

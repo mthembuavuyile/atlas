@@ -14,12 +14,12 @@ const CURATED_MODELS = [
     bestFor: ['research', 'solve', 'build', 'engineer', 'experiment', 'reason', 'discover']
   },
   {
-    id: 'stealth/ox-alpha',
+    id: 'nvidia/nemotron-3.5-lightning:free',
     name: 'Atlas Reasoning Core',
-    badge: '1.05M',
-    description: 'Advanced reasoning model for deep mathematical derivation, multi-step proofs, and sustained investigative work.',
+    badge: '1M',
+    description: 'High-speed frontier reasoning model for deep derivation, multi-step analysis, and code synthesis.',
     isFree: true,
-    context: '1,048,576 tokens',
+    context: '1,000,000 tokens',
     bestFor: ['reason', 'solve', 'build']
   },
   {
