@@ -1549,6 +1549,16 @@ document.addEventListener('DOMContentLoaded', () => {
       const trimmed = text.trim();
       const lower = trimmed.toLowerCase();
 
+      // NEVER hijack prompts in Build mode or when user is asking to build/write/code something
+      if (state.activeMode === 'build' || /\b(build|write|create|code|html|css|js|javascript|python|component|website|app|portfolio|page)\b/i.test(lower)) {
+        return null;
+      }
+
+      // If the prompt is a long, multi-sentence prompt, do not hijack with single-intent widgets
+      if (trimmed.length > 100 && !/^(what'?s the weather|convert\s+\d+|what is the time)/i.test(trimmed)) {
+        return null;
+      }
+
       const stripTrailing = (value) => value.replace(/[?.!]+$/g, '').trim();
       const pickMatch = (patterns) => {
         for (const pattern of patterns) {
@@ -1558,11 +1568,12 @@ document.addEventListener('DOMContentLoaded', () => {
         return '';
       };
 
-      if (/\b(scan|read|extract)\b.*\b(text|writing|words)\b.*\b(image|photo|camera|screenshot|picture)\b/i.test(trimmed)) {
+      // Strict OCR trigger: only when explicitly commanding to scan/open OCR
+      if (/^(?:open\s+)?(?:scan\s+)?ocr\b/i.test(trimmed) || /^(?:scan|extract|read)\s+text\s+from\s+(?:an?\s+)?(?:image|photo|camera|screenshot|picture)$/i.test(trimmed)) {
         return { tool: 'scan_ocr', args: {}, label: 'Opened OCR scanner.' };
       }
 
-      const currency = trimmed.match(/\b(?:convert\s+)?(\d+(?:\.\d+)?)\s*([a-z]{3})\s+(?:to|in|into)\s+([a-z]{3})\b/i);
+      const currency = trimmed.match(/^\s*(?:convert\s+)?(\d+(?:\.\d+)?)\s*([a-z]{3})\s+(?:to|in|into)\s+([a-z]{3})\s*\??$/i);
       if (currency) {
         return {
           tool: 'convert_currency',
@@ -1571,7 +1582,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
       }
 
-      const unit = trimmed.match(/\b(?:convert\s+)?(-?\d+(?:\.\d+)?)\s*([a-zA-Z°/ ]{1,22})\s+(?:to|in|into)\s+([a-zA-Z°/ ]{1,22})\b/i);
+      const unit = trimmed.match(/^\s*(?:convert\s+)?(-?\d+(?:\.\d+)?)\s*([a-zA-Z°/ ]{1,22})\s+(?:to|in|into)\s+([a-zA-Z°/ ]{1,22})\s*\??$/i);
       if (unit && !/^[a-z]{3}$/i.test(unit[2].trim()) && !/^[a-z]{3}$/i.test(unit[3].trim())) {
         return {
           tool: 'convert_units',
@@ -1581,71 +1592,72 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       const bible = pickMatch([
-        /\b(?:bible verse|scripture|verse)\s+(?:for|about|from)?\s*(.+)$/i,
-        /\b([1-3]?\s*[a-z]+(?:\s+[a-z]+)?\s+\d+:\d+(?:-\d+)?)\b/i
+        /^(?:give me\s+)?(?:a\s+)?(?:bible verse|scripture|verse)\s+(?:for|about|from)?\s*(.+)$/i,
+        /^([1-3]?\s*[a-z]+(?:\s+[a-z]+)?\s+\d+:\d+(?:-\d+)?)$/i
       ]);
-      if (bible || /\b(a bible verse|random scripture|give me a scripture)\b/i.test(trimmed)) {
+      if (bible || /^(a bible verse|random scripture|give me a scripture)$/i.test(trimmed)) {
         return { tool: 'get_bible_verse', args: { reference: bible || '' }, label: 'Fetched scripture.' };
       }
 
-      const definition = pickMatch([/\b(?:define|meaning of|what does)\s+["']?([a-z][a-z-]*)["']?(?:\s+mean)?$/i]);
+      const definition = pickMatch([/^(?:define|meaning of|what does)\s+["']?([a-z][a-z-]*)["']?(?:\s+mean)?\??$/i]);
       if (definition) {
         return { tool: 'define_word', args: { word: definition }, label: 'Fetched dictionary definition.' };
       }
 
-      const weather = pickMatch([/\bweather\s+(?:in|for|at)\s+(.+)$/i, /\b(?:forecast|temperature)\s+(?:in|for|at)\s+(.+)$/i]);
+      const weather = pickMatch([/^(?:what'?s the\s+)?weather\s+(?:in|for|at)\s+(.+)\??$/i, /^(?:forecast|temperature)\s+(?:in|for|at)\s+(.+)\??$/i]);
       if (weather) {
         return { tool: 'get_weather', args: { city: weather }, label: 'Fetched live weather.' };
       }
 
-      const crypto = pickMatch([/\b(?:price of|price for|crypto price of)\s+([a-z0-9 ,&+.-]+)$/i, /\b([a-z0-9 ,&+.-]+)\s+(?:price|crypto price|price right now)$/i]);
+      const crypto = pickMatch([/^(?:what'?s the\s+)?(?:price of|price for|crypto price of)\s+([a-z0-9 ,&+.-]+)\??$/i, /^([a-z0-9 ,&+.-]+)\s+(?:price|crypto price|price right now)\??$/i]);
       if (crypto && /\b(bitcoin|btc|ethereum|eth|solana|sol|xrp|doge|cardano|ada|crypto)\b/i.test(crypto)) {
         return { tool: 'get_crypto_price', args: { coin: crypto.replace(/\bcrypto\b/gi, '').trim() || 'bitcoin' }, label: 'Fetched live crypto price.' };
       }
 
-      const subreddit = pickMatch([/\b(?:show me\s+)?(?:reddit|subreddit)\s+(?:posts|news|threads|discussions)?\s*(?:from|for|in)?\s*\/?r\/?([a-z0-9_]+)$/i, /\br\/([a-z0-9_]+)\s+(?:top|hot|posts|news|threads)?/i]);
-      if (subreddit || /\breddit news\b/i.test(lower)) {
+      const subreddit = pickMatch([/^(?:show me\s+)?(?:reddit|subreddit)\s+(?:posts|news|threads|discussions)?\s*(?:from|for|in)?\s*\/?r\/?([a-z0-9_]+)$/i, /^r\/([a-z0-9_]+)$/i]);
+      if (subreddit) {
         return { tool: 'get_reddit_posts', args: { subreddit: subreddit || 'news' }, label: 'Fetched live discussions.' };
       }
 
-      const image = pickMatch([/\b(?:show me|find|search)\s+(?:an?\s+)?(?:image|photo|picture|visual)\s+(?:of|for)\s+(.+)$/i, /\b(?:image|photo|picture)\s+(?:of|for)\s+(.+)$/i]);
-      if (image) {
+      // Strict Image search: must start with explicit image search phrase
+      const image = pickMatch([/^(?:show me|find|search)\s+(?:an?\s+)?(?:images?|photos?|pictures?)\s+(?:of|for)\s+(.+)$/i, /^photos?\s+(?:of|for)\s+(.+)$/i]);
+      if (image && !/\b(website|portfolio|button|page|component)\b/i.test(image)) {
         return { tool: 'search_images', args: { query: image }, label: 'Fetched visual references.' };
       }
 
-      const math = pickMatch([/\b(?:derivative|integral|simplify|factor|solve|limit)\s+(?:of\s+)?(.+)$/i]);
-      if (math && /[0-9x-z=+\-*/^()]/i.test(math)) {
+      const math = pickMatch([/^(?:derivative|integral|simplify|factor|solve|limit)\s+(?:of\s+)?(.+)$/i]);
+      if (math && /[0-9x-z=+\-*/^()]/i.test(math) && trimmed.length < 50) {
         const opMatch = lower.match(/\b(derivative|integral|simplify|factor|solve|limit)\b/);
         const operation = opMatch ? opMatch[1] : 'simplify';
         return { tool: 'solve_math', args: { expression: math, operation }, label: 'Solved math expression.' };
       }
 
-      const spaceTopic = pickMatch([/\b(?:space|spacex|nasa|mars|artemis|jwst)\s+(?:news|updates|headlines)\s*(.*)$/i]);
-      if (spaceTopic || /\b(space news|spacex updates|nasa news|mars rover|artemis mission|jwst discoveries)\b/i.test(lower)) {
+      const spaceTopic = pickMatch([/^(?:space|spacex|nasa|mars|artemis|jwst)\s+(?:news|updates|headlines)\s*(.*)$/i]);
+      if (spaceTopic || /^(space news|spacex updates|nasa news|mars rover|artemis mission|jwst discoveries)$/i.test(lower)) {
         return { tool: 'get_space_news', args: { topic: spaceTopic }, label: 'Fetched space intelligence.' };
       }
 
-      const newsTopic = pickMatch([/\b(?:show me\s+)?(?:latest|current|today'?s)?\s*(?:news|headlines|top stories)\s*(?:about|on|for|in)?\s*(.*)$/i]);
-      if (/\b(news|headlines|top stories)\b/i.test(lower) && !/\bspace|spacex|nasa|mars|artemis|jwst\b/i.test(lower)) {
+      const newsTopic = pickMatch([/^(?:show me\s+)?(?:latest|current|today'?s)?\s*(?:news|headlines|top stories)\s*(?:about|on|for|in)?\s*(.*)$/i]);
+      if (/^(news|headlines|top stories)$/i.test(lower)) {
         return { tool: 'get_news_headlines', args: { topic: newsTopic || 'top stories' }, label: 'Fetched live headlines.' };
       }
 
-      const time = pickMatch([/\b(?:time|date)\s+(?:in|for|at)\s+(.+)$/i]);
+      const time = pickMatch([/^(?:what'?s the\s+)?(?:time|date)\s+(?:in|for|at)\s+(.+)\??$/i]);
       if (time || /^(what'?s\s+)?(?:the\s+)?(?:current\s+)?time\??$/i.test(trimmed)) {
         return { tool: 'get_current_time', args: { timezone: time }, label: 'Resolved live time.' };
       }
 
-      const place = pickMatch([/\b(?:find|search for|show me)\s+(.+?)\s+(?:near|in)\s+(.+)$/i]);
+      const place = pickMatch([/^(?:find|search for|show me)\s+(.+?)\s+(?:near|in)\s+(.+)$/i]);
       if (place && /\b(restaurant|coffee|cafe|hotel|clinic|hospital|library|school|museum|landmark|shop|store|atm|bank|park)\b/i.test(place)) {
-        const match = trimmed.match(/\b(?:find|search for|show me)\s+(.+?)\s+(?:near|in)\s+(.+)$/i);
+        const match = trimmed.match(/^(?:find|search for|show me)\s+(.+?)\s+(?:near|in)\s+(.+)$/i);
         return { tool: 'search_places', args: { query: stripTrailing(match[1]), near: stripTrailing(match[2]) }, label: 'Searched places.' };
       }
 
-      if (/\b(tell me a joke|another joke|daily humor)\b/i.test(lower)) {
+      if (/^(tell me a joke|another joke|daily humor)$/i.test(lower)) {
         return { tool: 'tell_joke', args: {}, label: 'Fetched a joke.' };
       }
 
-      if (/\b(give me some advice|words of wisdom|life advice)\b/i.test(lower)) {
+      if (/^(give me some advice|words of wisdom|life advice)$/i.test(lower)) {
         return { tool: 'give_advice', args: {}, label: 'Fetched advice.' };
       }
 
