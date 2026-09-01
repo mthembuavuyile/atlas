@@ -1800,11 +1800,9 @@ code {
   display: flex;
   align-items: center;
   gap: 4px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
   flex: 1;
   min-width: 0;
+  flex-wrap: wrap;
 }
 
 .composer-controls-left::-webkit-scrollbar {
