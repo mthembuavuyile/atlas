@@ -64,6 +64,12 @@ class WidgetController {
                 case 'scan_ocr':
                     result = await widgetService.scanOcr();
                     break;
+                case 'scan_qr':
+                    result = await widgetService.scanQr();
+                    break;
+                case 'generate_qr':
+                    result = await widgetService.generateQr(args.data);
+                    break;
                 default:
                     result = { error: `Unknown tool: ${tool}` };
             }

@@ -311,8 +311,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const activePromptLabel = document.getElementById('activePromptLabel');
   const deepThinkToggleBtn = document.getElementById('deepThinkToggleBtn');
   const webSearchToggleBtn = document.getElementById('webSearchToggleBtn');
-  const webSearchLabel = document.getElementById('webSearchLabel');
-  const attachFileMockBtn = document.getElementById('attachFileMockBtn');
+  const composerAttachBtn = document.getElementById('composerAttachBtn');
+  const composerAttachMenu = document.getElementById('composerAttachMenu');
+  const attachOptionFile = document.getElementById('attachOptionFile');
+  const attachOptionQR = document.getElementById('attachOptionQR');
+  const attachOptionOCR = document.getElementById('attachOptionOCR');
   const projectContextBar = document.getElementById('projectContextBar');
   const projectContextLabel = document.getElementById('projectContextLabel');
   const clearProjectContextBtn = document.getElementById('clearProjectContextBtn');
@@ -1573,6 +1576,21 @@ document.addEventListener('DOMContentLoaded', () => {
         return { tool: 'scan_ocr', args: {}, label: 'Opened OCR scanner.' };
       }
 
+      // QR Code Scan trigger
+      if (/^(?:open\s+)?(?:scan|read|decode)\s+(?:a\s+)?qr(?:\s*code)?$/i.test(trimmed) || /^(?:qr\s*(?:scan|scanner|reader)|scan\s*qr)$/i.test(trimmed)) {
+        return { tool: 'scan_qr', args: {}, label: 'Opened QR Code Scanner.' };
+      }
+
+      // QR Code Generation trigger
+      const qrGenMatch = trimmed.match(/^(?:generate|make|create|build|encode)\s+(?:a\s+)?(?:qr|qr\s*code)\s+(?:for|of|with|saying|containing)?\s*(.+)$/i)
+        || trimmed.match(/^(?:qr|qr\s*code)\s+(?:for|of|with)?\s*(.+)$/i);
+      if (qrGenMatch && qrGenMatch[1] && !/\b(scanner|reader|camera)\b/i.test(qrGenMatch[1])) {
+        const qrData = stripTrailing(qrGenMatch[1].replace(/^(?:the\s+)?(?:note|text|link|url|phrase|string|message)\s+/i, '').trim());
+        if (qrData) {
+          return { tool: 'generate_qr', args: { data: qrData }, label: `Generated QR code for "${qrData}".` };
+        }
+      }
+
       const currency = trimmed.match(/^\s*(?:convert\s+)?(\d+(?:\.\d+)?)\s*([a-z]{3})\s+(?:to|in|into)\s+([a-z]{3})\s*\??$/i);
       if (currency) {
         return {
@@ -1720,6 +1738,12 @@ document.addEventListener('DOMContentLoaded', () => {
       } else if (command === 'image') {
         toolToCall = 'search_images';
         argsPayload = { query: arg || 'beautiful landscape' };
+      } else if (command === 'qr' || command === 'generateqr') {
+        toolToCall = 'generate_qr';
+        argsPayload = { data: arg || 'Atlas Intelligence' };
+      } else if (command === 'scanqr' || command === 'qrscan') {
+        toolToCall = 'scan_qr';
+        argsPayload = {};
       } else if (command === 'ocr') {
         toolToCall = 'scan_ocr';
         argsPayload = {};
@@ -2233,25 +2257,45 @@ document.addEventListener('DOMContentLoaded', () => {
       if (state.abortController) state.abortController.abort();
     });
 
-    const ocrTriggerBtn = document.getElementById('ocrTriggerBtn');
-    ocrTriggerBtn?.addEventListener('click', () => {
-      document.dispatchEvent(new CustomEvent('atlas:open-ocr'));
+    // Unified Attachments & Scanners Menu Toggle
+    composerAttachBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isHidden = composerAttachMenu ? composerAttachMenu.hidden : true;
+      if (composerAttachMenu) {
+        composerAttachMenu.hidden = !isHidden;
+        composerAttachBtn.setAttribute('aria-expanded', String(isHidden));
+      }
     });
 
-    document.addEventListener('atlas:ocr-result', (e) => {
-      messageInput.value = (messageInput.value + '\n\n' + e.detail).trim();
-      autoResizeTextarea();
-      messageInput.focus();
+    // Close attach popup on outside click
+    document.addEventListener('click', (e) => {
+      if (composerAttachMenu && !composerAttachMenu.hidden) {
+        if (!e.target.closest('.composer-attach-wrapper')) {
+          composerAttachMenu.hidden = true;
+          composerAttachBtn?.setAttribute('aria-expanded', 'false');
+        }
+      }
     });
 
-    attachFileMockBtn?.addEventListener('click', () => {
+    // Close on Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && composerAttachMenu && !composerAttachMenu.hidden) {
+        composerAttachMenu.hidden = true;
+        composerAttachBtn?.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    // Flow 1: Attach Files
+    attachOptionFile?.addEventListener('click', () => {
+      if (composerAttachMenu) composerAttachMenu.hidden = true;
+      composerAttachBtn?.setAttribute('aria-expanded', 'false');
+
       const fileInput = document.createElement('input');
       fileInput.type = 'file';
-      fileInput.accept = '.html,.css,.js,.json,.md,.txt,.py,.ts,.jsx,.tsx';
+      fileInput.accept = '.html,.css,.js,.json,.md,.txt,.py,.ts,.jsx,.tsx,.csv,.xml,.yml,.yaml,.pdf';
       fileInput.multiple = true;
-      fileInput.webkitdirectory = true;
       fileInput.onchange = (e) => {
-        const files = Array.from(e.target.files || []).filter(file => file.size <= 200000);
+        const files = Array.from(e.target.files || []).filter(file => file.size <= 500000);
         if (!files.length) return;
 
         Promise.all(files.map(file => new Promise(resolve => {
@@ -2263,11 +2307,51 @@ document.addEventListener('DOMContentLoaded', () => {
           reader.onerror = () => resolve(null);
           reader.readAsText(file);
         }))).then(importedFiles => {
-          state.projectFiles = importedFiles.filter(Boolean).sort((a, b) => a.path.localeCompare(b.path));
-          syncProjectContextUI();
+          const validFiles = importedFiles.filter(Boolean);
+          if (validFiles.length) {
+            const existing = state.projectFiles || [];
+            const combined = [...existing, ...validFiles];
+            const seen = new Set();
+            state.projectFiles = combined.filter(f => {
+              if (seen.has(f.path)) return false;
+              seen.add(f.path);
+              return true;
+            }).sort((a, b) => a.path.localeCompare(b.path));
+            syncProjectContextUI();
+          }
         });
       };
       fileInput.click();
+    });
+
+    // Flow 2: Scan QR Code
+    attachOptionQR?.addEventListener('click', () => {
+      if (composerAttachMenu) composerAttachMenu.hidden = true;
+      composerAttachBtn?.setAttribute('aria-expanded', 'false');
+      document.dispatchEvent(new CustomEvent('atlas:open-qr-scanner'));
+    });
+
+    // Flow 3: Extract Text (OCR)
+    attachOptionOCR?.addEventListener('click', () => {
+      if (composerAttachMenu) composerAttachMenu.hidden = true;
+      composerAttachBtn?.setAttribute('aria-expanded', 'false');
+      document.dispatchEvent(new CustomEvent('atlas:open-ocr'));
+    });
+
+    document.addEventListener('atlas:ocr-result', (e) => {
+      if (messageInput) {
+        messageInput.value = (messageInput.value ? messageInput.value + '\n\n' : '') + e.detail;
+        autoResizeTextarea();
+        messageInput.focus();
+      }
+    });
+
+    document.addEventListener('atlas:qr-result', (e) => {
+      if (messageInput) {
+        messageInput.value = (messageInput.value ? messageInput.value + '\n' : '') + e.detail;
+        autoResizeTextarea();
+        messageInput.focus();
+      }
     });
 
     clearProjectContextBtn?.addEventListener('click', () => {
@@ -2543,6 +2627,8 @@ document.addEventListener('DOMContentLoaded', () => {
       { cmd: '/bible', desc: 'Look up Bible verses', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/><path d="M12 8v6"/><path d="M10 10h4"/></svg>' },
       { cmd: '/joke', desc: 'Hear a joke or humor', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" x2="9.01" y1="9" y2="9"/><line x1="15" x2="15.01" y1="9" y2="9"/></svg>' },
       { cmd: '/advice', desc: 'Get wisdom and advice', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>' },
+      { cmd: '/qr', desc: 'Generate branded QR code', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><path d="M7 7h.01M17 7h.01M7 17h.01M17 17h.01"></path></svg>' },
+      { cmd: '/scanqr', desc: 'Scan QR code via camera or file', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><path d="M7 7h.01M17 7h.01M7 17h.01M17 17h.01"></path></svg>' },
       { cmd: '/ocr', desc: 'Extract text from images', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 7h10"/><path d="M7 12h10"/><path d="M7 17h10"/></svg>' },
       { cmd: '/clear', desc: 'Clear conversation history', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>' },
       { cmd: '/exit', desc: 'Exit to new session', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>' },

@@ -164,23 +164,26 @@ class QRScannerManager {
     onQRCodeFound(data) {
         this.stopCamera();
         
-        // Populate chat input directly
-        const chatInput = document.getElementById('chatInput');
-        if (chatInput) {
-            chatInput.value = data;
-            chatInput.style.height = 'auto';
-            chatInput.style.height = (chatInput.scrollHeight) + 'px';
-            chatInput.focus();
+        // Dispatch event for any active listeners
+        document.dispatchEvent(new CustomEvent('atlas:qr-result', { detail: data }));
+
+        // Populate composer input directly
+        const composerInput = document.getElementById('messageInput') || document.getElementById('chatInput');
+        if (composerInput) {
+            composerInput.value = data;
+            composerInput.style.height = 'auto';
+            composerInput.style.height = Math.min(composerInput.scrollHeight, 120) + 'px';
+            composerInput.focus();
         }
         
         if (this.statusText) {
-            this.statusText.innerHTML = `<span style="color:var(--vylex-success, #10b981);">QR Code Detected!</span>`;
+            this.statusText.innerHTML = `<span style="color:var(--vylex-success, #10b981); font-weight:600;">QR Code Detected!</span>`;
         }
         
         // Auto-close modal after brief delay
         setTimeout(() => {
             this.close();
-        }, 800);
+        }, 700);
     }
 }
 

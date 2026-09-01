@@ -456,18 +456,57 @@
                   <span id="webSearchLabel">Web Off</span>
                 </button>
 
-                <button type="button" class="composer-icon-btn" id="attachFileMockBtn" title="Attach files for analysis" aria-label="Attach files for analysis">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
-                  </svg>
-                </button>
+                <!-- Unified Input Attachments & Scanners Trigger -->
+                <div class="composer-attach-wrapper">
+                  <button type="button" class="composer-icon-btn" id="composerAttachBtn" title="Attachments, QR & OCR" aria-label="Attachments & Scanners" aria-haspopup="true" aria-expanded="false">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <line x1="12" y1="5" x2="12" y2="19"></line>
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                  </button>
 
-                <button type="button" class="composer-icon-btn" id="ocrTriggerBtn" title="Optical Character Recognition (OCR)" aria-label="Scan Text / OCR">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242M12 12v9"></path>
-                    <polyline points="8 17 12 21 16 17"></polyline>
-                  </svg>
-                </button>
+                  <div class="composer-attach-menu" id="composerAttachMenu" role="menu" hidden>
+                    <button type="button" class="attach-menu-item" id="attachOptionFile" role="menuitem">
+                      <div class="attach-item-icon">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+                        </svg>
+                      </div>
+                      <div class="attach-item-info">
+                        <span class="attach-item-title">Attach Files</span>
+                        <span class="attach-item-desc">Add code, docs, or project context</span>
+                      </div>
+                    </button>
+
+                    <button type="button" class="attach-menu-item" id="attachOptionQR" role="menuitem">
+                      <div class="attach-item-icon">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <rect x="3" y="3" width="7" height="7"></rect>
+                          <rect x="14" y="3" width="7" height="7"></rect>
+                          <rect x="14" y="14" width="7" height="7"></rect>
+                          <rect x="3" y="14" width="7" height="7"></rect>
+                          <path d="M7 7h.01M17 7h.01M7 17h.01M17 17h.01"></path>
+                        </svg>
+                      </div>
+                      <div class="attach-item-info">
+                        <span class="attach-item-title">Scan QR Code</span>
+                        <span class="attach-item-desc">Live camera scan or upload QR image</span>
+                      </div>
+                    </button>
+
+                    <button type="button" class="attach-menu-item" id="attachOptionOCR" role="menuitem">
+                      <div class="attach-item-icon">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M4 7V4h3M17 4h3v3M4 17v3h3M17 20h3v-3M9 12h6M12 9v6"></path>
+                        </svg>
+                      </div>
+                      <div class="attach-item-info">
+                        <span class="attach-item-title">Extract Text (OCR)</span>
+                        <span class="attach-item-desc">Extract text from image or camera</span>
+                      </div>
+                    </button>
+                  </div>
+                </div>
 
                 <div class="streaming-status-tag" id="streamingIndicator" style="display: none;">
                   <span class="status-spinner"></span>

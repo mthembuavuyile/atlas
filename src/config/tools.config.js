@@ -245,7 +245,7 @@ const ATLAS_TOOLS = [
     type: 'function',
     function: {
       name: 'generate_qr',
-      description: 'Generate a branded, high-resolution QR code for a given URL or text string.',
+      description: 'Generate a branded, high-resolution QR code for a given URL or text string. ALWAYS use this tool when the user asks for a QR code. NEVER attempt to generate QR codes using markdown images or raw SVGs.',
       parameters: {
         type: 'object',
         properties: {
