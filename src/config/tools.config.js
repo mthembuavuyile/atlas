@@ -229,6 +229,31 @@ const ATLAS_TOOLS = [
         properties: {}
       }
     }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'scan_qr',
+      description: 'Open the QR Code Scanner modal to read a QR code using the device camera or by uploading an image.',
+      parameters: {
+        type: 'object',
+        properties: {}
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'generate_qr',
+      description: 'Generate a branded, high-resolution QR code for a given URL or text string.',
+      parameters: {
+        type: 'object',
+        properties: {
+          data: { type: 'string', description: 'The URL or text to encode into the QR code.' }
+        },
+        required: ['data']
+      }
+    }
   }
 ];
 

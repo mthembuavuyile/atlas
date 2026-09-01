@@ -243,6 +243,8 @@ class ChatController {
                 case 'tell_joke': widgetResult = await widgetService.tellJoke(); break;
                 case 'give_advice': widgetResult = await widgetService.giveAdvice(); break;
                 case 'scan_ocr': widgetResult = await widgetService.scanOcr(); break;
+                case 'scan_qr': widgetResult = await widgetService.scanQr(); break;
+                case 'generate_qr': widgetResult = await widgetService.generateQr(args.data); break;
                 default: widgetResult = { error: `Unknown tool: ${toolName}` };
               }
 

@@ -12,6 +12,7 @@ import { renderAdviceWidget } from './advice-widget.js';
 import { renderTimeWidget } from './time-widget.js';
 import { renderUnitWidget } from './unit-widget.js';
 import { renderPlacesWidget } from './places-widget.js';
+import { renderQrWidget } from './qr-widget.js';
 
 const RENDERERS = {
     time: renderTimeWidget,
@@ -27,7 +28,8 @@ const RENDERERS = {
     currency: renderCurrencyWidget,
     math: renderMathWidget,
     joke: renderJokeWidget,
-    advice: renderAdviceWidget
+    advice: renderAdviceWidget,
+    generate_qr: renderQrWidget
 };
 
 export function renderWidget(type, data) {
@@ -36,6 +38,10 @@ export function renderWidget(type, data) {
         if (type === 'ocr') {
             // OCR triggers an event to open the modal, it doesn't render inline HTML
             document.dispatchEvent(new CustomEvent('atlas:open-ocr'));
+            return null;
+        }
+        if (type === 'scan_qr') {
+            document.dispatchEvent(new CustomEvent('atlas:open-qr-scanner'));
             return null;
         }
         console.warn(`No widget renderer found for type: ${type}`);

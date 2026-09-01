@@ -75,6 +75,8 @@
 
   <!-- Tesseract.js for OCR -->
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/widgets.css">
@@ -786,7 +788,32 @@
     </div>
   </div>
 
+  <!-- QR Scanner Modal Overlay -->
+  <div class="atlas-ocr-overlay" id="qrModalOverlay">
+    <div class="atlas-ocr-modal" style="max-width: 500px;">
+      <div class="atlas-ocr-header">
+        <h3 class="atlas-ocr-title">QR Code Scanner</h3>
+        <button id="qrBtnClose" class="atlas-ocr-btn">Close</button>
+      </div>
+      <div class="atlas-ocr-body">
+        <div class="atlas-ocr-panel" style="border: none;">
+          <video id="qrVideo" class="atlas-ocr-video" autoplay playsinline style="display: none;"></video>
+          <img id="qrPreview" class="atlas-ocr-preview" style="display: none;" alt="QR Preview">
+          <div class="atlas-ocr-action-row" style="justify-content: center; margin-top: 10px;">
+            <button id="qrBtnCamera" class="atlas-ocr-btn primary">Scan via Camera</button>
+            <button id="qrBtnUpload" class="atlas-ocr-btn primary">Upload QR Image</button>
+          </div>
+          <canvas id="qrCanvas" style="display: none;"></canvas>
+          <div id="qrScanStatus" style="margin-top: 15px; text-align: center; color: var(--text-secondary); font-size: 0.9rem;">
+            Ready to scan.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script type="module" src="js/widgets/ocr-modal.js"></script>
+  <script type="module" src="js/widgets/qr-modal.js"></script>
   <script type="module">
     import { renderWidget } from './js/widgets/widget-renderer.js';
     window.atlasRenderWidget = renderWidget;

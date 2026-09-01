@@ -1175,6 +1175,18 @@ class WidgetService {
     async scanOcr() {
         return { type: 'ocr', data: { action: 'open_ocr_modal' } };
     }
+
+    // 13. QR Tools
+    async scanQr() {
+        return { type: 'scan_qr', data: { action: 'open_qr_modal' } };
+    }
+
+    async generateQr(data) {
+        if (!data || !data.trim()) {
+            return { error: 'Please provide the text or URL to encode in the QR code.' };
+        }
+        return { type: 'generate_qr', data: { text: data.trim() } };
+    }
 }
 
 module.exports = new WidgetService();
