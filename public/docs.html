@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Atlas Documentation & Technical Specifications | Vylex Technologies</title>
+  <meta name="description" content="Exhaustive technical documentation and specifications for Atlas by Vylex Technologies. Explore all 19 deterministic tools, 7 inference models, investigation modes, KaTeX math/chemistry engine, and execution layer.">
+  <link rel="canonical" href="https://vylex.co.za/docs">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://vylex.co.za/docs">
+  <meta property="og:title" content="Atlas Documentation & Technical Specifications">
+  <meta property="og:description" content="Technical documentation and capabilities for Atlas: 19 tools, 7 curated models, KaTeX math & chemistry, computer vision OCR, and project context diffing.">
+  <meta property="og:site_name" content="Vylex Technologies">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/css/docs.css">
+</head>
+<body>
+
+  <!-- Top Global Header -->
+  <header>
+    <div class="container header-content">
+      <a href="/" class="logo" aria-label="Atlas Homepage">
+        <span class="logo-symbol" aria-hidden="true">
+          <svg width="24" height="24" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="vylex-header-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#FBA919" />
+                <stop offset="100%" stop-color="#D97706" />
+              </linearGradient>
+            </defs>
+            <path d="M 50 10 L 82 82 L 64 82 L 50 48 L 36 82 L 18 82 Z" fill="url(#vylex-header-gradient)" />
+            <rect x="45" y="56" width="10" height="26" rx="2" fill="url(#vylex-header-gradient)" />
+            <ellipse cx="50" cy="50" rx="46" ry="12" stroke="url(#vylex-header-gradient)" stroke-width="3.5" fill="none" transform="rotate(-18 50 50)" />
+          </svg>
+        </span>
+        <span class="logo-text">Atlas</span>
+        <span class="logo-sub">Docs & Capabilities</span>
+      </a>
+
+      <nav class="nav-links">
+        <a href="/about.html">About</a>
+        <a href="/docs" class="active">Documentation</a>
+        <a href="https://github.com" target="_blank" rel="noopener">GitHub</a>
+        <a href="/" class="btn-primary">Launch Workspace</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero & Instant Search Header -->
+  <section class="docs-hero">
+    <div class="container">
+      <div class="docs-breadcrumb">
+        <a href="/">Atlas</a>
+        <span>/</span>
+        <a href="/about.html">Overview</a>
+        <span>/</span>
+        <span>Documentation & Technical Specifications</span>
+      </div>
+      <h1 class="docs-hero-title">Technical Reference & Capabilities</h1>
+      <p class="docs-hero-lead">
+        A complete, unbundled architectural reference for Atlas. Discover every supported model, investigation mode, deterministic tool, computer vision pipeline, and execution capability across the platform.
+      </p>
+
+      <div class="docs-search-bar">
+        <svg class="docs-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" id="docsSearchInput" class="docs-search-input" placeholder="Filter models, tools, triggers, or schemas..." aria-label="Search Atlas Documentation">
+        <kbd class="docs-search-kbd">Ctrl K</kbd>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Layout -->
+  <div class="container docs-layout">
+    
+    <!-- Sticky Navigation Sidebar -->
+    <aside class="docs-sidebar">
+      <div class="sidebar-group">
+        <div class="sidebar-heading">Architecture</div>
+        <ul class="sidebar-nav">
+          <li><a href="#overview">System Overview</a></li>
+          <li><a href="#architecture-diagram">Platform Pipeline</a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-group">
+        <div class="sidebar-heading">Intelligence Engine</div>
+        <ul class="sidebar-nav">
+          <li>
+            <a href="#models">Curated Models <span class="sidebar-count-badge">7</span></a>
+          </li>
+          <li>
+            <a href="#investigation-modes">Investigation Modes <span class="sidebar-count-badge">8</span></a>
+          </li>
+          <li>
+            <a href="#reasoning-traces">Reasoning & &lt;think&gt;</a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="sidebar-group">
+        <div class="sidebar-heading">Deterministic Tools (19)</div>
+        <ul class="sidebar-nav">
+          <li><a href="#tools-vision-gen">Generative & Vision <span class="sidebar-count-badge">4</span></a></li>
+          <li><a href="#tools-math-sci">Math & Scientific <span class="sidebar-count-badge">3</span></a></li>
+          <li><a href="#tools-grounding">Live World Grounding <span class="sidebar-count-badge">6</span></a></li>
+          <li><a href="#tools-knowledge">Information & Feeds <span class="sidebar-count-badge">6</span></a></li>
+        </ul>
+      </div>
+
+      <div class="sidebar-group">
+        <div class="sidebar-heading">Execution & Workspace</div>
+        <ul class="sidebar-nav">
+          <li><a href="#katex-chemistry">LaTeX & Chemistry Engine</a></li>
+          <li><a href="#project-context">Project Context & Diffing</a></li>
+          <li><a href="#artifacts-canvas">Artifacts Canvas</a></li>
+          <li><a href="#security-gateway">Security & Gateway</a></li>
+          <li><a href="#cli-interface">Terminal CLI</a></li>
+        </ul>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="docs-content" id="docsContent">
+
+      <!-- 1. System Overview -->
+      <section id="overview" class="docs-section searchable-item">
+        <div class="section-header">
+          <div class="section-tag">System Architecture</div>
+          <h2 class="section-title">Overview & Philosophy</h2>
+          <p class="section-description">
+            Atlas is an engineering-grade scientific intelligence and technical reasoning workspace built by Vylex Technologies. Unlike standard conversational chat bots, Atlas pairs multi-model frontier inference with a deterministic execution runtime: live tools, computer vision, symbolic algebra, chemical formula rendering, and non-destructive code diffing.
+          </p>
+        </div>
+
+        <table class="tech-spec-table">
+          <thead>
+            <tr>
+              <th>Layer</th>
+              <th>Technologies & Implementations</th>
+              <th>Primary Function</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Inference Layer</strong></td>
+              <td>OpenRouter API, SSE Streaming, Automated Failover Rotation</td>
+              <td>High-throughput multi-model inference up to 1,000,000 context tokens.</td>
+            </tr>
+            <tr>
+              <td><strong>Reasoning Layer</strong></td>
+              <td>8 Investigation Modes, Chain-of-Thought &lt;think&gt; Parsers</td>
+              <td>Structured hypothesis testing, mathematical derivations, and architecture reviews.</td>
+            </tr>
+            <tr>
+              <td><strong>Execution Layer</strong></td>
+              <td>19 Native Tools & Interactive Visual Widgets</td>
+              <td>Deterministic API fetching, OCR extraction, QR generation, and symbolic math.</td>
+            </tr>
+            <tr>
+              <td><strong>Rendering Layer</strong></td>
+              <td>KaTeX, mhchem, Highlight.js, Split-screen Artifacts Canvas</td>
+              <td>Rich scientific equation rendering and live HTML/CSS sandbox previews.</td>
+            </tr>
+            <tr>
+              <td><strong>Context Layer</strong></td>
+              <td>Multi-file ingestion, Project folder reader, Unified Diff Engine</td>
+              <td>Safe code inspection proposing Git-style diffs without overwriting files.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- 2. Models & Inference -->
+      <section id="models" class="docs-section">
+        <div class="section-header">
+          <div class="section-tag">Inference Engine</div>
+          <h2 class="section-title">Curated Frontier Models</h2>
+          <p class="section-description">
+            Atlas configures 7 specialized models optimized for scientific reasoning, mathematical derivation, software engineering, and large-context document analysis. All models stream token-by-token with zero client-side API key exposure.
+          </p>
+        </div>
+
+        <div class="models-grid">
+          
+          <div class="model-card searchable-item">
+            <div class="model-header">
+              <span class="model-name">Atlas Default Engine</span>
+              <span class="model-badge">AUTO</span>
+            </div>
+            <span class="model-id">openrouter/free</span>
+            <p class="model-desc">
+              Smart auto-router that inspects your prompt domain and dynamically routes requests to the optimal frontier model with automatic rate-limit failover.
+            </p>
+            <div class="model-meta">
+              <span class="meta-pill">Dynamic Context</span>
+              <span class="meta-pill">Auto-Routing</span>
+              <span class="meta-pill">Resilient Failover</span>
+            </div>
+          </div>
+
+          <div class="model-card searchable-item">
+            <div class="model-header">
+              <span class="model-name">Atlas Reasoning Core</span>
+              <span class="model-badge">1M</span>
+            </div>
+            <span class="model-id">nvidia/nemotron-3.5-lightning:free</span>
+            <p class="model-desc">
+              Frontier-scale reasoning model with an expansive 1,000,000 token context window. Ideal for deep mathematical proofs, multi-step logic derivations, and vast technical synthesis.
+            </p>
+            <div class="model-meta">
+              <span class="meta-pill">1,000,000 Tokens</span>
+              <span class="meta-pill">Deep Reasoning</span>
+              <span class="meta-pill">Formal Logic</span>
+            </div>
+          </div>
+
+          <div class="model-card searchable-item">
+            <div class="model-header">
+              <span class="model-name">Atlas Research Engine</span>
+              <span class="model-badge">1M</span>
+            </div>
+            <span class="model-id">nvidia/nemotron-3-ultra-550b-a55b:free</span>
+            <p class="model-desc">
+              Frontier MoE architecture featuring 1,000,000 tokens of context. Tailored for academic research, synthesizing competing experimental evidence, and large-scale architecture planning.
+            </p>
+            <div class="model-meta">
+              <span class="meta-pill">1,000,000 Tokens</span>
+              <span class="meta-pill">Scientific MoE</span>
+              <span class="meta-pill">Literature Review</span>
+            </div>
+          </div>
+
+          <div class="model-card searchable-item">
+            <div class="model-header">
+              <span class="model-name">Atlas Code Engine</span>
+              <span class="model-badge">262K</span>
+            </div>
+            <span class="model-id">poolside/laguna-s-2.1:free</span>
+            <p class="model-desc">
+              Specialized systems engineering model built for high-precision code synthesis, terminal workflows, refactoring, and multi-file debugging across full repositories.
+            </p>
+            <div class="model-meta">
+              <span class="meta-pill">262,144 Tokens</span>
+              <span class="meta-pill">Systems Code</span>
+              <span class="meta-pill">Unified Diffs</span>
+            </div>
+          </div>
+
+          <div class="model-card searchable-item">
+            <div class="model-header">
+              <span class="model-name">Atlas Compute Engine</span>
+              <span class="model-badge">256K</span>
+            </div>
+            <span class="model-id">cohere/north-mini-code:free</span>
+            <p class="model-desc">
+              Fast-inference MoE engine tuned for low-latency computation, algorithm verification, data transformation, and iterative experimental simulation scripts.
+            </p>
+            <div class="model-meta">
+              <span class="meta-pill">256,000 Tokens</span>
+              <span class="meta-pill">Fast Inference</span>
+              <span class="meta-pill">Computation</span>
+            </div>
+          </div>
+
+          <div class="model-card searchable-item">
+            <div class="model-header">
+              <span class="model-name">Atlas Systems Engine</span>
+              <span class="model-badge">256K</span>
+            </div>
+            <span class="model-id">z-ai/glm-5.2:free</span>
+            <p class="model-desc">
+              Large-scale systems model designed for constraint analysis, distributed infrastructure failure mode decomposition, and multi-variable system verification.
+            </p>
+            <div class="model-meta">
+              <span class="meta-pill">256,000 Tokens</span>
+              <span class="meta-pill">Distributed Architecture</span>
+              <span class="meta-pill">Constraints</span>
+            </div>
+          </div>
+
+          <div class="model-card searchable-item">
+            <div class="model-header">
+              <span class="model-name">Atlas Core</span>
+              <span class="model-badge">262K</span>
+            </div>
+            <span class="model-id">google/gemma-4-26b-a4b-it:free</span>
+            <p class="model-desc">
+              Instruction-tuned model with native function calling, configurable thinking depth, and broad scientific knowledge across physics, chemistry, and computation.
+            </p>
+            <div class="model-meta">
+              <span class="meta-pill">262,144 Tokens</span>
+              <span class="meta-pill">Native Tool Calls</span>
+              <span class="meta-pill">Instruction Tuned</span>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- 3. Investigation Modes -->
+      <section id="investigation-modes" class="docs-section">
+        <div class="section-header">
+          <div class="section-tag">Reasoning Profiles</div>
+          <h2 class="section-title">The 8 Specialized Investigation Modes</h2>
+          <p class="section-description">
+            Atlas offers 8 dedicated investigation modes. Selecting a mode tunes the internal system instructions, reasoning depth, structure of explanations, and suggestion prompts.
+          </p>
+        </div>
+
+        <div class="modes-grid">
+          
+          <div class="mode-card searchable-item">
+            <div class="mode-header">
+              <div class="mode-icon-box">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><path d="M8 12h8"></path><path d="M12 8v8"></path></svg>
+              </div>
+              <h3 class="mode-card-title">Auto</h3>
+            </div>
+            <p class="mode-card-desc">Dynamically adapts reasoning depth and tone based on input complexity, balancing speed and depth.</p>
+            <div class="mode-prompt-hint">Default adaptive prompt handling</div>
+          </div>
+
+          <div class="mode-card searchable-item">
+            <div class="mode-header">
+              <div class="mode-icon-box">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+              </div>
+              <h3 class="mode-card-title">Research</h3>
+            </div>
+            <p class="mode-card-desc">Focuses on literature synthesis, citation structure, contested scientific claims, and identifying experimental gaps.</p>
+            <div class="mode-prompt-hint">Ex: "Synthesize current room-temperature superconductor claims"</div>
+          </div>
+
+          <div class="mode-card searchable-item">
+            <div class="mode-header">
+              <div class="mode-icon-box">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><line x1="16" x2="16" y1="14" y2="18"/></svg>
+              </div>
+              <h3 class="mode-card-title">Solve</h3>
+            </div>
+            <p class="mode-card-desc">Emphasizes step-by-step mathematical proofs, symbolic derivations, boundary conditions, and formal verification.</p>
+            <div class="mode-prompt-hint">Ex: "Derive Navier-Stokes simplified boundary condition for laminar flow"</div>
+          </div>
+
+          <div class="mode-card searchable-item">
+            <div class="mode-header">
+              <div class="mode-icon-box">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+              </div>
+              <h3 class="mode-card-title">Build</h3>
+            </div>
+            <p class="mode-card-desc">Produces production-ready software code, architecture skeletons, refactoring proposals, and unit tests.</p>
+            <div class="mode-prompt-hint">Ex: "Build a high-performance LRU cache in TypeScript with O(1) eviction"</div>
+          </div>
+
+          <div class="mode-card searchable-item">
+            <div class="mode-header">
+              <div class="mode-icon-box">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 9h6v6H9z"/></svg>
+              </div>
+              <h3 class="mode-card-title">Engineer</h3>
+            </div>
+            <p class="mode-card-desc">Analyzes distributed system bottlenecks, scalability limits, failover strategies, and edge-case failure modes.</p>
+            <div class="mode-prompt-hint">Ex: "Deconstruct scalability limits for 10M req/min database sharding"</div>
+          </div>
+
+          <div class="mode-card searchable-item">
+            <div class="mode-header">
+              <div class="mode-icon-box">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 2v7.31M14 9.3V1.99M8.5 2h7M14 9.3a6.5 6.5 0 1 1-4 0"/></svg>
+              </div>
+              <h3 class="mode-card-title">Experiment</h3>
+            </div>
+            <p class="mode-card-desc">Designs Monte Carlo simulations, statistical tests, hypothesis validation criteria, and control parameter matrices.</p>
+            <div class="mode-prompt-hint">Ex: "Why does this experimental result contradict thermodynamic expectations?"</div>
+          </div>
+
+          <div class="mode-card searchable-item">
+            <div class="mode-header">
+              <div class="mode-icon-box">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><circle cx="19" cy="6" r="2"/><circle cx="5" cy="6" r="2"/></svg>
+              </div>
+              <h3 class="mode-card-title">Reason</h3>
+            </div>
+            <p class="mode-card-desc">Structured logical analysis isolating premises, identifying fallacies, and testing constraint consistency.</p>
+            <div class="mode-prompt-hint">Ex: "Deconstruct premise validity in quantum measurement interpretations"</div>
+          </div>
+
+          <div class="mode-card searchable-item">
+            <div class="mode-header">
+              <div class="mode-icon-box">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+              </div>
+              <h3 class="mode-card-title">Discover</h3>
+            </div>
+            <p class="mode-card-desc">Exploratory hypothesis generator connecting interdisciplinary ideas and unexplored technical territory.</p>
+            <div class="mode-prompt-hint">Ex: "Formulate cross-domain applications between biological enzymes & battery catalysts"</div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- 4. Deterministic Tools (All 19) -->
+      <section id="tools-vision-gen" class="docs-section">
+        <div class="section-header">
+          <div class="section-tag">Deterministic Execution Layer</div>
+          <h2 class="section-title">Generative & Computer Vision Tools</h2>
+          <p class="section-description">
+            Native multimodal tools that synthesize visuals, scan documents, read optical character data, and generate/scan machine-readable codes.
+          </p>
+        </div>
+
+        <div class="tools-grid">
+
+          <!-- generate_image -->
+          <div class="tool-card searchable-item">
+            <div class="tool-header">
+              <div class="tool-title-group">
+                <div class="tool-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                </div>
+                <div>
+                  <h3 class="tool-name">AI Image Generation</h3>
+                  <code class="tool-fn-name">generate_image(prompt, aspect_ratio)</code>
+                </div>
+              </div>
+              <span class="tool-category-badge">Generative AI</span>
+            </div>
+            <p class="tool-description">
+              Synthesizes high-resolution AI imagery directly in chat using Pollinations.ai. Supports custom aspect ratios, shimmer skeleton preloading, error recovery, and click-to-zoom full-screen lightbox preview.
+            </p>
+            <div class="tool-details-grid">
+              <div>
+                <div class="detail-block-title">Trigger Phrases</div>
+                <div class="detail-pill-list">
+                  <span class="trigger-pill">"generate an image of..."</span>
+                  <span class="trigger-pill">"draw a futuristic colony"</span>
+                  <span class="trigger-pill">"paint a landscape in 16:9"</span>
+                </div>
+              </div>
+              <div>
+                <div class="detail-block-title">Parameters & Ratios</div>
+                <div class="detail-pill-list">
+                  <span class="trigger-pill">1:1 (800x800)</span>
+                  <span class="trigger-pill">16:9 (1024x576)</span>
+                  <span class="trigger-pill">9:16 (576x1024)</span>
+                  <span class="trigger-pill">3:2 (960x640)</span>
+                  <span class="trigger-pill">4:3 (1024x768)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- scan_ocr -->
+          <div class="tool-card searchable-item">
+            <div class="tool-header">
+              <div class="tool-title-group">
+                <div class="tool-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V4h3M17 4h3v3M4 17v3h3M17 20h3v-3M9 12h6M12 9v6"></path></svg>
+                </div>
+                <div>
+                  <h3 class="tool-name">Optical Character Recognition (OCR)</h3>
+                  <code class="tool-fn-name">scan_ocr()</code>
+                </div>
+              </div>
+              <span class="tool-category-badge">Computer Vision</span>
+            </div>
+            <p class="tool-description">
+              Interactive OCR studio powered by Tesseract.js. Users can upload images, paste screenshots, or take live camera captures to extract raw text with real-time recognition progress bars and inject directly into the conversation.
+            </p>
+            <div class="tool-details-grid">
+              <div>
+                <div class="detail-block-title">Trigger Phrases & UI</div>
+                <div class="detail-pill-list">
+                  <span class="trigger-pill">"scan text from image"</span>
+                  <span class="trigger-pill">"extract text"</span>
+                  <span class="trigger-pill">Composer Attach (+) &rarr; OCR</span>
+                </div>
+              </div>
+              <div>
+                <div class="detail-block-title">Capabilities</div>
+                <div class="detail-pill-list">
+                  <span class="trigger-pill">Live Webcam Video Feed</span>
+                  <span class="trigger-pill">File Drag & Drop</span>
+                  <span class="trigger-pill">Tesseract Engine</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- scan_qr & generate_qr -->
+          <div class="tool-card searchable-item">
+            <div class="tool-header">
+              <div class="tool-title-group">
+                <div class="tool-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                </div>
+                <div>
+                  <h3 class="tool-name">QR Code Scanner & Generator</h3>
+                  <code class="tool-fn-name">scan_qr() / generate_qr(data)</code>
+                </div>
+              </div>
+              <span class="tool-category-badge">Vision & Encoding</span>
+            </div>
+            <p class="tool-description">
+              Dual QR engine: <code>scan_qr</code> launches a viewfinder modal reading live camera streams or uploaded graphics with <code>jsQR</code>. <code>generate_qr</code> renders crisp matrix codes with one-click PNG download buttons.
+            </p>
+            <div class="tool-details-grid">
+              <div>
+                <div class="detail-block-title">Trigger Phrases</div>
+                <div class="detail-pill-list">
+                  <span class="trigger-pill">"scan QR code"</span>
+                  <span class="trigger-pill">"generate QR for https://..."</span>
+                  <span class="trigger-pill">Composer Attach (+) &rarr; QR</span>
+                </div>
+              </div>
+              <div>
+                <div class="detail-block-title">Output</div>
+                <div class="detail-pill-list">
+                  <span class="trigger-pill">Decoded URL / Plaintext</span>
+                  <span class="trigger-pill">Interactive Downloadable Canvas</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- search_images -->
+          <div class="tool-card searchable-item">
+            <div class="tool-header">
+              <div class="tool-title-group">
+                <div class="tool-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/></svg>
+                </div>
+                <div>
+                  <h3 class="tool-name">Visual Photography Search</h3>
+                  <code class="tool-fn-name">search_images(query, limit)</code>
+                </div>
+              </div>
+              <span class="tool-category-badge">Visual Reference</span>
+            </div>
+            <p class="tool-description">
+              Queries high-resolution real-world photography and diagrams via Unsplash. Renders a responsive thumbnail grid with author attribution and an integrated full-screen lightbox modal.
+            </p>
+            <div class="tool-details-grid">
+              <div>
+                <div class="detail-block-title">Trigger Phrases</div>
+                <div class="detail-pill-list">
+                  <span class="trigger-pill">"show photos of tokamak fusion"</span>
+                  <span class="trigger-pill">"images of Saturn V launch"</span>
+                </div>
+              </div>
+              <div>
+                <div class="detail-block-title">Features</div>
+                <div class="detail-pill-list">
+                  <span class="trigger-pill">Unsplash API</span>
+                  <span class="trigger-pill">Lightbox Zoom</span>
+                  <span class="trigger-pill">Responsive Gallery</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Math & Science Tools -->
+      <section id="tools-math-sci" class="docs-section">
+        <div class="section-header">
+          <div class="section-tag">Symbolic Computation</div>
+          <h2 class="section-title">Math & Scientific Tools</h2>
+          <p class="section-description">
+            Deterministic algebra solvers and unit dimension converters ensuring numerical accuracy without hallucination.
+          </p>
+        </div>
+
+        <div class="tools-grid">
+
+          <!-- solve_math -->
+          <div class="tool-card searchable-item">
+            <div class="tool-header">
+              <div class="tool-title-group">
+                <div class="tool-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19L10 5L14 15L20 9"/></svg>
+                </div>
+                <div>
+                  <h3 class="tool-name">Newton Symbolic Math Solver</h3>
+                  <code class="tool-fn-name">solve_math(expression, operation)</code>
+                </div>
+              </div>
+              <span class="tool-category-badge">Symbolic Algebra</span>
+            </div>
+            <p class="tool-description">
+              Integrates with the Newton Microservice to perform exact symbolic algebra, differential calculus, integration, factoring, polynomial roots, and trigonometric equations.
+            </p>
+            <div class="tool-details-grid">
+              <div>
+                <div class="detail-block-title">Supported Operations</div>
+                <div class="detail-pill-list">
+                  <span class="trigger-pill">derive</span>
+                  <span class="trigger-pill">integrate</span>
+                  <span class="trigger-pill">zeroes</span>
+                  <span class="trigger-pill">tangent</span>
+                  <span class="trigger-pill">factor</span>
+                  <span class="trigger-pill">simplify</span>
+                </div>
+              </div>
+              <div>
+                <div class="detail-block-title">Trigger Phrases</div>
+                <div class="detail-pill-list">
+                  <span class="trigger-pill">"calculate derivative of x^3 + 2x"</span>
+                  <span class="trigger-pill">"integrate sin(x) dx"</span>
+                  <span class="trigger-pill">"factor 2x^2 + 7x + 3"</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- convert_units -->
+          <div class="tool-card searchable-item">
+            <div class="tool-header">
+              <div class="tool-title-group">
+                <div class="tool-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+                </div>
+                <div>
+                  <h3 class="tool-name">Scientific Unit Converter</h3>
+                  <code class="tool-fn-name">convert_units(value, from, to)</code>
+                </div>
+              </div>
+              <span class="tool-category-badge">Physics & Dimensional</span>
+            </div>
+            <p class="tool-description">
+              Deterministic unit conversions across standard metric, imperial, and astronomical dimensions: length, mass, velocity, temperature (Celsius/Fahrenheit/Kelvin), volume, and energy.
+            </p>
+            <div class="tool-details-grid">
+              <div>
+                <div class="detail-block-title">Trigger Phrases</div>
+                <div class="detail-pill-list">
+                  <span class="trigger-pill">"convert 500 miles to km"</span>
+                  <span class="trigger-pill">"convert 300 Kelvin to Celsius"</span>
+                </div>
+              </div>
+              <div>
+                <div class="detail-block-title">Accuracy Guarantee</div>
+                <div class="detail-pill-list">
+                  <span class="trigger-pill">Zero Hallucination</span>
+                  <span class="trigger-pill">Floating Point Normalized</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Live Grounding Tools -->
+      <section id="tools-grounding" class="docs-section">
+        <div class="section-header">
+          <div class="section-tag">External State Grounding</div>
+          <h2 class="section-title">Live World Grounding Tools</h2>
+          <p class="section-description">
+            Connects inference to live internet data, geographical coordinates, currency rates, cryptocurrency values, and atmospheric sensors.
+          </p>
+        </div>
+
+        <div class="tools-grid">
+
+          <!-- get_weather -->
+          <div class="tool-card searchable-item">
+            <div class="tool-header">
+              <div class="tool-title-group">
+                <div class="tool-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line></svg>
+                </div>
+                <div>
+                  <h3 class="tool-name">Atmospheric Weather Engine</h3>
+                  <code class="tool-fn-name">get_weather(city)</code>
+                </div>
+              </div>
+              <span class="tool-category-badge">Atmospheric API</span>
+            </div>
+            <p class="tool-description">
+              Connects to Open-Meteo to fetch live temperature, wind speed, relative humidity, atmospheric pressure, and condition codes for any city on Earth.
+            </p>
+            <div class="tool-details-grid">
+              <div>
+                <div class="detail-block-title">Trigger Phrases</div>
+                <div class="detail-pill-list">
+                  <span class="trigger-pill">"weather in Durban"</span>
+                  <span class="trigger-pill">"temperature in Tokyo"</span>
+                </div>
+              </div>
+              <div>
+                <div class="detail-block-title">Backend Provider</div>
+                <div class="detail-pill-list">
+                  <span class="trigger-pill">Open-Meteo API</span>
+                  <span class="trigger-pill">WMO Weather Codes</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- get_crypto_price -->
+          <div class="tool-card searchable-item">
+            <div class="tool-header">
+              <div class="tool-title-group">
+                <div class="tool-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path></svg>
+                </div>
+                <div>
+                  <h3 class="tool-name">Cryptocurrency Valuation Engine</h3>
+                  <code class="tool-fn-name">get_crypto_price(coin)</code>
+                </div>
+              </div>
+              <span class="tool-category-badge">Financial Feeds</span>
+            </div>
+            <p class="tool-description">
+              Fetches real-time cryptocurrency spot prices, 24-hour percentage delta, market cap rank, and trading volume from CoinGecko / CoinCap.
+            </p>
+            <div class="tool-details-grid">
+              <div>
+                <div class="detail-block-title">Trigger Phrases</div>
+                <div class="detail-pill-list">
+                  <span class="trigger-pill">"Bitcoin price"</span>
+                  <span class="trigger-pill">"ETH current valuation"</span>
+                  <span class="trigger-pill">"Solana price check"</span>
+                </div>
+              </div>
+              <div>
+                <div class="detail-block-title">Outputs</div>
+                <div class="detail-pill-list">
+                  <span class="trigger-pill">USD & ZAR Values</span>
+                  <span class="trigger-pill">24h Percentage Delta</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- convert_currency -->
+          <div class="tool-card searchable-item">
+            <div class="tool-header">
+              <div class="tool-title-group">
+                <div class="tool-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v12M17 10l-5-4-5 4M7 14l5 4 5-4"/></svg>
+                </div>
+                <div>
+                  <h3 class="tool-name">Fiat Forex Currency Conversion</h3>
+                  <code class="tool-fn-name">convert_currency(amount, from, to)</code>
+                </div>
+              </div>
+              <span class="tool-category-badge">Forex Exchange</span>
+            </div>
+            <p class="tool-description">
+              Calculates live fiat currency exchange valuations using institutional daily reference rates from ExchangeRate-API / Frankfurter.
+            </p>
+            <div class="tool-details-grid">
+              <div>
+                <div class="detail-block-title">Trigger Phrases</div>
+                <div class="detail-pill-list">
+                  <span class="trigger-pill">"convert 100 USD to ZAR"</span>
+                  <span class="trigger-pill">"500 EUR in GBP"</span>
+                </div>
+              </div>
+              <div>
+                <div class="detail-block-title">Supported Currencies</div>
+                <div class="detail-pill-list">
+                  <span class="trigger-pill">USD</span>
+                  <span class="trigger-pill">ZAR</span>
+                  <span class="trigger-pill">EUR</span>
+                  <span class="trigger-pill">GBP</span>
+                  <span class="trigger-pill">JPY</span>
+                  <span class="trigger-pill">160+ Global Fiats</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- get_current_time -->
+          <div class="tool-card searchable-item">
+            <div class="tool-header">
+              <div class="tool-title-group">
+                <div class="tool-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                </div>
+                <div>
+                  <h3 class="tool-name">Global Timezone & UTC Offset</h3>
+                  <code class="tool-fn-name">get_current_time(timezone)</code>
+                </div>
+              </div>
+              <span class="tool-category-badge">Chronometry</span>
+            </div>
+            <p class="tool-description">
+              Resolves exact current local time, daylight savings status, and UTC offsets for any international capital or IANA timezone.
+            </p>
+            <div class="tool-details-grid">
+              <div>
+                <div class="detail-block-title">Trigger Phrases</div>
+                <div class="detail-pill-list">
+                  <span class="trigger-pill">"what time is it in London?"</span>
+                  <span class="trigger-pill">"current time in Tokyo"</span>
+                </div>
+              </div>
+              <div>
+                <div class="detail-block-title">Standard</div>
+                <div class="detail-pill-list">
+                  <span class="trigger-pill">IANA Timezone DB</span>
+                  <span class="trigger-pill">UTC Offsets</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- search_places -->
+          <div class="tool-card searchable-item">
+            <div class="tool-header">
+              <div class="tool-title-group">
+                <div class="tool-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                </div>
+                <div>
+                  <h3 class="tool-name">Geographic Place Search</h3>
+                  <code class="tool-fn-name">search_places(query, near)</code>
+                </div>
+              </div>
+              <span class="tool-category-badge">Geocoding</span>
+            </div>
+            <p class="tool-description">
+              Locates cities, landmarks, facilities, and geographic coordinates worldwide using OpenStreetMap's Nominatim geocoding engine.
+            </p>
+            <div class="tool-details-grid">
+              <div>
+                <div class="detail-block-title">Trigger Phrases</div>
+                <div class="detail-pill-list">
+                  <span class="trigger-pill">"where is CERN located?"</span>
+                  <span class="trigger-pill">"coordinates for Table Mountain"</span>
+                </div>
+              </div>
+              <div>
+                <div class="detail-block-title">Source</div>
+                <div class="detail-pill-list">
+                  <span class="trigger-pill">OpenStreetMap</span>
+                  <span class="trigger-pill">Bounding Box & Lat/Lon</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- fetch_webpage -->
+          <div class="tool-card searchable-item">
+            <div class="tool-header">
+              <div class="tool-title-group">
+                <div class="tool-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                </div>
+                <div>
+                  <h3 class="tool-name">Live Webpage Text Extraction</h3>
+                  <code class="tool-fn-name">fetch_webpage(url)</code>
+                </div>
+              </div>
+              <span class="tool-category-badge">Content Parser</span>
+            </div>
+            <p class="tool-description">
+              Retrieves live HTTP/HTTPS pages, strips HTML markup, scripts, and trackers, and provides cleaned Markdown/text directly into the model context window for synthesis.
+            </p>
+            <div class="tool-details-grid">
+              <div>
+                <div class="detail-block-title">Trigger Phrases</div>
+                <div class="detail-pill-list">
+                  <span class="trigger-pill">"read this article: https://..."</span>
+                  <span class="trigger-pill">"summarize webpage"</span>
+                </div>
+              </div>
+              <div>
+                <div class="detail-block-title">Security</div>
+                <div class="detail-pill-list">
+                  <span class="trigger-pill">SSRF Protection</span>
+                  <span class="trigger-pill">Timeout Safety</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Knowledge & Community Tools -->
+      <section id="tools-knowledge" class="docs-section">
+        <div class="section-header">
+          <div class="section-tag">Information Feeds</div>
+          <h2 class="section-title">Knowledge & Community Feeds</h2>
+          <p class="section-description">
+            Real-time aerospace releases, breaking world headlines, dictionary etymologies, and discussion board extracts.
+          </p>
+        </div>
+
+        <div class="tools-grid">
+
+          <!-- get_space_news -->
+          <div class="tool-card searchable-item">
+            <div class="tool-header">
+              <div class="tool-title-group">
+                <div class="tool-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"></path><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path></svg>
+                </div>
+                <div>
+                  <h3 class="tool-name">Spaceflight Intelligence API</h3>
+                  <code class="tool-fn-name">get_space_news(topic)</code>
+                </div>
+              </div>
+              <span class="tool-category-badge">Aerospace Intelligence</span>
+            </div>
+            <p class="tool-description">
+              Connects to Spaceflight News API v4 for real-time launch manifests, planetary probe discoveries, satellite deployments, and NASA / ESA / SpaceX press releases.
+            </p>
+            <div class="tool-details-grid">
+              <div>
+                <div class="detail-block-title">Trigger Phrases</div>
+                <div class="detail-pill-list">
+                  <span class="trigger-pill">"SpaceX launch updates"</span>
+                  <span class="trigger-pill">"James Webb news"</span>
+                </div>
+              </div>
+              <div>
+                <div class="detail-block-title">Source</div>
+                <div class="detail-pill-list">
+                  <span class="trigger-pill">Spaceflight News API v4</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- get_news_headlines -->
+          <div class="tool-card searchable-item">
+            <div class="tool-header">
+              <div class="tool-title-group">
+                <div class="tool-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"></path></svg>
+                </div>
+                <div>
+                  <h3 class="tool-name">General News Headlines</h3>
+                  <code class="tool-fn-name">get_news_headlines(topic)</code>
+                </div>
+              </div>
+              <span class="tool-category-badge">News Aggregator</span>
+            </div>
+            <p class="tool-description">
+              Aggregates global technology, scientific, geopolitical, and economic headlines with direct publisher source attribution.
+            </p>
+            <div class="tool-details-grid">
+              <div>
+                <div class="detail-block-title">Trigger Phrases</div>
+                <div class="detail-pill-list">
+                  <span class="trigger-pill">"latest technology news"</span>
+                  <span class="trigger-pill">"what happened in AI today"</span>
+                </div>
+              </div>
+              <div>
+                <div class="detail-block-title">Filtering</div>
+                <div class="detail-pill-list">
+                  <span class="trigger-pill">Topic Based</span>
+                  <span class="trigger-pill">Region Based</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- get_reddit_posts -->
+          <div class="tool-card searchable-item">
+            <div class="tool-header">
+              <div class="tool-title-group">
+                <div class="tool-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+                </div>
+                <div>
+                  <h3 class="tool-name">Reddit Discussion Feed</h3>
+                  <code class="tool-fn-name">get_reddit_posts(subreddit)</code>
+                </div>
+              </div>
+              <span class="tool-category-badge">Community Feed</span>
+            </div>
+            <p class="tool-description">
+              Extracts top discussions, community sentiment, scores, and comment counts from any public subreddit (e.g. <code>r/MachineLearning</code>, <code>r/space</code>, <code>r/sysadmin</code>).
+            </p>
+            <div class="tool-details-grid">
+              <div>
+                <div class="detail-block-title">Trigger Phrases</div>
+                <div class="detail-pill-list">
+                  <span class="trigger-pill">"discussions on r/MachineLearning"</span>
+                  <span class="trigger-pill">"what is Reddit saying about Python 3.13"</span>
+                </div>
+              </div>
+              <div>
+                <div class="detail-block-title">Data Points</div>
+                <div class="detail-pill-list">
+                  <span class="trigger-pill">Upvote Score</span>
+                  <span class="trigger-pill">Comment Count</span>
+                  <span class="trigger-pill">Flair Tags</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- define_word -->
+          <div class="tool-card searchable-item">
+            <div class="tool-header">
+              <div class="tool-title-group">
+                <div class="tool-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                </div>
+                <div>
+                  <h3 class="tool-name">Lexical Dictionary & Phonetics</h3>
+                  <code class="tool-fn-name">define_word(word)</code>
+                </div>
+              </div>
+              <span class="tool-category-badge">Linguistics</span>
+            </div>
+            <p class="tool-description">
+              Comprehensive lexical lookup displaying phonetic transcriptions, parts of speech, exact etymology, synonyms, and audio pronunciation references.
+            </p>
+            <div class="tool-details-grid">
+              <div>
+                <div class="detail-block-title">Trigger Phrases</div>
+                <div class="detail-pill-list">
+                  <span class="trigger-pill">"define resilient"</span>
+                  <span class="trigger-pill">"what does epistemological mean?"</span>
+                </div>
+              </div>
+              <div>
+                <div class="detail-block-title">Features</div>
+                <div class="detail-pill-list">
+                  <span class="trigger-pill">Phonetic Symbols</span>
+                  <span class="trigger-pill">Audio Playback Support</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- get_bible_verse, tell_joke, give_advice -->
+          <div class="tool-card searchable-item">
+            <div class="tool-header">
+              <div class="tool-title-group">
+                <div class="tool-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                </div>
+                <div>
+                  <h3 class="tool-name">Scripture, Humor & Advice Tools</h3>
+                  <code class="tool-fn-name">get_bible_verse / tell_joke / give_advice</code>
+                </div>
+              </div>
+              <span class="tool-category-badge">Utility Cards</span>
+            </div>
+            <p class="tool-description">
+              Deterministic citation tools: <code>get_bible_verse</code> returns exact chapter/verse scriptures; <code>tell_joke</code> and <code>give_advice</code> provide formatted motivational or humorous break cards.
+            </p>
+            <div class="tool-details-grid">
+              <div>
+                <div class="detail-block-title">Trigger Phrases</div>
+                <div class="detail-pill-list">
+                  <span class="trigger-pill">"Proverbs 3:5"</span>
+                  <span class="trigger-pill">"tell me a coding joke"</span>
+                  <span class="trigger-pill">"give me some advice"</span>
+                </div>
+              </div>
+              <div>
+                <div class="detail-block-title">Sources</div>
+                <div class="detail-pill-list">
+                  <span class="trigger-pill">Bible API</span>
+                  <span class="trigger-pill">Official Joke API</span>
+                  <span class="trigger-pill">Advice Slip API</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- KaTeX & Chemistry -->
+      <section id="katex-chemistry" class="docs-section searchable-item">
+        <div class="section-header">
+          <div class="section-tag">Formula Engine</div>
+          <h2 class="section-title">KaTeX & mhchem Scientific Rendering</h2>
+          <p class="section-description">
+            Atlas natively parses and displays complex LaTeX mathematics and chemical formula equations directly in chat responses using KaTeX and the mhchem extension.
+          </p>
+        </div>
+
+        <p style="color: var(--text-secondary); margin-bottom: 1.25rem;">
+          Write inline equations with single dollars <code>$E = mc^2$</code> or multi-line block equations with double dollars <code>$$\oint_{\partial \Omega} \mathbf{F} \cdot d\mathbf{S}$$</code>. For chemistry, mhchem syntax <code>\ce{...}</code> renders complex equilibrium reactions and isotope notation:
+        </p>
+
+        <div class="code-block">
+// Calculus & Differential Equations:
+$$\nabla \times \mathbf{B} = \mu_0 \mathbf{J} + \mu_0 \varepsilon_0 \frac{\partial \mathbf{E}}{\partial t}$$
+
+// Chemical Reaction with mhchem:
+$$\ce{2H2 + O2 -> 2H2O \quad \Delta H = -572 kJ/mol}$$
+$$\ce{^{238}_{92}U -> ^{234}_{90}Th + ^{4}_{2}\alpha}$$
+        </div>
+      </section>
+
+      <!-- Project Context & Diffing -->
+      <section id="project-context" class="docs-section searchable-item">
+        <div class="section-header">
+          <div class="section-tag">Workspace Context</div>
+          <h2 class="section-title">Project Context & Safe Diff Engine</h2>
+          <p class="section-description">
+            Safely work on real software repositories directly in Atlas without worrying about automated destructive overwrites.
+          </p>
+        </div>
+
+        <table class="tech-spec-table">
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th>How It Works</th>
+              <th>Safety Guarantee</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Folder Ingestion</strong></td>
+              <td>Drag and drop a project directory or folder into the composer. Atlas reads directory hierarchy, file contents, and architecture.</td>
+              <td>Read-only browser ingestion; files never leave client memory except through prompt completion.</td>
+            </tr>
+            <tr>
+              <td><strong>Unified Diff Proposing</strong></td>
+              <td>When refactoring or debugging code, Atlas generates Git-compatible unified diff blocks (<code>--- a/file</code> / <code>+++ b/file</code>).</td>
+              <td>No automatic overwrites. You review each unified diff before applying changes to disk.</td>
+            </tr>
+            <tr>
+              <td><strong>Artifacts Canvas Sandbox</strong></td>
+              <td>Render generated HTML, CSS, and JS in a secure iframe sandbox on the right side of your screen.</td>
+              <td>Sandbox execution isolates code execution from the main application state.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Security & CLI -->
+      <section id="security-gateway" class="docs-section searchable-item">
+        <div class="section-header">
+          <div class="section-tag">Production Infrastructure</div>
+          <h2 class="section-title">Security & API Gateway</h2>
+          <p class="section-description">
+            Atlas is designed with strict enterprise security defaults to protect user credentials, prevent arbitrary model injection, and restrict network abuse.
+          </p>
+        </div>
+
+        <table class="tech-spec-table">
+          <thead>
+            <tr>
+              <th>Security Component</th>
+              <th>Implementation File</th>
+              <th>Protection Mechanism</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Zero Client Secret Exposure</strong></td>
+              <td><code>src/services/openrouter.service.js</code></td>
+              <td>OpenRouter API keys are managed exclusively on the backend server. The client never handles credentials.</td>
+            </tr>
+            <tr>
+              <td><strong>Model Whitelist Guard</strong></td>
+              <td><code>src/middleware/modelGuard.js</code></td>
+              <td>Rejects unvetted or malicious model IDs. Only curated models pass through to the inference gateway.</td>
+            </tr>
+            <tr>
+              <td><strong>Endpoint Rate Limiters</strong></td>
+              <td><code>src/middleware/rateLimiter.js</code></td>
+              <td>Independent memory rate limiters for <code>/api/chat</code>, <code>/api/title</code>, and <code>/api/widget/execute</code> prevent runaway loops.</td>
+            </tr>
+            <tr>
+              <td><strong>Tool Execution Disabling</strong></td>
+              <td><code>src/routes/api.routes.js</code></td>
+              <td>Arbitrary tool execution is strictly disabled in production builds to prevent remote code execution.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- Terminal CLI -->
+      <section id="cli-interface" class="docs-section searchable-item">
+        <div class="section-header">
+          <div class="section-tag">Terminal Interface</div>
+          <h2 class="section-title">Atlas Terminal CLI</h2>
+          <p class="section-description">
+            For developers who prefer working directly in terminal emulators or SSH sessions, Atlas includes a built-in terminal CLI.
+          </p>
+        </div>
+
+        <div class="code-block">
+# Launch the terminal CLI directly from your project folder:
+npm run cli
+
+# Output:
+# [Atlas CLI] Connected to Atlas Default Engine
+# Type your technical problem or prompt below:
+# > calculate integral of x*exp(-x^2) dx
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Global Footer -->
+  <footer>
+    <div class="container footer-content">
+      <div>
+        <p>Atlas is built by <a href="https://vylex.co.za" target="_blank" rel="noopener">Vylex Technologies</a>.</p>
+        <p style="font-size: 0.8rem; margin-top: 0.35rem; color: var(--text-muted);">&copy; 2026 Vylex Technologies. Licensed under MIT.</p>
+      </div>
+      <div>
+        <a href="/about.html" style="margin-right: 1.25rem;">About</a>
+        <a href="/docs" style="margin-right: 1.25rem;">Documentation</a>
+        <a href="/" class="btn-primary">Launch Workspace</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Instant Search Script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const searchInput = document.getElementById('docsSearchInput');
+      const searchableItems = document.querySelectorAll('.searchable-item');
+
+      // Instant live filtering
+      if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+          const query = e.target.value.toLowerCase().trim();
+          
+          searchableItems.forEach(item => {
+            const text = item.textContent.toLowerCase();
+            if (!query || text.includes(query)) {
+              item.style.display = '';
+            } else {
+              item.style.display = 'none';
+            }
+          });
+        });
+
+        // Keyboard shortcut: Ctrl + K or / to focus search
+        window.addEventListener('keydown', (e) => {
+          if ((e.ctrlKey && e.key === 'k') || (e.key === '/' && document.activeElement !== searchInput)) {
+            e.preventDefault();
+            searchInput.focus();
+            searchInput.select();
+          }
+        });
+      }
+
+      // Sidebar scrollspy indicator
+      const navLinks = document.querySelectorAll('.sidebar-nav a');
+      const sections = document.querySelectorAll('.docs-section');
+
+      window.addEventListener('scroll', () => {
+        let currentSectionId = '';
+        const scrollPosition = window.scrollY + 140;
+
+        sections.forEach(section => {
+          const sectionTop = section.offsetTop;
+          const sectionHeight = section.offsetHeight;
+          if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
+            currentSectionId = section.getAttribute('id');
+          }
+        });
+
+        if (currentSectionId) {
+          navLinks.forEach(link => {
+            if (link.getAttribute('href') === `#${currentSectionId}`) {
+              link.classList.add('active');
+            } else {
+              link.classList.remove('active');
+            }
+          });
+        }
+      });
+    });
+  </script>
+</body>
+</html>

@@ -68,6 +68,10 @@ app.get('/about', (req, res) => {
   res.sendFile(path.join(publicDir, 'about.html'));
 });
 
+app.get(['/docs', '/capabilities'], (req, res) => {
+  res.sendFile(path.join(publicDir, 'docs.html'));
+});
+
 app.get('/404', (req, res) => {
   res.status(404).sendFile(path.join(publicDir, '404.html'));
 });

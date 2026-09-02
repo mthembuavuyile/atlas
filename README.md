@@ -124,6 +124,7 @@ Note: Ensure your `.env` file is never committed to version control.
 | :--- | :--- | :--- |
 | `GET` | `/` | Main Chat UI |
 | `GET` | `/about.html` | Marketing Overview |
+| `GET` | `/docs` | Documentation & Technical Specifications |
 | `GET` | `/api/health` | Status check for the service |
 | `GET` | `/api/models` | List of configured models |
 | `POST` | `/api/chat` | Chat completion endpoint (SSE streaming) |
