@@ -1,0 +1,32 @@
+{
+  "name": "Vylex QR Tools",
+  "short_name": "Vylex QR",
+  "description": "Create and scan QR codes instantly and extract text offline.",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#0f0c29",
+  "theme_color": "#24243e",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Generate QR",
+      "short_name": "Generate",
+      "url": "generator.html",
+      "icons": [{ "src": "icon.svg", "sizes": "512x512", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "Scan QR & OCR",
+      "short_name": "Scan",
+      "url": "scanner.html",
+      "icons": [{ "src": "icon.svg", "sizes": "512x512", "type": "image/svg+xml" }]
+    }
+  ]
+}
