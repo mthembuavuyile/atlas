@@ -15,8 +15,8 @@ export function renderGenerateImageWidget(data) {
     const paddingBottom = (height / width) * 100;
 
     const content = `
-        <div class="atlas-gen-image-container" style="position: relative; width: 100%; border-radius: 8px; overflow: hidden; background: var(--surface-2, rgba(255, 255, 255, 0.05));">
-            <div class="atlas-gen-image-skeleton" style="position: relative; width: 100%; padding-bottom: ${paddingBottom}%;">
+        <div class="atlas-gen-image-container" style="position: relative; width: 100%; padding-bottom: ${paddingBottom}%; border-radius: 8px; overflow: hidden; background: var(--surface-2, rgba(255, 255, 255, 0.05));">
+            <div class="atlas-gen-image-skeleton" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
                 <div class="skeleton-shimmer" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent); animation: shimmer 2s infinite; background-size: 200% 100%;"></div>
                 <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 12px; color: var(--text-muted, rgba(255,255,255,0.4)); font-family: var(--font-mono); font-size: 11px;">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
@@ -28,7 +28,7 @@ export function renderGenerateImageWidget(data) {
                 alt="${escapeHtml(prompt)}" 
                 title="${escapeHtml(prompt)}"
                 style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0.5s ease; cursor: zoom-in;"
-                onload="this.style.opacity = '1'; this.previousElementSibling.style.display = 'none';"
+                onload="this.style.opacity = '1'; this.previousElementSibling.style.opacity = '0'; this.previousElementSibling.style.pointerEvents = 'none';"
                 onerror="this.previousElementSibling.innerHTML = '<div style=\\'position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #ff6b6b; font-family: var(--font-mono); font-size: 11px;\\'>Generation Failed</div>';"
                 onclick="window.atlasOpenLightbox && window.atlasOpenLightbox(this.src, this.title, 'AI Generator', 'Pollinations.ai', this.src)"
             />
