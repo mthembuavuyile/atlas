@@ -2641,6 +2641,57 @@ code {
 }
 
 /* ─────────────────────────────────────────────────────────────
+   MOBILE SETTINGS RESPONSIVENESS
+   ───────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .unified-settings-dialog {
+    width: 100vw;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+  }
+  
+  .unified-settings-layout {
+    flex-direction: column;
+  }
+  
+  .settings-sidebar-nav {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--border-subtle);
+    padding: 12px 16px;
+  }
+
+  .settings-nav-header {
+    margin-bottom: 12px;
+  }
+
+  .settings-nav-items {
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 8px;
+    padding-bottom: 4px;
+  }
+  
+  .settings-nav-items::-webkit-scrollbar {
+    height: 4px;
+  }
+  .settings-nav-items::-webkit-scrollbar-thumb {
+    background: var(--border-subtle);
+    border-radius: 4px;
+  }
+
+  .settings-nav-btn {
+    white-space: nowrap;
+    padding: 8px 12px;
+  }
+  
+  .settings-pane-scrollable {
+    padding: 20px 16px;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
    MESSAGE ACTIONS BAR (COPY, SPEAK, ETC)
    ───────────────────────────────────────────────────────────── */
 .message-actions-bar {
@@ -2691,7 +2742,7 @@ code {
 
 /* Sidebar */
 .settings-sidebar-nav {
-  width: 240px;
+  width: 260px;
   background: var(--bg-sidebar);
   border-right: 1px solid var(--border-subtle);
   display: flex;
@@ -2700,12 +2751,34 @@ code {
   flex-shrink: 0;
 }
 
-.settings-nav-header h3 {
-  font-size: 1.1rem;
-  font-weight: 600;
+.settings-nav-header {
+  margin-bottom: 24px;
+  padding-left: 4px;
+}
+
+.close-settings-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.close-settings-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
   color: var(--text-main);
-  margin-bottom: 16px;
-  padding-left: 8px;
+}
+
+.settings-nav-items {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .settings-nav-btn {
@@ -2713,27 +2786,25 @@ code {
   align-items: center;
   gap: 12px;
   width: 100%;
-  padding: 10px 12px;
+  padding: 10px 14px;
   background: transparent;
   border: none;
-  border-radius: 6px;
-  color: var(--text-secondary);
+  border-radius: 8px;
+  color: var(--text-main);
   font-size: 0.9rem;
   font-weight: 500;
   text-align: left;
   cursor: pointer;
   transition: all 0.2s ease;
-  margin-bottom: 4px;
 }
 
 .settings-nav-btn:hover {
   background: rgba(255, 255, 255, 0.05);
-  color: var(--text-main);
 }
 
 .settings-nav-btn.active {
-  background: var(--pill-active-bg);
-  color: var(--pill-active-text);
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-main);
 }
 
 .settings-nav-btn svg {
@@ -2750,23 +2821,14 @@ code {
 }
 
 .settings-content-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
   padding: 24px 32px 16px;
   border-bottom: 1px solid var(--border-subtle);
 }
 
-.settings-content-title h3 {
+.settings-content-header h3 {
   font-size: 1.25rem;
   font-weight: 600;
   color: var(--text-main);
-  margin-bottom: 4px;
-}
-
-.settings-content-title p {
-  font-size: 0.85rem;
-  color: var(--text-muted);
 }
 
 .settings-panes-wrapper {
