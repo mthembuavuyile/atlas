@@ -183,7 +183,10 @@ document.addEventListener('DOMContentLoaded', () => {
     retry: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>`,
     alert: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`,
     reasoning: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg>`,
-    speaker: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>`
+    speaker: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>`,
+    pin: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="17" x2="12" y2="22"></line><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.89A2 2 0 0 1 15 10.76V6a3 3 0 0 0-6 0v4.76a2 2 0 0 1-1.11 1.8l-1.78.88A2 2 0 0 0 5 15.24Z"></path></svg>`,
+    edit: `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>`,
+    regenerate: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>`
   };
 
   function getModelIcon(modelId) {
@@ -263,6 +266,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
   const newChatBtn = document.getElementById('newChatBtn');
   const historySearchInput = document.getElementById('historySearchInput');
+  const historyGroupPinned = document.getElementById('historyGroupPinned');
+  const historyListPinned = document.getElementById('historyListPinned');
   const historyGroupToday = document.getElementById('historyGroupToday');
   const historyGroupYesterday = document.getElementById('historyGroupYesterday');
   const historyGroupPrevious = document.getElementById('historyGroupPrevious');
@@ -287,6 +292,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const exportDropdownWrapper = exportMenuBtn?.closest('.export-dropdown-wrapper');
   const exportMarkdownBtn = document.getElementById('exportMarkdownBtn');
   const exportJsonBtn = document.getElementById('exportJsonBtn');
+  const importJsonBtn = document.getElementById('importJsonBtn');
+  const importJsonFileInput = document.getElementById('importJsonFileInput');
   const clearCurrentChatBtn = document.getElementById('clearCurrentChatBtn');
 
   // Feed & Welcome
@@ -311,6 +318,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const activePromptLabel = document.getElementById('activePromptLabel');
   const deepThinkToggleBtn = document.getElementById('deepThinkToggleBtn');
   const webSearchToggleBtn = document.getElementById('webSearchToggleBtn');
+  const voiceDictationBtn = document.getElementById('voiceDictationBtn');
+  const contextTokenEstimator = document.getElementById('contextTokenEstimator');
   const composerAttachBtn = document.getElementById('composerAttachBtn');
   const composerAttachMenu = document.getElementById('composerAttachMenu');
   const attachOptionFile = document.getElementById('attachOptionFile');
@@ -328,14 +337,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const canvasTabs = document.querySelectorAll('.canvas-tab');
   const canvasCodePane = document.getElementById('canvasCodePane');
   const canvasPreviewPane = document.getElementById('canvasPreviewPane');
+  const canvasDiffPane = document.getElementById('canvasDiffPane');
+  const diffViewerContainer = document.getElementById('diffViewerContainer');
   const canvasMarkdownPane = document.getElementById('canvasMarkdownPane');
   const canvasCodeContent = document.getElementById('canvasCodeContent');
   const canvasLanguageBadge = document.getElementById('canvasLanguageBadge');
   const canvasLineCount = document.getElementById('canvasLineCount');
+  const toggleLineNumbersBtn = document.getElementById('toggleLineNumbersBtn');
   const canvasPreviewFrame = document.getElementById('canvasPreviewFrame');
   const canvasMarkdownContent = document.getElementById('canvasMarkdownContent');
   const copyCanvasContentBtn = document.getElementById('copyCanvasContentBtn');
   const downloadCanvasBtn = document.getElementById('downloadCanvasBtn');
+
+  // Shortcuts Modal
+  const shortcutsModal = document.getElementById('shortcutsModal');
+  const closeShortcutsModalBtn = document.getElementById('closeShortcutsModalBtn');
 
   // Settings Modal
   const unifiedSettingsModal = document.getElementById('unifiedSettingsModal');
@@ -769,6 +785,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderHistoryTree(searchQuery = '') {
     if (!historyListToday || !historyListYesterday || !historyListPrevious) return;
 
+    if (historyListPinned) historyListPinned.innerHTML = '';
     historyListToday.innerHTML = '';
     historyListYesterday.innerHTML = '';
     historyListPrevious.innerHTML = '';
@@ -782,6 +799,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (filtered.length === 0) {
       if (emptyHistoryState) emptyHistoryState.style.display = 'block';
+      if (historyGroupPinned) historyGroupPinned.style.display = 'none';
       if (historyGroupToday) historyGroupToday.style.display = 'none';
       if (historyGroupYesterday) historyGroupYesterday.style.display = 'none';
       if (historyGroupPrevious) historyGroupPrevious.style.display = 'none';
@@ -790,27 +808,92 @@ document.addEventListener('DOMContentLoaded', () => {
     if (emptyHistoryState) emptyHistoryState.style.display = 'none';
 
     filtered.forEach(session => {
-      const category = getSessionDateCategory(session);
       let targetList = historyListPrevious;
-
-      if (category === 'today') targetList = historyListToday;
-      else if (category === 'yesterday') targetList = historyListYesterday;
+      if (session.isPinned && historyListPinned) {
+        targetList = historyListPinned;
+      } else {
+        const category = getSessionDateCategory(session);
+        if (category === 'today') targetList = historyListToday;
+        else if (category === 'yesterday') targetList = historyListYesterday;
+      }
 
       const item = document.createElement('div');
       item.className = `history-item ${session.id === state.activeSessionId ? 'active' : ''}`;
       const sessionTitle = session.title || session.messages.find(m => m.role === 'user' && m.content)?.content || 'New Session';
+
       item.innerHTML = `
-        <span class="history-item-title">${escapeHtml(sessionTitle.slice(0, 60))}</span>
-        <button class="history-item-del-btn" title="Delete" aria-label="Delete">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-        </button>
+        <span class="history-item-title" title="${escapeHtml(sessionTitle)}">${escapeHtml(sessionTitle.slice(0, 60))}</span>
+        <div class="history-item-actions">
+          <button class="history-item-pin-btn ${session.isPinned ? 'pinned' : ''}" title="${session.isPinned ? 'Unpin session' : 'Pin session'}" aria-label="Pin">
+            ${ICONS.pin || 'Pin'}
+          </button>
+          <button class="history-item-rename-btn" title="Rename" aria-label="Rename">
+            ${ICONS.edit || 'Rename'}
+          </button>
+          <button class="history-item-del-btn" title="Delete" aria-label="Delete">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
       `;
 
+      const titleSpan = item.querySelector('.history-item-title');
+      const startRename = () => {
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'history-item-rename-input';
+        input.value = session.title || sessionTitle;
+        titleSpan.replaceWith(input);
+        input.focus();
+        input.select();
+
+        let isSaved = false;
+        const saveRename = () => {
+          if (isSaved) return;
+          isSaved = true;
+          const newTitle = input.value.trim();
+          if (newTitle) {
+            session.title = newTitle;
+            saveSessions();
+          }
+          renderHistoryTree(searchQuery);
+        };
+
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            saveRename();
+          } else if (e.key === 'Escape') {
+            isSaved = true;
+            renderHistoryTree(searchQuery);
+          }
+        });
+        input.addEventListener('blur', saveRename);
+      };
+
+      titleSpan.addEventListener('dblclick', (e) => {
+        e.stopPropagation();
+        startRename();
+      });
+
+      item.querySelector('.history-item-rename-btn')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        startRename();
+      });
+
+      item.querySelector('.history-item-pin-btn')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        session.isPinned = !session.isPinned;
+        saveSessions();
+        renderHistoryTree(searchQuery);
+      });
+
+      item.querySelector('.history-item-del-btn')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        deleteSession(session.id);
+      });
+
       item.addEventListener('click', (e) => {
-        if (e.target.closest('.history-item-del-btn')) {
-          e.stopPropagation();
-          deleteSession(session.id);
-        } else {
+        if (!e.target.closest('.history-item-actions') && !e.target.closest('.history-item-rename-input')) {
           loadSession(session.id);
           if (window.innerWidth <= 768) closeMobileSidebar();
         }
@@ -819,6 +902,7 @@ document.addEventListener('DOMContentLoaded', () => {
       targetList.appendChild(item);
     });
 
+    if (historyGroupPinned) historyGroupPinned.style.display = (historyListPinned && historyListPinned.children.length > 0) ? 'block' : 'none';
     if (historyGroupToday) historyGroupToday.style.display = historyListToday.children.length > 0 ? 'block' : 'none';
     if (historyGroupYesterday) historyGroupYesterday.style.display = historyListYesterday.children.length > 0 ? 'block' : 'none';
     if (historyGroupPrevious) historyGroupPrevious.style.display = historyListPrevious.children.length > 0 ? 'block' : 'none';
@@ -1789,9 +1873,9 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       // --- Intelligent Context Limit Pre-Check ---
       const rawTextForTokenCheck = JSON.stringify(payloadMessages);
-      const estimatedTokens = Math.ceil(rawTextForTokenCheck.length / 4); 
+      const estimatedTokens = Math.ceil(rawTextForTokenCheck.length / 4);
       // Most free models have ~256k limit, set a safe warning threshold
-      const CONTEXT_LIMIT = 200000; 
+      const CONTEXT_LIMIT = 200000;
       if (estimatedTokens > CONTEXT_LIMIT) {
         throw new Error(`Context limit warning: Your request is approximately ${estimatedTokens.toLocaleString()} tokens, which exceeds the safe threshold of ${CONTEXT_LIMIT.toLocaleString()} tokens. Please clear the chat history or remove large files before proceeding to avoid dropping context.`);
       }
@@ -1833,16 +1917,16 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
           // Do not retry on explicit user cancellation
           if (err.name === 'AbortError') throw err;
-          
+
           // Do not retry on 4xx client errors (except 429 Rate Limit / 408 Timeout)
           if (err.status && err.status >= 400 && err.status < 500 && err.status !== 429 && err.status !== 408) {
             throw err;
           }
-          
+
           if (attempt === retries) {
             throw new Error(`Connection failed after ${retries} attempts. The network or upstream provider is unstable. Please try again.`);
           }
-          
+
           console.warn(`[Atlas Network Guard] Request failed (attempt ${attempt}/${retries}): ${err.message}. Retrying in ${delay}ms...`);
           await new Promise(r => setTimeout(r, delay));
           delay *= 2; // Exponential backoff
@@ -1876,7 +1960,7 @@ document.addEventListener('DOMContentLoaded', () => {
               if (statusAnimator) { statusAnimator.stop(); statusAnimator = null; }
               const toolName = parsed.__tool_start__.name.replace(/_/g, ' ');
               const toolId = `tool-${Date.now()}`;
-              
+
               // Ensure log container exists
               let agentLog = bubble.querySelector('.agent-activity-log');
               if (!agentLog) {
@@ -1908,11 +1992,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const logItem = agentLog.querySelector(`[data-tool="${toolName}"]:last-child`);
                 if (logItem) {
                   const isSuccess = parsed.__tool_done__.success;
-                  const icon = isSuccess 
+                  const icon = isSuccess
                     ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>`
                     : `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
                   const color = isSuccess ? '#10b981' : '#ef4444';
-                  
+
                   logItem.innerHTML = `
                     <span style="display: flex; align-items: center; gap: 0.5rem; opacity: 0.8;">
                       ${icon}
@@ -2017,7 +2101,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     } catch (err) {
       if (statusAnimator) { statusAnimator.stop(); statusAnimator = null; }
-      
+
       // Persist partial generation to prevent data loss on network drops
       if (accumulatedContent || accumulatedReasoning) {
         session.messages.push({
@@ -2033,7 +2117,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const errorInfo = formatUserFriendlyError(err, err.status);
       const errorHtml = renderErrorCard(errorInfo);
-      
+
       if (accumulatedContent) {
         // Append a distinct "Stream Interrupted" UI indicator
         const interruptBadge = `<div class="stream-interrupt-badge" style="margin-top: 1rem; padding: 0.5rem; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); border-radius: 4px; display: flex; align-items: center; gap: 0.5rem; color: #ef4444; font-size: 0.85rem;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> Stream Interrupted. Your partial response has been saved.</div>`;

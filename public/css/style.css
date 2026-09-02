@@ -2972,3 +2972,233 @@ code {
   font-size: 0.8rem;
   color: var(--text-secondary);
 }
+
+/* ─────────────────────────────────────────────────────────────
+   PINNED & INLINE RENAME HISTORY CONTROLS
+   ───────────────────────────────────────────────────────────── */
+.history-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.history-item:hover .history-item-actions,
+.history-item.active .history-item-actions {
+  opacity: 1;
+}
+
+.history-item-pin-btn,
+.history-item-rename-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.history-item-pin-btn:hover,
+.history-item-rename-btn:hover {
+  color: var(--text-main);
+}
+
+.history-item-pin-btn.pinned {
+  color: var(--vylex-amber, #FBA919);
+  opacity: 1;
+}
+
+.history-item-rename-input {
+  background: var(--bg-card);
+  border: 1px solid var(--border-focus, var(--vylex-amber));
+  color: var(--text-main);
+  border-radius: 3px;
+  padding: 2px 6px;
+  font-size: 0.78rem;
+  width: 100%;
+  outline: none;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   USER & ASSISTANT MESSAGE ACTION CONTROLS
+   ───────────────────────────────────────────────────────────── */
+.message-row.user:hover .user-message-actions {
+  opacity: 1;
+}
+
+.user-message-actions {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  margin-top: 4px;
+  justify-content: flex-end;
+}
+
+.user-action-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 3px;
+  font-size: 0.72rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+}
+
+.user-action-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-main);
+}
+
+.action-btn.regenerate-btn:hover {
+  color: var(--vylex-amber, #FBA919);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   VOICE DICTATION BUTTON
+   ───────────────────────────────────────────────────────────── */
+#voiceDictationBtn.is-listening {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.12);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   CONTEXT ESTIMATOR
+   ───────────────────────────────────────────────────────────── */
+.context-token-estimator {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.75rem;
+  color: var(--text-tertiary, var(--text-muted));
+}
+
+/* ─────────────────────────────────────────────────────────────
+   CANVAS DIFF VIEWER & CODE TOGGLE
+   ───────────────────────────────────────────────────────────── */
+.diff-viewer-container {
+  padding: 16px;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  overflow-x: auto;
+}
+
+.diff-empty-notice {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.diff-line {
+  display: flex;
+  padding: 2px 8px;
+  border-radius: 2px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.diff-line.diff-add {
+  background: rgba(34, 197, 94, 0.12);
+  color: #4ade80;
+}
+
+.diff-line.diff-del {
+  background: rgba(239, 68, 68, 0.12);
+  color: #f87171;
+}
+
+.diff-line.diff-hunk {
+  background: rgba(59, 130, 246, 0.1);
+  color: #60a5fa;
+  font-weight: 600;
+}
+
+.diff-line.diff-meta {
+  color: var(--text-muted);
+}
+
+.code-header-tool-btn {
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  border-radius: 3px;
+  padding: 2px 7px;
+  font-size: 0.72rem;
+  cursor: pointer;
+  margin-left: auto;
+}
+
+.code-header-tool-btn:hover,
+.code-header-tool-btn.active {
+  background: var(--bg-card);
+  color: var(--text-main);
+  border-color: var(--border-focus, var(--vylex-amber));
+}
+
+/* ─────────────────────────────────────────────────────────────
+   KEYBOARD SHORTCUTS MODAL
+   ───────────────────────────────────────────────────────────── */
+.modal-header-simple {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.modal-title-with-icon {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.modal-title-with-icon h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.modal-body-simple {
+  padding: 16px 20px;
+}
+
+.shortcut-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.shortcut-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.shortcut-row:last-child {
+  border-bottom: none;
+}
+
+.shortcut-label {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.shortcut-key {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  padding: 3px 7px;
+  font-size: 0.75rem;
+  font-family: var(--font-mono, monospace);
+  color: var(--text-main);
+}
