@@ -1087,6 +1087,50 @@ document.addEventListener('DOMContentLoaded', () => {
       wrapper.insertBefore(attachmentBlock, bubble);
     }
 
+    if (role === 'user') {
+      const userActions = document.createElement('div');
+      userActions.className = 'user-message-actions';
+
+      const copyUserBtn = document.createElement('button');
+      copyUserBtn.className = 'user-action-btn';
+      copyUserBtn.innerHTML = `${ICONS.copy} Copy`;
+      copyUserBtn.title = 'Copy prompt';
+      copyUserBtn.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(content);
+          copyUserBtn.innerHTML = `${ICONS.check} Copied`;
+          setTimeout(() => { copyUserBtn.innerHTML = `${ICONS.copy} Copy`; }, 1500);
+        } catch (e) {
+          console.warn('Clipboard write failed', e);
+        }
+      });
+
+      const editUserBtn = document.createElement('button');
+      editUserBtn.className = 'user-action-btn';
+      editUserBtn.innerHTML = `${ICONS.edit} Edit`;
+      editUserBtn.title = 'Edit prompt and re-run';
+      editUserBtn.addEventListener('click', () => {
+        if (state.isGenerating) return;
+        const session = getActiveSession();
+        if (!session) return;
+        const msgIdx = session.messages.findIndex(m => m.role === 'user' && m.content === content);
+        if (msgIdx >= 0) {
+          messageInput.value = content;
+          if (typeof autoResizeTextarea === 'function') autoResizeTextarea();
+          messageInput.focus();
+          session.messages = session.messages.slice(0, msgIdx);
+          saveSessions();
+          renderSessionMessages(session);
+          updateSessionMetrics();
+          updateContextEstimator();
+        }
+      });
+
+      userActions.appendChild(copyUserBtn);
+      userActions.appendChild(editUserBtn);
+      wrapper.appendChild(userActions);
+    }
+
     if (role === 'assistant') {
       const actionsBar = document.createElement('div');
       actionsBar.className = 'message-actions-bar';
@@ -1167,8 +1211,18 @@ document.addEventListener('DOMContentLoaded', () => {
         window.speechSynthesis.speak(utterance);
       });
 
+      const regenBtn = document.createElement('button');
+      regenBtn.className = 'action-btn regenerate-btn';
+      regenBtn.innerHTML = ICONS.regenerate || 'Retry';
+      regenBtn.title = 'Regenerate response';
+      regenBtn.addEventListener('click', () => {
+        if (state.isGenerating) return;
+        regenerateLastResponse();
+      });
+
       actionsBar.appendChild(copyBtn);
       actionsBar.appendChild(speakBtn);
+      actionsBar.appendChild(regenBtn);
       wrapper.appendChild(actionsBar);
     }
 
