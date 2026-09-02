@@ -1786,33 +1786,66 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    try {
-      const response = await fetch(`${API_BASE}/api/chat`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(state.apiKey ? { 'X-OpenRouter-Key': state.apiKey } : {})
-        },
-        signal: state.abortController.signal,
-        body: JSON.stringify({
-          model: state.currentModel,
-          messages: payloadMessages,
-          stream: true,
-          mode: state.activeMode,
-          systemPrompt: state.systemPrompt,
-          temperature: state.temperature,
-          webSearch: requestWebSearch,
-          reasoning: state.isDeepReasoning,
-          maxTokens: 4096,
-          apiKey: state.apiKey || undefined
-        })
-      });
+      // --- Intelligent Context Limit Pre-Check ---
+      const rawTextForTokenCheck = JSON.stringify(payloadMessages);
+      const estimatedTokens = Math.ceil(rawTextForTokenCheck.length / 4); 
+      // Most free models have ~256k limit, set a safe warning threshold
+      const CONTEXT_LIMIT = 200000; 
+      if (estimatedTokens > CONTEXT_LIMIT) {
+        throw new Error(`Context limit warning: Your request is approximately ${estimatedTokens.toLocaleString()} tokens, which exceeds the safe threshold of ${CONTEXT_LIMIT.toLocaleString()} tokens. Please clear the chat history or remove large files before proceeding to avoid dropping context.`);
+      }
 
-      if (!response.ok) {
-        const errJson = await response.json().catch(() => ({}));
-        const customErr = new Error(errJson.error || 'Request failed');
-        customErr.status = response.status;
-        throw customErr;
+      let response = null;
+      let retries = 3;
+      let delay = 1000;
+
+      for (let attempt = 1; attempt <= retries; attempt++) {
+        try {
+          response = await fetch(`${API_BASE}/api/chat`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              ...(state.apiKey ? { 'X-OpenRouter-Key': state.apiKey } : {})
+            },
+            signal: state.abortController.signal,
+            body: JSON.stringify({
+              model: state.currentModel,
+              messages: payloadMessages,
+              stream: true,
+              mode: state.activeMode,
+              systemPrompt: state.systemPrompt,
+              temperature: state.temperature,
+              webSearch: requestWebSearch,
+              reasoning: state.isDeepReasoning,
+              maxTokens: 4096,
+              apiKey: state.apiKey || undefined
+            })
+          });
+
+          if (!response.ok) {
+            const errJson = await response.json().catch(() => ({}));
+            const customErr = new Error(errJson.error || 'Request failed');
+            customErr.status = response.status;
+            throw customErr;
+          }
+          break; // Success, exit retry loop
+        } catch (err) {
+          // Do not retry on explicit user cancellation
+          if (err.name === 'AbortError') throw err;
+          
+          // Do not retry on 4xx client errors (except 429 Rate Limit / 408 Timeout)
+          if (err.status && err.status >= 400 && err.status < 500 && err.status !== 429 && err.status !== 408) {
+            throw err;
+          }
+          
+          if (attempt === retries) {
+            throw new Error(`Connection failed after ${retries} attempts. The network or upstream provider is unstable. Please try again.`);
+          }
+          
+          console.warn(`[Atlas Network Guard] Request failed (attempt ${attempt}/${retries}): ${err.message}. Retrying in ${delay}ms...`);
+          await new Promise(r => setTimeout(r, delay));
+          delay *= 2; // Exponential backoff
+        }
       }
 
       const reader = response.body.getReader();
@@ -1930,10 +1963,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
     } catch (err) {
       if (statusAnimator) { statusAnimator.stop(); statusAnimator = null; }
+      
+      // Persist partial generation to prevent data loss on network drops
+      if (accumulatedContent || accumulatedReasoning) {
+        session.messages.push({
+          role: 'assistant',
+          content: accumulatedContent,
+          reasoning: accumulatedReasoning,
+          widgets: accumulatedWidgets,
+          _partial: true // Mark as partial so UI can show resume button
+        });
+        session.updatedAt = new Date().toISOString();
+        saveSessions();
+      }
+
       const errorInfo = formatUserFriendlyError(err, err.status);
       const errorHtml = renderErrorCard(errorInfo);
+      
       if (accumulatedContent) {
-        bubble.innerHTML = parseMarkdownSafely(accumulatedContent, false) + errorHtml;
+        // Append a distinct "Stream Interrupted" UI indicator
+        const interruptBadge = `<div class="stream-interrupt-badge" style="margin-top: 1rem; padding: 0.5rem; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); border-radius: 4px; display: flex; align-items: center; gap: 0.5rem; color: #ef4444; font-size: 0.85rem;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> Stream Interrupted. Your partial response has been saved.</div>`;
+        bubble.innerHTML = parseMarkdownSafely(accumulatedContent, false) + interruptBadge;
       } else {
         bubble.innerHTML = errorHtml;
       }

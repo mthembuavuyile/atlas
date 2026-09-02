@@ -17,20 +17,36 @@ class ChatController {
    * If a mode is specified, prepend the mode-specific reasoning instructions
    * before the base Atlas identity prompt.
    */
-  buildSystemPrompt(mode, customSystemPrompt) {
+  buildSystemPrompt(mode, customSystemPrompt, activeToolsState = {}) {
     const parts = [];
 
     // 1. Core Atlas identity — ALWAYS included so the AI knows who it is
     parts.push(SYSTEM_PROMPT_FULL);
 
-    // 2. Mode-specific reasoning instructions (if active)
+    // 2. Dynamic State Awareness (Let the model know what it can do right now)
+    const stateContexts = [];
+    if (activeToolsState.webSearch) {
+      stateContexts.push("- Live Web Search is currently ENABLED. You have access to real-time internet grounding.");
+    } else {
+      stateContexts.push("- Live Web Search is currently DISABLED. Rely on your base knowledge.");
+    }
+    
+    if (activeToolsState.hasAttachments) {
+      stateContexts.push("- The user has attached files or scanned images in the current context. Reference them directly if needed.");
+    }
+    
+    if (stateContexts.length > 0) {
+      parts.push(`[CURRENT ATLAS UI STATE]\n${stateContexts.join('\n')}`);
+    }
+
+    // 3. Mode-specific reasoning instructions (if active)
     if (mode && INVESTIGATION_MODES[mode]) {
       parts.push(INVESTIGATION_MODES[mode].prompt);
     }
 
-    // 3. Additional custom user instructions (layered on top, not replacing identity)
+    // 4. Additional custom user instructions
     if (customSystemPrompt && customSystemPrompt.trim()) {
-      parts.push(`ADDITIONAL USER INSTRUCTIONS:\n${customSystemPrompt.trim()}`);
+      parts.push(`[ADDITIONAL USER INSTRUCTIONS]\n${customSystemPrompt.trim()}`);
     }
 
     return parts.join('\n\n');
@@ -77,10 +93,17 @@ class ChatController {
       }
 
       // Always inject the complete, authoritative mode-aware Atlas system prompt
+      // Let the model know what active capabilities the user has enabled
+      const hasAttachments = nonSystemMessages.some(m => 
+        typeof m.content === 'string' ? m.content.includes('```') : (Array.isArray(m.content) && m.content.length > 1)
+      );
+
+      const activeToolsState = { webSearch, hasAttachments };
+
       const normalizedMessages = [
         {
           role: 'system',
-          content: this.buildSystemPrompt(mode, clientCustomPrompt)
+          content: this.buildSystemPrompt(mode, clientCustomPrompt, activeToolsState)
         },
         ...nonSystemMessages
       ];
