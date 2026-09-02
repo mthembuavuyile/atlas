@@ -369,13 +369,16 @@ class ChatController {
         }
       ];
 
+      // Use a fast, lightweight model exclusively for title generation
+      // to avoid timeouts or token limits with heavy reasoning models (like deepseek-r1)
+      const titleModel = 'google/gemini-2.5-flash';
+
       const openRouterResponse = await openrouterService.createChatCompletion({
         messages: promptMessages,
-        model,
+        model: titleModel,
         temperature: 0.3,
         stream: false,
         maxTokens: 30,
-        reasoning: { effort: 'low' },
         apiKey: customApiKey,
         referer: env.APP_URL
       });
