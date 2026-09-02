@@ -13,6 +13,7 @@ import { renderTimeWidget } from './time-widget.js';
 import { renderUnitWidget } from './unit-widget.js';
 import { renderPlacesWidget } from './places-widget.js';
 import { renderQrWidget } from './qr-widget.js';
+import { renderGenerateImageWidget } from './generate-image-widget.js';
 
 const RENDERERS = {
     time: renderTimeWidget,
@@ -29,6 +30,7 @@ const RENDERERS = {
     math: renderMathWidget,
     joke: renderJokeWidget,
     advice: renderAdviceWidget,
+    generate_image: renderGenerateImageWidget,
     generate_qr: renderQrWidget
 };
 

@@ -257,6 +257,7 @@ class ChatController {
                 case 'get_crypto_price': widgetResult = await widgetService.getCryptoPrice(args.coin); break;
                 case 'get_bible_verse': widgetResult = await widgetService.getBibleVerse(args.reference); break;
                 case 'search_images': widgetResult = await widgetService.searchImages(args.query); break;
+                case 'generate_image': widgetResult = await widgetService.generateImage(args.prompt, args.aspect_ratio); break;
                 case 'get_news_headlines': widgetResult = await widgetService.getNewsHeadlines(args.topic); break;
                 case 'get_space_news': widgetResult = await widgetService.getSpaceNews(args.topic); break;
                 case 'get_reddit_posts': widgetResult = await widgetService.getRedditPosts(args.subreddit); break;
@@ -284,6 +285,12 @@ class ChatController {
                   image_count: widgetResult.data.images.length,
                   titles: widgetResult.data.images.slice(0, 5).map(img => img.title),
                   instruction: `Visual references gallery containing ${widgetResult.data.images.length} images for "${widgetResult.data.query}" has already been displayed directly above. Provide a concise, helpful summary or fascinating scientific context about the subject. Do NOT output markdown image syntax or raw image links.`
+                };
+              } else if (toolName === 'generate_image' && widgetResult.data?.url) {
+                toolContentForLlm = {
+                  status: 'success',
+                  prompt: widgetResult.data.prompt,
+                  instruction: `The generated image for "${widgetResult.data.prompt}" has been successfully displayed to the user. Do NOT output markdown image syntax or raw image links. Provide a brief, creative remark about the generated image.`
                 };
               }
 

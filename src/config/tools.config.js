@@ -102,13 +102,28 @@ const ATLAS_TOOLS = [
     type: 'function',
     function: {
       name: 'search_images',
-      description: 'Search for images or photos of a specific subject.',
+      description: 'Search for existing images or photos of a specific subject on the internet.',
       parameters: {
         type: 'object',
         properties: {
           query: { type: 'string', description: 'What to search for, e.g. "nebula", "cat"' }
         },
         required: ['query']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'generate_image',
+      description: 'Generate a completely new, AI-generated image based on a prompt. Use this when the user asks to "create", "make", "draw", or "generate" an image.',
+      parameters: {
+        type: 'object',
+        properties: {
+          prompt: { type: 'string', description: 'A highly detailed visual description of the image to generate.' },
+          aspect_ratio: { type: 'string', description: 'The aspect ratio for the image, e.g. "1:1", "16:9", "9:16", "3:2". Defaults to 1:1 if omitted.' }
+        },
+        required: ['prompt']
       }
     }
   },

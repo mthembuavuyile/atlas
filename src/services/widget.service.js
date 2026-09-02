@@ -667,6 +667,41 @@ class WidgetService {
         };
     }
 
+    // 4.1 AI Image Generation (Free: Pollinations.ai)
+    async generateImage(prompt, aspectRatio = '1:1') {
+        const cleanPrompt = (prompt || 'A beautiful futuristic landscape').trim();
+        
+        let width = 800;
+        let height = 800;
+
+        // Approximate common aspect ratios
+        switch(aspectRatio) {
+            case '16:9': width = 1024; height = 576; break;
+            case '9:16': width = 576; height = 1024; break;
+            case '3:2': width = 960; height = 640; break;
+            case '2:3': width = 640; height = 960; break;
+            case '4:3': width = 1024; height = 768; break;
+            case '3:4': width = 768; height = 1024; break;
+            case '1:1':
+            default: width = 800; height = 800; break;
+        }
+
+        // Pollinations URL format with seed to avoid caching identical prompts if requested again
+        const seed = Math.floor(Math.random() * 1000000000);
+        const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(cleanPrompt)}?width=${width}&height=${height}&seed=${seed}&nologo=true`;
+
+        return {
+            type: 'generate_image',
+            data: {
+                prompt: cleanPrompt,
+                url: imageUrl,
+                width,
+                height,
+                aspectRatio
+            }
+        };
+    }
+
     // 5. Space News
     async getSpaceNews(topic = '') {
         let apiUrl = `https://api.spaceflightnewsapi.net/v4/articles/?limit=5&ordering=-published_at`;
