@@ -502,6 +502,9 @@ document.addEventListener('DOMContentLoaded', () => {
     loadSavedSettings();
     updateDynamicGreeting();
     setupEventListeners();
+    initVoiceDictation();
+    initKeyboardShortcuts();
+    updateContextEstimator();
     checkBackendHealth();
 
     if (state.sessions.length > 0) {
@@ -721,6 +724,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderHistoryTree();
     renderSessionMessages(newSession);
     updateSessionMetrics();
+    updateContextEstimator();
 
     if (messageInput) messageInput.focus();
     if (window.innerWidth <= 768) {
@@ -740,6 +744,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderHistoryTree();
     renderSessionMessages(session);
     updateSessionMetrics();
+    updateContextEstimator();
 
     if (messageInput) messageInput.focus();
   }
@@ -1470,15 +1475,34 @@ document.addEventListener('DOMContentLoaded', () => {
       const wrapper = document.createElement('div');
       wrapper.className = 'code-block-container';
 
+      const linesCount = codeText.split('\n').length;
+      const isLongCode = linesCount > 50;
+
       const header = document.createElement('div');
       header.className = 'code-block-header';
       header.innerHTML = `
-        <span>${language.toUpperCase()}</span>
+        <span>${language.toUpperCase()} ${isLongCode ? `(${linesCount} lines)` : ''}</span>
         <span class="code-block-actions">
+          ${isLongCode ? '<button class="code-header-tool-btn fold-code-btn" type="button">Collapse</button>' : ''}
           <button class="copy-code-btn" type="button">Copy</button>
           <button class="open-canvas-btn" type="button" title="Open in Canvas" aria-label="Open code in Canvas">${ICONS.canvas || 'Canvas'}</button>
         </span>
       `;
+
+      if (isLongCode) {
+        header.querySelector('.fold-code-btn')?.addEventListener('click', (e) => {
+          const isCollapsed = pre.style.maxHeight === '240px';
+          if (isCollapsed) {
+            pre.style.maxHeight = 'none';
+            pre.style.overflow = 'visible';
+            e.target.textContent = 'Collapse';
+          } else {
+            pre.style.maxHeight = '240px';
+            pre.style.overflow = 'hidden';
+            e.target.textContent = `Expand (${linesCount} lines)`;
+          }
+        });
+      }
 
       header.querySelector('.copy-code-btn')?.addEventListener('click', (e) => {
         navigator.clipboard.writeText(codeText).then(() => {
@@ -1548,17 +1572,64 @@ document.addEventListener('DOMContentLoaded', () => {
     if (canvasPreviewFrame && (language === 'html' || codeText.includes('<!DOCTYPE') || codeText.includes('<html'))) {
       canvasPreviewFrame.srcdoc = codeText;
     }
+
+    // Auto-detect diff or patch syntax and populate diff viewer
+    const isDiff = language === 'diff' || codeText.includes('--- a/') || codeText.includes('+++ b/') || (codeText.includes('@@') && (codeText.includes('+') || codeText.includes('-')));
+    if (isDiff) {
+      renderDiffInCanvas(codeText);
+      if (canvasDiffTab) canvasDiffTab.style.display = 'inline-flex';
+    }
+  }
+
+  function renderDiffInCanvas(diffText) {
+    if (!diffViewerContainer) return;
+    if (!diffText || !diffText.trim()) {
+      diffViewerContainer.innerHTML = '<div class="diff-empty-notice">No diff active. Load a unified diff or ask Atlas to propose code edits to view line changes here.</div>';
+      return;
+    }
+
+    const lines = diffText.split('\n');
+    let html = '';
+    lines.forEach((line) => {
+      let lineClass = '';
+      if (line.startsWith('+++') || line.startsWith('---')) {
+        lineClass = 'diff-meta';
+      } else if (line.startsWith('@@')) {
+        lineClass = 'diff-hunk';
+      } else if (line.startsWith('+')) {
+        lineClass = 'diff-add';
+      } else if (line.startsWith('-')) {
+        lineClass = 'diff-del';
+      }
+      html += `<div class="diff-line ${lineClass}">${escapeHtml(line)}</div>`;
+    });
+    diffViewerContainer.innerHTML = html;
   }
 
   function switchCanvasTab(tabKey) {
     canvasTabs.forEach(t => t.classList.toggle('active', t.getAttribute('data-tab') === tabKey));
     if (canvasCodePane) canvasCodePane.classList.toggle('active', tabKey === 'code');
     if (canvasPreviewPane) canvasPreviewPane.classList.toggle('active', tabKey === 'preview');
+    if (canvasDiffPane) canvasDiffPane.classList.toggle('active', tabKey === 'diff');
     if (canvasMarkdownPane) canvasMarkdownPane.classList.toggle('active', tabKey === 'markdown');
     if (document.getElementById('canvasAgentPane')) {
       document.getElementById('canvasAgentPane').classList.toggle('active', tabKey === 'agent');
     }
   }
+
+  toggleLineNumbersBtn?.addEventListener('click', () => {
+    if (!canvasCodePane) return;
+    const isShowing = canvasCodePane.classList.toggle('show-line-numbers');
+    toggleLineNumbersBtn.classList.toggle('active', isShowing);
+    if (isShowing && canvasCodeContent) {
+      const lines = (state.activeArtifact?.codeText || canvasCodeContent.textContent || '').split('\n');
+      const numberedHtml = lines.map((l, i) => `<span class="line-row" style="display: flex;"><span class="diff-line-num" style="min-width: 35px; color: var(--text-muted); user-select: none; margin-right: 12px; text-align: right;">${i + 1}</span><span class="line-content">${escapeHtml(l)}</span></span>`).join('\n');
+      canvasCodeContent.innerHTML = numberedHtml;
+    } else if (state.activeArtifact) {
+      canvasCodeContent.textContent = state.activeArtifact.codeText || '';
+      if (window.hljs) hljs.highlightElement(canvasCodeContent);
+    }
+  });
 
   // --- SUBMIT MESSAGE & STREAMING ---
   async function handleChatSubmit(e) {
@@ -1570,6 +1641,13 @@ document.addEventListener('DOMContentLoaded', () => {
       messageInput.value = '';
       if (typeof autoResizeTextarea === 'function') autoResizeTextarea();
       if (typeof openUnifiedSettings === 'function') openUnifiedSettings();
+      return;
+    }
+
+    if (prompt.toLowerCase().trim() === '/shortcuts') {
+      messageInput.value = '';
+      if (typeof autoResizeTextarea === 'function') autoResizeTextarea();
+      if (typeof toggleShortcutsModal === 'function') toggleShortcutsModal(true);
       return;
     }
 
@@ -1617,6 +1695,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
     renderMessageItem('user', prompt, '', true, [], messageAttachments);
     updateSessionMetrics();
+    updateContextEstimator();
+
+    await executeChatTurn(session);
+  }
+
+  function regenerateLastResponse() {
+    if (state.isGenerating) return;
+    const session = getActiveSession();
+    if (!session || !session.messages || session.messages.length === 0) return;
+
+    if (session.messages[session.messages.length - 1].role === 'assistant') {
+      session.messages.pop();
+      saveSessions();
+      renderSessionMessages(session);
+      updateSessionMetrics();
+      updateContextEstimator();
+    }
+
+    executeChatTurn(session);
+  }
+
+  async function executeChatTurn(session) {
+    if (!session || state.isGenerating) return;
 
     // Prepare assistant message bubble & status animator
     const { bubble, wrapper, widgetsContainer, setReasoning } = renderMessageItem('assistant', '', '', true);
@@ -2473,6 +2574,61 @@ document.addEventListener('DOMContentLoaded', () => {
 
     exportMarkdownBtn?.addEventListener('click', () => exportConversation('md'));
     exportJsonBtn?.addEventListener('click', () => exportConversation('json'));
+    importJsonBtn?.addEventListener('click', () => {
+      document.getElementById('exportMenuPopup')?.classList.remove('show');
+      importJsonFileInput?.click();
+    });
+
+    importJsonFileInput?.addEventListener('change', (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const parsed = JSON.parse(event.target.result);
+          const importedList = Array.isArray(parsed)
+            ? parsed
+            : (parsed.sessions && Array.isArray(parsed.sessions) ? parsed.sessions : [parsed]);
+
+          let importCount = 0;
+          importedList.forEach(imp => {
+            if (imp && (imp.messages || imp.title)) {
+              const sessionObj = {
+                id: imp.id || ('inv_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6)),
+                title: imp.title || 'Imported Session',
+                mode: imp.mode || 'auto',
+                isPinned: Boolean(imp.isPinned),
+                createdAt: imp.createdAt || new Date().toISOString(),
+                updatedAt: imp.updatedAt || new Date().toISOString(),
+                messages: Array.isArray(imp.messages) ? imp.messages : []
+              };
+
+              const existingIdx = state.sessions.findIndex(s => s.id === sessionObj.id);
+              if (existingIdx >= 0) {
+                state.sessions[existingIdx] = sessionObj;
+              } else {
+                state.sessions.unshift(sessionObj);
+              }
+              importCount++;
+            }
+          });
+
+          if (importCount > 0) {
+            saveSessions();
+            renderHistoryTree();
+            loadSession(state.sessions[0].id);
+          } else {
+            alert('No valid investigations found in this JSON file.');
+          }
+        } catch (err) {
+          console.error('Import failed:', err);
+          alert('Failed to parse JSON backup file. Please ensure it is valid Atlas export format.');
+        }
+        importJsonFileInput.value = '';
+      };
+      reader.readAsText(file);
+    });
 
     clearCurrentChatBtn?.addEventListener('click', () => {
       const session = getActiveSession();
@@ -2795,6 +2951,7 @@ document.addEventListener('DOMContentLoaded', () => {
     messageInput?.addEventListener('input', (e) => {
       if (typeof autoResizeTextarea === 'function') autoResizeTextarea(e);
       handleSlashCommandInput(e);
+      updateContextEstimator();
     });
 
     let slashSelectedIndex = 0;
@@ -2875,7 +3032,8 @@ document.addEventListener('DOMContentLoaded', () => {
       { cmd: '/ocr', desc: 'Extract text from images', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M7 7h10"/><path d="M7 12h10"/><path d="M7 17h10"/></svg>' },
       { cmd: '/clear', desc: 'Clear conversation history', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>' },
       { cmd: '/exit', desc: 'Exit to new session', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>' },
-      { cmd: '/settings', desc: 'Open unified settings', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>' }
+      { cmd: '/settings', desc: 'Open unified settings', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>' },
+      { cmd: '/shortcuts', desc: 'Show keyboard shortcuts', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect><line x1="6" y1="8" x2="6.01" y2="8"></line><line x1="10" y1="8" x2="10.01" y2="8"></line><line x1="14" y1="8" x2="14.01" y2="8"></line><line x1="18" y1="8" x2="18.01" y2="8"></line><line x1="6" y1="12" x2="6.01" y2="12"></line><line x1="18" y1="12" x2="18.01" y2="12"></line><line x1="7" y1="16" x2="17" y2="16"></line></svg>' }
     ];
 
     function handleSlashCommandInput(e) {
@@ -3113,6 +3271,136 @@ document.addEventListener('DOMContentLoaded', () => {
     a.href = URL.createObjectURL(blob);
     a.download = filename;
     a.click();
+  }
+
+  // --- KEYBOARD SHORTCUTS MODAL ---
+  function toggleShortcutsModal(show) {
+    if (!shortcutsModal) return;
+    const isVisible = shortcutsModal.style.display === 'flex';
+    const shouldShow = typeof show === 'boolean' ? show : !isVisible;
+    shortcutsModal.style.display = shouldShow ? 'flex' : 'none';
+  }
+
+  function initKeyboardShortcuts() {
+    closeShortcutsModalBtn?.addEventListener('click', () => toggleShortcutsModal(false));
+    shortcutsModal?.addEventListener('click', (e) => {
+      if (e.target === shortcutsModal) toggleShortcutsModal(false);
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+        e.preventDefault();
+        toggleShortcutsModal();
+      } else if (e.key === '?' && !['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) {
+        e.preventDefault();
+        toggleShortcutsModal(true);
+      } else if (e.key === 'Escape') {
+        if (shortcutsModal && shortcutsModal.style.display === 'flex') {
+          shortcutsModal.style.display = 'none';
+        }
+      }
+    });
+  }
+
+  // --- VOICE DICTATION (SPEECH TO TEXT) ---
+  function initVoiceDictation() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      if (voiceDictationBtn) {
+        voiceDictationBtn.title = 'Speech-to-Text not supported in this browser';
+        voiceDictationBtn.style.opacity = '0.5';
+      }
+      return;
+    }
+
+    let speechRecognizer = null;
+    let isListening = false;
+
+    const stopListening = () => {
+      isListening = false;
+      if (voiceDictationBtn) {
+        voiceDictationBtn.classList.remove('is-listening');
+        voiceDictationBtn.title = 'Dictate Prompt (Speech to Text)';
+      }
+    };
+
+    voiceDictationBtn?.addEventListener('click', () => {
+      if (isListening) {
+        speechRecognizer?.stop();
+        stopListening();
+        return;
+      }
+
+      try {
+        speechRecognizer = new SpeechRecognition();
+        speechRecognizer.continuous = true;
+        speechRecognizer.interimResults = true;
+        speechRecognizer.lang = 'en-US';
+
+        speechRecognizer.onstart = () => {
+          isListening = true;
+          voiceDictationBtn.classList.add('is-listening');
+          voiceDictationBtn.title = 'Listening... Click to stop';
+        };
+
+        speechRecognizer.onresult = (event) => {
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            if (event.results[i].isFinal) {
+              const text = event.results[i][0].transcript.trim();
+              if (text) {
+                messageInput.value = (messageInput.value ? messageInput.value + ' ' : '') + text;
+                if (typeof autoResizeTextarea === 'function') autoResizeTextarea();
+                updateContextEstimator();
+              }
+            }
+          }
+        };
+
+        speechRecognizer.onerror = (event) => {
+          console.warn('[Atlas Speech] Recognition error:', event.error);
+          stopListening();
+        };
+
+        speechRecognizer.onend = () => {
+          stopListening();
+        };
+
+        speechRecognizer.start();
+      } catch (err) {
+        console.warn('[Atlas Speech] Failed to start:', err);
+        stopListening();
+      }
+    });
+  }
+
+  // --- CONTEXT & TOKEN ESTIMATOR ---
+  function updateContextEstimator() {
+    if (!contextTokenEstimator) return;
+    const session = getActiveSession();
+    let totalChars = 0;
+    if (session && Array.isArray(session.messages)) {
+      for (const m of session.messages) {
+        totalChars += (m.content ? m.content.length : 0);
+        if (m.reasoning) totalChars += m.reasoning.length;
+      }
+    }
+    if (Array.isArray(state.projectFiles)) {
+      for (const f of state.projectFiles) {
+        totalChars += (f.content ? f.content.length : 0);
+      }
+    }
+    if (messageInput && messageInput.value) {
+      totalChars += messageInput.value.length;
+    }
+
+    const estimatedTokens = Math.round(totalChars / 4);
+    if (estimatedTokens >= 1000000) {
+      contextTokenEstimator.textContent = `~${(estimatedTokens / 1000000).toFixed(1)}M tokens`;
+    } else if (estimatedTokens >= 1000) {
+      contextTokenEstimator.textContent = `~${(estimatedTokens / 1000).toFixed(1)}k tokens`;
+    } else {
+      contextTokenEstimator.textContent = `~${estimatedTokens} tokens`;
+    }
   }
 
   // Start initialization
