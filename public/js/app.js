@@ -1950,7 +1950,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const rawReasoning = choice?.delta?.reasoning ?? choice?.delta?.reasoning_content ?? choice?.delta?.thought ?? '';
 
             if (rawReasoning) {
-              if (statusAnimator) { statusAnimator.stop(); statusAnimator = null; }
+              // Let statusAnimator keep running during reasoning phase
               accumulatedReasoning += rawReasoning;
               setReasoning(accumulatedReasoning);
               scrollToBottom(false);
@@ -1961,7 +1961,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (inThinkTag) {
-              if (statusAnimator) { statusAnimator.stop(); statusAnimator = null; }
+              // Let statusAnimator keep running during thinking phase
               if (rawContent.includes('</think>')) {
                 inThinkTag = false;
                 const parts = rawContent.split('</think>');
