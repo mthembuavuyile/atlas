@@ -57,5 +57,3 @@ coverage/
 *.tgz
 *.gz
 .cache/
-
-qr/
