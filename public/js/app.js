@@ -1786,6 +1786,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
+    try {
       // --- Intelligent Context Limit Pre-Check ---
       const rawTextForTokenCheck = JSON.stringify(payloadMessages);
       const estimatedTokens = Math.ceil(rawTextForTokenCheck.length / 4); 
@@ -1869,6 +1870,59 @@ document.addEventListener('DOMContentLoaded', () => {
 
           try {
             const parsed = JSON.parse(dataStr);
+
+            // --- Agentic ReAct Loop UI Feedback ---
+            if (parsed.__tool_start__) {
+              if (statusAnimator) { statusAnimator.stop(); statusAnimator = null; }
+              const toolName = parsed.__tool_start__.name.replace(/_/g, ' ');
+              const toolId = `tool-${Date.now()}`;
+              
+              // Ensure log container exists
+              let agentLog = bubble.querySelector('.agent-activity-log');
+              if (!agentLog) {
+                agentLog = document.createElement('div');
+                agentLog.className = 'agent-activity-log';
+                agentLog.style.cssText = 'margin: 1rem 0; padding: 0.75rem; background: rgba(0,0,0,0.2); border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); font-family: "JetBrains Mono", monospace; font-size: 0.8rem; color: #a1a1aa; display: flex; flex-direction: column; gap: 0.5rem;';
+                bubble.appendChild(agentLog);
+              }
+
+              const logItem = document.createElement('div');
+              logItem.className = 'agent-log-item';
+              logItem.id = toolId;
+              logItem.dataset.tool = parsed.__tool_start__.name;
+              logItem.innerHTML = `
+                <span style="display: flex; align-items: center; gap: 0.5rem;">
+                  <svg class="tool-spinner" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation: spin 1s linear infinite;"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>
+                  <span style="color: #FBA919;">Executing tool: <strong style="color: #fff; font-weight: 500;">${toolName}</strong></span>
+                </span>
+              `;
+              agentLog.appendChild(logItem);
+              scrollToBottom(false);
+              continue;
+            }
+
+            if (parsed.__tool_done__) {
+              const toolName = parsed.__tool_done__.name;
+              const agentLog = bubble.querySelector('.agent-activity-log');
+              if (agentLog) {
+                const logItem = agentLog.querySelector(`[data-tool="${toolName}"]:last-child`);
+                if (logItem) {
+                  const isSuccess = parsed.__tool_done__.success;
+                  const icon = isSuccess 
+                    ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>`
+                    : `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
+                  const color = isSuccess ? '#10b981' : '#ef4444';
+                  
+                  logItem.innerHTML = `
+                    <span style="display: flex; align-items: center; gap: 0.5rem; opacity: 0.8;">
+                      ${icon}
+                      <span style="color: ${color};">Finished: <strong style="color: #fff; font-weight: 500;">${toolName.replace(/_/g, ' ')}</strong></span>
+                    </span>
+                  `;
+                }
+              }
+              continue;
+            }
 
             // Handle injected widget rendering directly in message
             if (parsed.__widget__) {
