@@ -11,6 +11,29 @@ const {
   APP,
 } = require('../config/identity');
 
+const TOOL_DISPATCHER = {
+  get_current_time: (args) => widgetService.getCurrentTime(args.timezone),
+  convert_units: (args) => widgetService.convertUnits(args.value, args.from, args.to),
+  search_places: (args) => widgetService.searchPlaces(args.query, args.near),
+  fetch_webpage: (args) => widgetService.fetchWebpage(args.url),
+  get_weather: (args) => widgetService.getWeather(args.city),
+  get_crypto_price: (args) => widgetService.getCryptoPrice(args.coin),
+  get_bible_verse: (args) => widgetService.getBibleVerse(args.reference),
+  search_images: (args) => widgetService.searchImages(args.query),
+  generate_image: (args) => widgetService.generateImage(args.prompt, args.aspect_ratio),
+  get_news_headlines: (args) => widgetService.getNewsHeadlines(args.topic),
+  get_space_news: (args) => widgetService.getSpaceNews(args.topic),
+  get_reddit_posts: (args) => widgetService.getRedditPosts(args.subreddit),
+  define_word: (args) => widgetService.defineWord(args.word),
+  convert_currency: (args) => widgetService.convertCurrency(args.amount, args.from, args.to),
+  solve_math: (args) => widgetService.solveMath(args.expression, args.operation),
+  tell_joke: () => widgetService.tellJoke(),
+  give_advice: () => widgetService.giveAdvice(),
+  scan_ocr: () => widgetService.scanOcr(),
+  scan_qr: () => widgetService.scanQr(),
+  generate_qr: (args) => widgetService.generateQr(args.data)
+};
+
 class ChatController {
   /**
    * Build the mode-aware system prompt.
@@ -248,28 +271,24 @@ class ChatController {
               res.write(`data: ${JSON.stringify({ __tool_start__: { name: toolName, args } })}\n\n`);
 
               let widgetResult;
-              switch (toolName) {
-                case 'get_current_time': widgetResult = await widgetService.getCurrentTime(args.timezone); break;
-                case 'convert_units': widgetResult = await widgetService.convertUnits(args.value, args.from, args.to); break;
-                case 'search_places': widgetResult = await widgetService.searchPlaces(args.query, args.near); break;
-                case 'fetch_webpage': widgetResult = await widgetService.fetchWebpage(args.url); break;
-                case 'get_weather': widgetResult = await widgetService.getWeather(args.city); break;
-                case 'get_crypto_price': widgetResult = await widgetService.getCryptoPrice(args.coin); break;
-                case 'get_bible_verse': widgetResult = await widgetService.getBibleVerse(args.reference); break;
-                case 'search_images': widgetResult = await widgetService.searchImages(args.query); break;
-                case 'generate_image': widgetResult = await widgetService.generateImage(args.prompt, args.aspect_ratio); break;
-                case 'get_news_headlines': widgetResult = await widgetService.getNewsHeadlines(args.topic); break;
-                case 'get_space_news': widgetResult = await widgetService.getSpaceNews(args.topic); break;
-                case 'get_reddit_posts': widgetResult = await widgetService.getRedditPosts(args.subreddit); break;
-                case 'define_word': widgetResult = await widgetService.defineWord(args.word); break;
-                case 'convert_currency': widgetResult = await widgetService.convertCurrency(args.amount, args.from, args.to); break;
-                case 'solve_math': widgetResult = await widgetService.solveMath(args.expression, args.operation); break;
-                case 'tell_joke': widgetResult = await widgetService.tellJoke(); break;
-                case 'give_advice': widgetResult = await widgetService.giveAdvice(); break;
-                case 'scan_ocr': widgetResult = await widgetService.scanOcr(); break;
-                case 'scan_qr': widgetResult = await widgetService.scanQr(); break;
-                case 'generate_qr': widgetResult = await widgetService.generateQr(args.data); break;
-                default: widgetResult = { error: `Unknown tool: ${toolName}` };
+              const handler = TOOL_DISPATCHER[toolName];
+              if (typeof handler === 'function') {
+                try {
+                  widgetResult = await handler(args || {});
+                } catch (toolExecErr) {
+                  console.error(`[Tool Execution Error] ${toolName}:`, toolExecErr.message || toolExecErr);
+                  widgetResult = {
+                    type: 'error',
+                    data: null,
+                    error: `Execution error in ${toolName}: ${toolExecErr.message || 'Internal failure'}`
+                  };
+                }
+              } else {
+                widgetResult = {
+                  type: 'error',
+                  data: null,
+                  error: `Unknown tool: ${toolName}`
+                };
               }
 
               // Send widget payload to client
@@ -421,4 +440,7 @@ class ChatController {
   }
 }
 
-module.exports = new ChatController();
+const chatController = new ChatController();
+chatController.TOOL_DISPATCHER = TOOL_DISPATCHER;
+
+module.exports = chatController;
