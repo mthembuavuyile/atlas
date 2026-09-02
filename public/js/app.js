@@ -419,7 +419,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const customRenderer = new marked.Renderer();
 
     // Table renderer supporting both object tokens (marked v12+) and classic string arguments
-    customRenderer.table = function(header, body) {
+    customRenderer.table = function (header, body) {
       let headerContent = '';
       let bodyContent = '';
 
@@ -451,7 +451,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // Link renderer ensuring clean target="_blank" and no [object Object]
-    customRenderer.link = function(href, title, text) {
+    customRenderer.link = function (href, title, text) {
       let cleanHref = '';
       let cleanTitle = '';
       let cleanText = '';
@@ -1006,12 +1006,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (role === 'assistant') {
       const actionsBar = document.createElement('div');
       actionsBar.className = 'message-actions-bar';
-      
+
       const copyBtn = document.createElement('button');
       copyBtn.className = 'action-btn copy-btn';
       copyBtn.innerHTML = ICONS.copy || 'Copy';
       copyBtn.title = 'Copy response';
-      
+
       copyBtn.addEventListener('click', async () => {
         try {
           await navigator.clipboard.writeText(bubble.innerText);
@@ -1021,7 +1021,7 @@ document.addEventListener('DOMContentLoaded', () => {
           console.warn('Clipboard write failed', e);
         }
       });
-      
+
       const speakBtn = document.createElement('button');
       speakBtn.className = 'action-btn speak-btn';
       speakBtn.innerHTML = ICONS.speaker || 'Speak';
@@ -1082,7 +1082,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setSpeechButtonState(true);
         window.speechSynthesis.speak(utterance);
       });
-      
+
       actionsBar.appendChild(copyBtn);
       actionsBar.appendChild(speakBtn);
       wrapper.appendChild(actionsBar);
@@ -1248,7 +1248,7 @@ document.addEventListener('DOMContentLoaded', () => {
             span.textContent = 'Copied!';
             setTimeout(() => { span.textContent = old; }, 1800);
           }
-        }).catch(() => {});
+        }).catch(() => { });
       });
     });
   }
@@ -1689,10 +1689,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (slashMatch) {
       const command = slashMatch[1].toLowerCase();
       const arg = slashMatch[2] || '';
-      
+
       let toolToCall = null;
       let argsPayload = {};
-      
+
       if (command === 'crypto') {
         toolToCall = 'get_crypto_price';
         argsPayload = { coin: arg || 'bitcoin' };
@@ -1763,14 +1763,14 @@ document.addEventListener('DOMContentLoaded', () => {
           ? { query: nearMatch[1].trim(), near: nearMatch[2].trim() }
           : { query: arg || 'coffee shop' };
       }
-      
+
       if (toolToCall) {
         try {
           await runLocalWidget(toolToCall, argsPayload, `Executed local command \`/${command}\`.`);
           return;
         } catch (err) {
-           // Fall through to standard error handler
-           throw err;
+          // Fall through to standard error handler
+          throw err;
         }
       }
     }
@@ -2082,7 +2082,7 @@ document.addEventListener('DOMContentLoaded', () => {
       ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="1" y1="1" x2="23" y2="23"></line><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"></path><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"></path><path d="M10.71 5.05A16 16 0 0 1 22.56 9"></path><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"></path><path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path><line x1="12" y1="20" x2="12.01" y2="20"></line></svg>`
       : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`;
 
-    const retryBtn = errorInfo.canRetry 
+    const retryBtn = errorInfo.canRetry
       ? `<button class="atlas-retry-btn" onclick="window.atlasRetryLast()" style="margin-top: 10px; padding: 6px 12px; background: var(--border-light); border: 1px solid var(--border-focus); border-radius: 4px; color: var(--text-main); font-family: inherit; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px;">${ICONS.retry} Try Again</button>`
       : '';
 
@@ -2102,20 +2102,20 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // --- SMART RETRY ---
-  window.atlasRetryLast = async function() {
+  window.atlasRetryLast = async function () {
     if (state.isGenerating) return;
     const session = getActiveSession();
     if (!session || session.messages.length === 0) return;
-    
+
     const chatMessagesEl = document.getElementById('chatMessages');
-    
+
     // If the last message is from the user, it means the assistant failed
     if (session.messages[session.messages.length - 1].role === 'user') {
       // Remove the failed assistant bubble from the DOM
       if (chatMessagesEl && chatMessagesEl.lastElementChild && chatMessagesEl.lastElementChild.classList.contains('assistant')) {
         chatMessagesEl.removeChild(chatMessagesEl.lastElementChild);
       }
-      
+
       const lastUserMsg = session.messages.pop(); // Remove it temporarily
       messageInput.value = lastUserMsg.content; // Put it in the input
       handleChatSubmit(new Event('submit')); // Resubmit
@@ -2147,7 +2147,7 @@ document.addEventListener('DOMContentLoaded', () => {
           renderHistoryTree();
         }
       }
-    } catch (e) {}
+    } catch (e) { }
   }
 
   // --- EVENT LISTENERS ---
@@ -2348,7 +2348,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.addEventListener('atlas:qr-result', (e) => {
       if (messageInput) {
-        messageInput.value = (messageInput.value ? messageInput.value + '\n' : '') + e.detail;
+        const prefix = messageInput.value ? messageInput.value + '\n\n' : '';
+        messageInput.value = `${prefix}QR result:\n\n${e.detail}`;
         autoResizeTextarea();
         messageInput.focus();
       }
@@ -2381,11 +2382,11 @@ document.addEventListener('DOMContentLoaded', () => {
     settingsNavBtns.forEach(btn => {
       btn.addEventListener('click', () => {
         const targetTab = btn.getAttribute('data-tab');
-        
+
         // Update active states for tabs
         settingsNavBtns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        
+
         // Update active states for panes
         settingsPanes.forEach(pane => pane.classList.remove('active'));
         const activePane = document.getElementById(`pane-${targetTab}`);
@@ -2553,13 +2554,13 @@ document.addEventListener('DOMContentLoaded', () => {
       if (typeof autoResizeTextarea === 'function') autoResizeTextarea(e);
       handleSlashCommandInput(e);
     });
-    
+
     let slashSelectedIndex = 0;
-    
+
     messageInput?.addEventListener('keydown', (e) => {
       const popup = document.getElementById('slashCommandsPopup');
       const isPopupVisible = popup && popup.style.display === 'flex';
-      
+
       if (isPopupVisible) {
         const items = popup.querySelectorAll('.slash-command-item');
         if (e.key === 'ArrowDown') {
@@ -2584,7 +2585,7 @@ document.addEventListener('DOMContentLoaded', () => {
           return;
         }
       }
-      
+
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         if (!state.isGenerating && messageInput.value.trim().length > 0) {
@@ -2596,7 +2597,7 @@ document.addEventListener('DOMContentLoaded', () => {
         createNewSession();
       }
     });
-    
+
     function updateSlashCommandSelection(items) {
       items.forEach((item, index) => {
         if (index === slashSelectedIndex) {
@@ -2639,11 +2640,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const val = messageInput.value;
       const popup = document.getElementById('slashCommandsPopup');
       if (!popup) return;
-      
+
       if (val.startsWith('/')) {
         const query = val.toLowerCase();
         const filtered = availableSlashCommands.filter(c => c.cmd.startsWith(query));
-        
+
         if (filtered.length > 0) {
           popup.innerHTML = '';
           filtered.forEach((cmd, idx) => {
@@ -2784,7 +2785,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (temperatureSlider) temperatureSlider.value = state.temperature;
     if (tempValBadge) tempValBadge.textContent = state.temperature;
     if (presetPills) presetPills.forEach(p => p.classList.toggle('active', p.getAttribute('data-preset') === state.activePreset));
-    
+
     // Populate General Settings
     if (customApiKeyInput) customApiKeyInput.value = state.apiKey || '';
     if (apiKeyStatusHint) {
@@ -2793,13 +2794,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (accountNameInput) accountNameInput.value = (state.accountName || '').trim() || 'Your Name';
     populateVoiceOptions();
-    
+
     // Select the default tab
     const tabToSelect = Array.from(settingsNavBtns).find(btn => btn.getAttribute('data-tab') === defaultTab);
     if (tabToSelect) {
       tabToSelect.click();
     }
-    
+
     unifiedSettingsModal?.classList.add('show');
   }
 

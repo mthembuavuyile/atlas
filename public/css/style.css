@@ -1890,6 +1890,13 @@ code {
   display: none !important;
 }
 
+@media (max-width: 768px) {
+  .composer-attach-menu {
+    left: auto;
+    right: 0;
+  }
+}
+
 @keyframes attachMenuPop {
   from {
     opacity: 0;
