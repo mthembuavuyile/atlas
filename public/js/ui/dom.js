@@ -1,0 +1,131 @@
+/**
+ * dom.js
+ * Centralized DOM element queries and element lookup map.
+ */
+
+export const dom = {
+  // Sidebar & Navigation
+  get sidebar() { return document.getElementById('sidebar'); },
+  get sidebarBackdrop() { return document.getElementById('sidebarBackdrop'); },
+  get sidebarCollapseBtn() { return document.getElementById('sidebarCollapseBtn'); },
+  get sidebarToggleBtn() { return document.getElementById('sidebarToggleBtn'); },
+  get newChatBtn() { return document.getElementById('newChatBtn'); },
+  get historySearchInput() { return document.getElementById('historySearchInput'); },
+  get historyGroupPinned() { return document.getElementById('historyGroupPinned'); },
+  get historyListPinned() { return document.getElementById('historyListPinned'); },
+  get historyGroupToday() { return document.getElementById('historyGroupToday'); },
+  get historyGroupYesterday() { return document.getElementById('historyGroupYesterday'); },
+  get historyGroupPrevious() { return document.getElementById('historyGroupPrevious'); },
+  get historyListToday() { return document.getElementById('historyListToday'); },
+  get historyListYesterday() { return document.getElementById('historyListYesterday'); },
+  get historyListPrevious() { return document.getElementById('historyListPrevious'); },
+  get emptyHistoryState() { return document.getElementById('emptyHistoryState'); },
+
+  // Top Nav
+  get modelPillTrigger() { return document.getElementById('modelPillTrigger'); },
+  get modelDropdownCapsule() { return document.getElementById('modelPillTrigger')?.closest('.model-dropdown-capsule'); },
+  get modelCurrentName() { return document.getElementById('modelCurrentName'); },
+  get modelPillBadge() { return document.getElementById('modelPillBadge'); },
+  get modelSparkIcon() { return document.getElementById('modelSparkIcon'); },
+  get modelOptionsList() { return document.getElementById('modelOptionsList'); },
+  get themeBtns() { return document.querySelectorAll('.theme-btn'); },
+  get sessionMetricBadge() { return document.getElementById('metricMsgCount'); },
+  get toggleCanvasBtn() { return document.getElementById('toggleCanvasBtn'); },
+
+  // Export Menu
+  get exportMenuBtn() { return document.getElementById('exportMenuBtn'); },
+  get exportDropdownWrapper() { return document.getElementById('exportMenuBtn')?.closest('.export-dropdown-wrapper'); },
+  get exportMarkdownBtn() { return document.getElementById('exportMarkdownBtn'); },
+  get exportJsonBtn() { return document.getElementById('exportJsonBtn'); },
+  get importJsonBtn() { return document.getElementById('importJsonBtn'); },
+  get importJsonFileInput() { return document.getElementById('importJsonFileInput'); },
+  get clearCurrentChatBtn() { return document.getElementById('clearCurrentChatBtn'); },
+
+  // Feed & Welcome Screen
+  get messagesContainer() { return document.getElementById('messagesContainer'); },
+  get scrollToBottomBtn() { return document.getElementById('scrollToBottomBtn'); },
+  get welcomeScreen() { return document.getElementById('welcomeScreen'); },
+  get dynamicTimeGreeting() { return document.getElementById('dynamicTimeGreeting'); },
+  get modeSelectorGrid() { return document.getElementById('modeSelectorGrid'); },
+  get activeModeBanner() { return document.getElementById('activeModeBanner'); },
+  get activeModeTag() { return document.getElementById('activeModeTag'); },
+  get activeModeDesc() { return document.getElementById('activeModeDesc'); },
+  get suggestionPillsContainer() { return document.getElementById('suggestionPillsContainer'); },
+
+  // Composer
+  get chatForm() { return document.getElementById('chatForm'); },
+  get messageInput() { return document.getElementById('messageInput'); },
+  get sendBtn() { return document.getElementById('sendBtn'); },
+  get stopGenerationBtn() { return document.getElementById('stopGenerationBtn'); },
+  get streamingIndicator() { return document.getElementById('streamingIndicator'); },
+  get hintModelName() { return document.getElementById('hintModelName'); },
+  get openSysPromptModalBtn() { return document.getElementById('openSysPromptModalBtn'); },
+  get activePromptLabel() { return document.getElementById('activePromptLabel'); },
+  get deepThinkToggleBtn() { return document.getElementById('deepThinkToggleBtn'); },
+  get webSearchToggleBtn() { return document.getElementById('webSearchToggleBtn'); },
+  get voiceDictationBtn() { return document.getElementById('voiceDictationBtn'); },
+  get contextTokenEstimator() { return document.getElementById('contextTokenEstimator'); },
+  get composerAttachBtn() { return document.getElementById('composerAttachBtn'); },
+  get composerAttachMenu() { return document.getElementById('composerAttachMenu'); },
+  get attachOptionFile() { return document.getElementById('attachOptionFile'); },
+  get attachOptionQR() { return document.getElementById('attachOptionQR'); },
+  get attachOptionOCR() { return document.getElementById('attachOptionOCR'); },
+  get projectContextBar() { return document.getElementById('projectContextBar'); },
+  get projectContextLabel() { return document.getElementById('projectContextLabel'); },
+  get clearProjectContextBtn() { return document.getElementById('clearProjectContextBtn'); },
+
+  // Canvas Panel
+  get artifactsCanvasPanel() { return document.getElementById('artifactsCanvasPanel'); },
+  get closeCanvasBtn() { return document.getElementById('closeCanvasBtn'); },
+  get canvasDocumentTitle() { return document.getElementById('canvasDocumentTitle'); },
+  get canvasTypeTag() { return document.getElementById('canvasTypeTag'); },
+  get canvasTabs() { return document.querySelectorAll('.canvas-tab'); },
+  get canvasCodePane() { return document.getElementById('canvasCodePane'); },
+  get canvasPreviewPane() { return document.getElementById('canvasPreviewPane'); },
+  get canvasDiffPane() { return document.getElementById('canvasDiffPane'); },
+  get diffViewerContainer() { return document.getElementById('diffViewerContainer'); },
+  get canvasMarkdownPane() { return document.getElementById('canvasMarkdownPane'); },
+  get canvasCodeContent() { return document.getElementById('canvasCodeContent'); },
+  get canvasLanguageBadge() { return document.getElementById('canvasLanguageBadge'); },
+  get canvasLineCount() { return document.getElementById('canvasLineCount'); },
+  get toggleLineNumbersBtn() { return document.getElementById('toggleLineNumbersBtn'); },
+  get canvasPreviewFrame() { return document.getElementById('canvasPreviewFrame'); },
+  get canvasMarkdownContent() { return document.getElementById('canvasMarkdownContent'); },
+  get copyCanvasContentBtn() { return document.getElementById('copyCanvasContentBtn'); },
+  get downloadCanvasBtn() { return document.getElementById('downloadCanvasBtn'); },
+
+  // Shortcuts Modal
+  get shortcutsModal() { return document.getElementById('shortcutsModal'); },
+  get closeShortcutsModalBtn() { return document.getElementById('closeShortcutsModalBtn'); },
+
+  // Settings Modal
+  get unifiedSettingsModal() { return document.getElementById('unifiedSettingsModal'); },
+  get settingsSidebarBtn() { return document.getElementById('settingsSidebarBtn'); },
+  get closeUnifiedSettingsBtn() { return document.getElementById('closeUnifiedSettingsBtn'); },
+  get settingsNavBtns() { return document.querySelectorAll('.settings-nav-btn'); },
+  get settingsPanes() { return document.querySelectorAll('.settings-pane'); },
+  get activeSettingsTitle() { return document.getElementById('activeSettingsTitle'); },
+  get activeSettingsDesc() { return document.getElementById('activeSettingsDesc'); },
+  get customSystemPrompt() { return document.getElementById('customSystemPrompt'); },
+  get resetModalPromptBtn() { return document.getElementById('resetModalPromptBtn'); },
+  get temperatureSlider() { return document.getElementById('temperatureSlider'); },
+  get tempValBadge() { return document.getElementById('tempValBadge'); },
+  get saveSettingsBtn() { return document.getElementById('saveSettingsBtn'); },
+  get presetPills() { return document.querySelectorAll('.preset-pill'); },
+
+  // General Settings & Profile
+  get sidebarProfileMenu() { return document.getElementById('sidebarProfileMenu'); },
+  get sidebarProfileAvatar() { return document.getElementById('sidebarProfileAvatar'); },
+  get profileMenuAvatar() { return document.getElementById('profileMenuAvatar'); },
+  get profileMenuName() { return document.getElementById('profileMenuName'); },
+  get profileSettingsBtn() { return document.getElementById('profileSettingsBtn'); },
+  get accountNameInput() { return document.getElementById('accountNameInput'); },
+  get saveProfileNameBtn() { return document.getElementById('saveProfileNameBtn'); },
+  get defaultVoiceSelect() { return document.getElementById('defaultVoiceSelect'); },
+  get saveGeneralSettingsBtn() { return document.getElementById('saveGeneralSettingsBtn'); },
+  get voiceStatusHint() { return document.getElementById('voiceStatusHint'); },
+  get clearAllDataBtn() { return document.getElementById('clearAllDataBtn'); },
+  get customApiKeyInput() { return document.getElementById('customApiKeyInput'); },
+  get saveApiKeyBtn() { return document.getElementById('saveApiKeyBtn'); },
+  get apiKeyStatusHint() { return document.getElementById('apiKeyStatusHint'); }
+};
