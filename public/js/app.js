@@ -461,9 +461,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // 3. Fix escaped stars emitted by models: '\*\*text\*\*' -> '**text**'
     shielded = shielded.replace(/\\(\*)\\(\*)([^\*\n]+?)\\(\*)\\(\*)/g, '**$3**');
 
-    // 4. Restore protected code blocks
+    // 4. Restore protected code blocks safely without regex replacement pitfalls
     for (const cb of codeBlocks) {
-      shielded = shielded.replace(cb.placeholder, cb.content);
+      shielded = shielded.split(cb.placeholder).join(cb.content);
     }
 
     return shielded;
@@ -1489,10 +1489,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2. Normalize markdown stars so loose spaces or escaped stars format cleanly
     let normalizedText = normalizeMarkdownStars(shieldedText);
 
-    // 3. Auto-close unclosed bold in streaming or truncated outputs to avoid raw star flashes
-    const starMatches = normalizedText.match(/\*\*/g);
-    if (starMatches && starMatches.length % 2 === 1) {
-      normalizedText += '**';
+    // 3. Auto-close unclosed bold on current line during streaming to avoid raw star flashes
+    if (isStreaming) {
+      const lastLine = normalizedText.split('\n').pop() || '';
+      const starMatches = lastLine.match(/\*\*/g);
+      if (starMatches && starMatches.length % 2 === 1) {
+        normalizedText += '**';
+      }
     }
 
     // 4. Parse markdown with marked
@@ -1790,6 +1793,12 @@ document.addEventListener('DOMContentLoaded', () => {
   async function executeChatTurn(session) {
     if (!session || state.isGenerating) return;
 
+    // 1. Safely resolve user prompt for local intents & slash command routing
+    const lastUserMessage = [...session.messages].reverse().find(m => m && m.role === 'user');
+    const prompt = (lastUserMessage && typeof lastUserMessage.content === 'string')
+      ? lastUserMessage.content
+      : (state.lastUserPrompt || '');
+
     // Prepare assistant message bubble & status animator
     const { bubble, wrapper, widgetsContainer, setReasoning } = renderMessageItem('assistant', '', '', true);
     let statusAnimator = startStatusAnimation(bubble, state.activeMode);
@@ -1799,15 +1808,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (sendBtn) sendBtn.style.display = 'none';
     if (streamingIndicator) streamingIndicator.style.display = 'flex';
 
-    const payloadMessages = session.messages
-      .filter(m => m && (m.role === 'user' || m.role === 'assistant'))
-      .map(m => ({ role: m.role, content: m.content }));
-    const projectContext = buildProjectContext();
-    if (projectContext && payloadMessages.length > 0) {
-      payloadMessages[payloadMessages.length - 1].content += projectContext;
-    }
-    let requestWebSearch = state.isWebSearch;
-
     let accumulatedContent = '';
     let accumulatedReasoning = '';
     let accumulatedWidgets = [];
@@ -1816,7 +1816,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     state.abortController = new AbortController();
 
-    const runLocalWidget = async (toolToCall, argsPayload, statusText) => {
+    try {
+      const payloadMessages = session.messages
+        .filter(m => m && (m.role === 'user' || m.role === 'assistant'))
+        .map(m => ({ role: m.role, content: m.content }));
+      const projectContext = buildProjectContext();
+      if (projectContext && payloadMessages.length > 0) {
+        payloadMessages[payloadMessages.length - 1].content += projectContext;
+      }
+      let requestWebSearch = state.isWebSearch;
+
+      const runLocalWidget = async (toolToCall, argsPayload, statusText) => {
       if (statusAnimator) { statusAnimator.stop(); statusAnimator = null; }
       const res = await fetch(`${API_BASE}/api/widget/execute`, {
         method: 'POST',
@@ -2088,80 +2098,84 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const localIntent = detectLocalWidgetIntent(prompt);
     if (localIntent) {
+      await runLocalWidget(localIntent.tool, localIntent.args, localIntent.label);
+      return;
+    }
+
+    // --- Intelligent Context Limit Pre-Check ---
+    const rawTextForTokenCheck = JSON.stringify(payloadMessages);
+    const estimatedTokens = Math.ceil(rawTextForTokenCheck.length / 4);
+    // Most free models have ~256k limit, set a safe warning threshold
+    const CONTEXT_LIMIT = 200000;
+    if (estimatedTokens > CONTEXT_LIMIT) {
+      throw new Error(`Context limit warning: Your request is approximately ${estimatedTokens.toLocaleString()} tokens, which exceeds the safe threshold of ${CONTEXT_LIMIT.toLocaleString()} tokens. Please clear the chat history or remove large files before proceeding to avoid dropping context.`);
+    }
+
+    let response = null;
+    let retries = 3;
+    let delay = 1000;
+
+    for (let attempt = 1; attempt <= retries; attempt++) {
       try {
-        await runLocalWidget(localIntent.tool, localIntent.args, localIntent.label);
-        return;
+        response = await fetch(`${API_BASE}/api/chat`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(state.apiKey ? { 'X-OpenRouter-Key': state.apiKey } : {})
+          },
+          signal: state.abortController ? state.abortController.signal : undefined,
+          body: JSON.stringify({
+            model: state.currentModel,
+            messages: payloadMessages,
+            stream: true,
+            mode: state.activeMode,
+            systemPrompt: state.systemPrompt,
+            temperature: state.temperature,
+            webSearch: requestWebSearch,
+            reasoning: state.isDeepReasoning,
+            maxTokens: 4096,
+            apiKey: state.apiKey || undefined
+          })
+        });
+
+        if (!response.ok) {
+          const errJson = await response.json().catch(() => ({}));
+          const customErr = new Error(errJson.error || 'Request failed');
+          customErr.status = response.status;
+          throw customErr;
+        }
+        break; // Success, exit retry loop
       } catch (err) {
-        throw err;
+        // Do not retry on explicit user cancellation
+        if (err.name === 'AbortError') throw err;
+
+        // Do not retry on 4xx client errors (except 429 Rate Limit / 408 Timeout)
+        if (err.status && err.status >= 400 && err.status < 500 && err.status !== 429 && err.status !== 408) {
+          throw err;
+        }
+
+        if (attempt === retries) {
+          throw new Error(`Connection failed after ${retries} attempts. The network or upstream provider is unstable. Please try again.`);
+        }
+
+        console.warn(`[Atlas Network Guard] Request failed (attempt ${attempt}/${retries}): ${err.message}. Retrying in ${delay}ms...`);
+        await new Promise(r => setTimeout(r, delay));
+        delay *= 2; // Exponential backoff
       }
     }
 
-    try {
-      // --- Intelligent Context Limit Pre-Check ---
-      const rawTextForTokenCheck = JSON.stringify(payloadMessages);
-      const estimatedTokens = Math.ceil(rawTextForTokenCheck.length / 4);
-      // Most free models have ~256k limit, set a safe warning threshold
-      const CONTEXT_LIMIT = 200000;
-      if (estimatedTokens > CONTEXT_LIMIT) {
-        throw new Error(`Context limit warning: Your request is approximately ${estimatedTokens.toLocaleString()} tokens, which exceeds the safe threshold of ${CONTEXT_LIMIT.toLocaleString()} tokens. Please clear the chat history or remove large files before proceeding to avoid dropping context.`);
-      }
+    if (!response || !response.body) {
+      throw new Error('No readable response stream received from the server.');
+    }
 
-      let response = null;
-      let retries = 3;
-      let delay = 1000;
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder('utf-8');
+    let buffer = '';
 
-      for (let attempt = 1; attempt <= retries; attempt++) {
-        try {
-          response = await fetch(`${API_BASE}/api/chat`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              ...(state.apiKey ? { 'X-OpenRouter-Key': state.apiKey } : {})
-            },
-            signal: state.abortController.signal,
-            body: JSON.stringify({
-              model: state.currentModel,
-              messages: payloadMessages,
-              stream: true,
-              mode: state.activeMode,
-              systemPrompt: state.systemPrompt,
-              temperature: state.temperature,
-              webSearch: requestWebSearch,
-              reasoning: state.isDeepReasoning,
-              maxTokens: 4096,
-              apiKey: state.apiKey || undefined
-            })
-          });
-
-          if (!response.ok) {
-            const errJson = await response.json().catch(() => ({}));
-            const customErr = new Error(errJson.error || 'Request failed');
-            customErr.status = response.status;
-            throw customErr;
-          }
-          break; // Success, exit retry loop
-        } catch (err) {
-          // Do not retry on explicit user cancellation
-          if (err.name === 'AbortError') throw err;
-
-          // Do not retry on 4xx client errors (except 429 Rate Limit / 408 Timeout)
-          if (err.status && err.status >= 400 && err.status < 500 && err.status !== 429 && err.status !== 408) {
-            throw err;
-          }
-
-          if (attempt === retries) {
-            throw new Error(`Connection failed after ${retries} attempts. The network or upstream provider is unstable. Please try again.`);
-          }
-
-          console.warn(`[Atlas Network Guard] Request failed (attempt ${attempt}/${retries}): ${err.message}. Retrying in ${delay}ms...`);
-          await new Promise(r => setTimeout(r, delay));
-          delay *= 2; // Exponential backoff
-        }
-      }
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder('utf-8');
-      let buffer = '';
+    const onAbort = () => {
+      try { reader.cancel(); } catch (_) {}
+    };
+    state.abortController?.signal?.addEventListener('abort', onAbort, { once: true });
 
       while (true) {
         const { done, value } = await reader.read();
@@ -2723,7 +2737,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     stopGenerationBtn?.addEventListener('click', () => {
-      if (state.abortController) state.abortController.abort();
+      if (state.abortController) {
+        state.abortController.abort();
+      }
+      state.isGenerating = false;
+      if (stopGenerationBtn) stopGenerationBtn.style.display = 'none';
+      if (sendBtn) sendBtn.style.display = 'flex';
+      if (streamingIndicator) streamingIndicator.style.display = 'none';
     });
 
     // Unified Attachments & Scanners Menu Toggle
