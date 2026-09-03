@@ -18,9 +18,19 @@ description: Guidelines and constraints for maintaining strict UI fidelity in At
    - Keep badge labels crisp, professional, and uncluttered.
 
 3. **Natural Dynamic Greetings**:
-   - Greeting text must be natural, respectful, and context-aware.
+   - Greeting text must be natural, respectful, and context-aware based on the user's local time:
+     - 05:00–11:59: "Good morning."
+     - 12:00–16:59: "Good afternoon."
+     - 17:00–21:59: "Good evening."
+     - 22:00–04:59: "Still working?"
+   - Keep greetings clean and pair them with a clear, concise inquiry matching the user's active investigation mode. Examples:
+     - Default: "What would you like to figure out?"
+     - Research/Scientific: "What would you like to investigate?"
+     - Coding/Build: "What are we building?"
+     - Creative: "What are we creating?"
+     - Analysis: "What should we make sense of?"
+     - Discover: "Good evening, what cross-domain hypothesis shall we formulate?"
    - Forbidden: robotic juxtaposition like "Good morning — Scientific Reasoning".
-   - Keep greetings clean, temporal (e.g., "Good morning", "Good afternoon", "Good evening", "Working late?"), and paired with a clear, concise inquiry matching the user's active investigation mode.
 
 4. **Preserve User Architecture & Layout**:
    - Do not redesign or invent UI paradigms unless explicitly requested by the user.

@@ -36,7 +36,7 @@ export function updateDynamicGreeting(modeId) {
   } else if (hour >= 17 && hour < 22) {
     salutation = 'Good evening';
   } else {
-    salutation = 'Working late?';
+    salutation = 'Still working?';
     isLateNight = true;
   }
 
