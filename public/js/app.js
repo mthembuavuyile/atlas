@@ -139,21 +139,29 @@ async function handleChatSubmit(e) {
   const prompt = dom.messageInput.value.trim();
   if (!prompt || state.isGenerating) return;
 
-  if (prompt.toLowerCase().trim() === '/settings') {
+  const cleanPrompt = prompt.toLowerCase().trim();
+  if (cleanPrompt === '/retry' || /^(?:retry|try again|redo|retry search|retry this)$/i.test(cleanPrompt)) {
+    dom.messageInput.value = '';
+    autoResizeTextarea();
+    regenerateLastResponse();
+    return;
+  }
+
+  if (cleanPrompt === '/settings') {
     dom.messageInput.value = '';
     autoResizeTextarea();
     openUnifiedSettings();
     return;
   }
 
-  if (prompt.toLowerCase().trim() === '/shortcuts') {
+  if (cleanPrompt === '/shortcuts') {
     dom.messageInput.value = '';
     autoResizeTextarea();
     toggleShortcutsModal(true);
     return;
   }
 
-  if (prompt.toLowerCase().trim() === '/clear') {
+  if (cleanPrompt === '/clear') {
     dom.messageInput.value = '';
     autoResizeTextarea();
     const session = getActiveSession();
@@ -166,7 +174,7 @@ async function handleChatSubmit(e) {
     return;
   }
 
-  if (prompt.toLowerCase().trim() === '/exit') {
+  if (cleanPrompt === '/exit') {
     dom.messageInput.value = '';
     autoResizeTextarea();
     createNewSession();
@@ -190,7 +198,8 @@ async function handleChatSubmit(e) {
 
   if (session.messages.filter(m => m.role === 'user').length === 1) {
     session.title = prompt.slice(0, 45) + (prompt.length > 45 ? '...' : '');
-    fetchSessionTitle(prompt, session.id);
+    // Note: AI title refinement is deferred until stream completion in chat-service.js
+    // to avoid concurrent request collisions on OpenRouter (concurrency limit = 1 on free tier).
   }
 
   saveSessions();

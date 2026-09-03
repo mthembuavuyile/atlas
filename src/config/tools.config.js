@@ -32,7 +32,7 @@ const ATLAS_TOOLS = [
     type: 'function',
     function: {
       name: 'search_places',
-      description: 'Search for specific geographic landmarks, tourist attractions, stadiums, venues, civic amenities, or street addresses using OpenStreetMap Nominatim. DO NOT use this tool for retail product or commercial shopping queries (e.g. "where can I buy boxes / clothes / food / electronics") — answer those directly using general knowledge or web search.',
+      description: 'Search for specific geographic landmarks, tourist attractions, stadiums, venues, civic amenities, or street addresses using OpenStreetMap Nominatim. CRITICAL ACCURACY RULE: Verify that the result matches the requested entity and geography. Nominatim matches keywords loosely — do NOT claim an unrelated bus stop, road, or location in another country matches the user\'s requested school or venue. If Nominatim does not find the location, state clearly that it is not indexed in OpenStreetMap and rely on your knowledge. DO NOT use this tool for retail product or commercial shopping queries.',
       parameters: {
         type: 'object',
         properties: {
@@ -47,7 +47,7 @@ const ATLAS_TOOLS = [
     type: 'function',
     function: {
       name: 'fetch_webpage',
-      description: 'Fetch and extract clean readable text or markdown from a specific target webpage URL.',
+      description: 'Fetch and extract clean readable text or markdown from a specific target webpage URL. STRICT RESTRICTION: DO NOT use this tool to query search engines like google.com, bing.com, duckduckgo.com, or yahoo.com — search engines block automated scrapers with CAPTCHAs. Only use this for specific content pages, articles, or documentation (e.g. Wikipedia, documentation sites, news articles).',
       parameters: {
         type: 'object',
         properties: {

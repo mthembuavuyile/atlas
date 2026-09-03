@@ -156,15 +156,6 @@ class ChatController {
       const safeMaxTokens = Math.min(Math.max(Number(maxTokens) || 4096, 256), 8192);
 
       if (stream) {
-        res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
-        res.setHeader('Cache-Control', 'no-cache, no-transform');
-        res.setHeader('Connection', 'keep-alive');
-        res.setHeader('X-Accel-Buffering', 'no');
-        res.setHeader('Access-Control-Allow-Origin', '*');
-        if (typeof res.flushHeaders === 'function') {
-          res.flushHeaders();
-        }
-
         const decoder = new TextDecoder('utf-8');
         let currentMessages = [...normalizedMessages];
         let iteration = 0;
@@ -187,6 +178,19 @@ class ChatController {
             apiKey: customApiKey,
             referer: env.APP_URL
           });
+
+          // Send SSE headers ONLY after OpenRouter handshake succeeds
+          // This allows upstream failures (429, 503, etc.) to return proper HTTP error codes before headers are sent
+          if (!res.headersSent) {
+            res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+            res.setHeader('Cache-Control', 'no-cache, no-transform');
+            res.setHeader('Connection', 'keep-alive');
+            res.setHeader('X-Accel-Buffering', 'no');
+            res.setHeader('Access-Control-Allow-Origin', '*');
+            if (typeof res.flushHeaders === 'function') {
+              res.flushHeaders();
+            }
+          }
 
           const reader = openRouterResponse.body.getReader();
           const toolCallsMap = new Map();
@@ -395,9 +399,8 @@ class ChatController {
         }
       ];
 
-      // Use a fast, lightweight model exclusively for title generation
-      // to avoid timeouts or token limits with heavy reasoning models (like deepseek-r1)
-      const titleModel = 'google/gemini-2.5-flash';
+      // Use a fast, lightweight model for title generation; fall back to free model pool if no custom key
+      const titleModel = customApiKey ? 'google/gemini-2.5-flash' : (env.DEFAULT_MODEL || 'openrouter/free');
 
       const openRouterResponse = await openrouterService.createChatCompletion({
         messages: promptMessages,

@@ -268,7 +268,7 @@ class WidgetService {
             const data = await res.json();
 
             if (!Array.isArray(data) || data.length === 0) {
-                return { error: `No places found matching "${cleanQuery}".` };
+                return { error: `No places found matching "${cleanQuery}" on OpenStreetMap. This location may not be indexed in OSM; please provide the location using your general knowledge or suggest enabling web search.` };
             }
 
             const places = data.map(item => {
@@ -306,6 +306,22 @@ class WidgetService {
 
     // 0.3 Fetch Webpage Content Tool
     async fetchWebpage(url) {
+        if (!url || typeof url !== 'string') {
+            return { error: 'Invalid or missing webpage URL.' };
+        }
+
+        const lower = url.toLowerCase();
+        if (
+            lower.includes('google.com/search') ||
+            lower.includes('bing.com/search') ||
+            lower.includes('search.yahoo.com') ||
+            lower.includes('duckduckgo.com')
+        ) {
+            return {
+                error: 'Cannot use fetch_webpage to scrape search engines (e.g. Google, Bing) as automated requests are blocked by CAPTCHAs. Rely on your base knowledge or advise the user to enable Live Web Search.'
+            };
+        }
+
         try {
             const text = await searchService.fetchPageText(url, 3500);
             return {

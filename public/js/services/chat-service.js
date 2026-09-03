@@ -9,7 +9,7 @@ import { dom } from '../ui/dom.js';
 import { API_BASE, ICONS } from '../config/constants.js';
 import { parseMarkdownSafely, enhanceCodeBlocks, enhanceMathBlocks, renderMathSafely, escapeHtml } from '../markdown/parser.js';
 import { openCodeInCanvas } from '../ui/canvas.js';
-import { getActiveSession, saveSessions, updateSessionMetrics, updateContextEstimator } from '../ui/session-manager.js';
+import { getActiveSession, saveSessions, updateSessionMetrics, updateContextEstimator, fetchSessionTitle } from '../ui/session-manager.js';
 import { renderMessageItem, startStatusAnimation, scrollToBottom, renderSessionMessages } from '../ui/message-renderer.js';
 import { detectLocalWidgetIntent, resolveSlashCommand, runLocalWidget } from './intent-router.js';
 
@@ -443,6 +443,23 @@ export async function executeChatTurn(session) {
 
     if (!accumulatedContent) {
       accumulatedContent = accumulatedReasoning || '*(The model returned an empty response. This usually happens due to a safety filter or a temporary model glitch. Please try again or switch to a different model.)*';
+    } else {
+      // Detect and separate untagged "Thought Process" blocks leaked into content
+      const thoughtPrefixMatch = accumulatedContent.match(/^(?:Thought Process|Thinking Process|Thought|Reasoning|Chain of Thought)[:\s]*\n*([\s\S]*?)(?:\n\n(?=[A-Z0-9#*`📍])|$)/i);
+      if (thoughtPrefixMatch && thoughtPrefixMatch[1]) {
+        const extracted = thoughtPrefixMatch[1].trim();
+        if (!accumulatedReasoning) {
+          accumulatedReasoning = extracted;
+          setReasoning(accumulatedReasoning);
+        }
+        accumulatedContent = accumulatedContent.slice(thoughtPrefixMatch[0].length).trim();
+      }
+
+      // Strip self-referential monologue loops (e.g. "The user says '...' - they're referring to... Actually, let me re-read...")
+      const monologueMatch = accumulatedContent.match(/^(?:The user says|The user is asking|Looking at the conversation history|Actually, let me re-read)[\s\S]*?\n\n(?=[A-Z0-9#*`📍]|$)/i);
+      if (monologueMatch) {
+        accumulatedContent = accumulatedContent.slice(monologueMatch[0].length).trim();
+      }
     }
 
     if (accumulatedReasoning) {
@@ -462,6 +479,12 @@ export async function executeChatTurn(session) {
     session.updatedAt = new Date().toISOString();
     saveSessions();
     updateSessionMetrics();
+
+    // Trigger deferred title generation on first turn now that chat stream completed
+    const userMsgCount = session.messages.filter(m => m.role === 'user').length;
+    if (userMsgCount === 1 && state.lastUserPrompt) {
+      fetchSessionTitle(state.lastUserPrompt, session.id);
+    }
 
   } catch (err) {
     if (statusAnimator) { statusAnimator.stop(); statusAnimator = null; }
