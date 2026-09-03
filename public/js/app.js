@@ -430,6 +430,45 @@ document.addEventListener('DOMContentLoaded', () => {
     projectFiles: []
   };
 
+  // Helper to normalize markdown asterisks so **text** bolding never displays raw stars
+  function normalizeMarkdownStars(text) {
+    if (!text || typeof text !== 'string') return text;
+
+    // Protect code blocks and inline code so code syntax (like **kwargs or x ** 2) is untouched
+    const codeBlocks = [];
+    let shielded = text.replace(/(```[\s\S]*?```|`[^`\n]+`)/g, (match) => {
+      const ph = `@@ATLAS_STARS_CODE_${codeBlocks.length}@@`;
+      codeBlocks.push({ placeholder: ph, content: match });
+      return ph;
+    });
+
+    // 1. Fix triple asterisks with whitespace inside: '*** text ***' -> '***text***'
+    shielded = shielded.replace(/\*\*\*([ \t]+)([^\*\n]+?)\*\*\*/g, '***$2***');
+    shielded = shielded.replace(/\*\*\*([^\*\n]+?)([ \t]+)\*\*\*/g, '***$1***');
+
+    // 2. Fix bold double asterisks with leading/trailing whitespace inside:
+    // e.g. '** bold text **' -> ' **bold text** '
+    // e.g. '** bold text**' -> ' **bold text**'
+    // e.g. '**bold text **' -> '**bold text** '
+    shielded = shielded.replace(/\*\*([ \t]*)([^\*\n]+?)([ \t]*)\*\*/g, (match, leading, content, trailing) => {
+      const trimmed = content.trim();
+      if (!trimmed) return match;
+      const left = leading ? ' ' : '';
+      const right = trailing ? ' ' : '';
+      return `${left}**${trimmed}**${right}`;
+    });
+
+    // 3. Fix escaped stars emitted by models: '\*\*text\*\*' -> '**text**'
+    shielded = shielded.replace(/\\(\*)\\(\*)([^\*\n]+?)\\(\*)\\(\*)/g, '**$3**');
+
+    // 4. Restore protected code blocks
+    for (const cb of codeBlocks) {
+      shielded = shielded.replace(cb.placeholder, cb.content);
+    }
+
+    return shielded;
+  }
+
   // Configure marked with rich typography extensions
   if (window.marked) {
     const customRenderer = new marked.Renderer();
@@ -439,16 +478,39 @@ document.addEventListener('DOMContentLoaded', () => {
       let headerContent = '';
       let bodyContent = '';
 
+      const parseCell = (cell) => {
+        if (cell && typeof cell === 'object') {
+          if (this.parser && Array.isArray(cell.tokens) && cell.tokens.length > 0) {
+            return this.parser.parseInline(cell.tokens);
+          }
+          if (typeof cell.text === 'string') {
+            const cleaned = normalizeMarkdownStars(cell.text);
+            return window.marked && marked.parseInline ? marked.parseInline(cleaned) : cleaned;
+          }
+        }
+        const textStr = (cell != null ? String(cell) : '');
+        const cleaned = normalizeMarkdownStars(textStr);
+        return window.marked && marked.parseInline ? marked.parseInline(cleaned) : cleaned;
+      };
+
       if (typeof header === 'object' && header !== null) {
         const token = header;
         if (token.header) {
           headerContent = Array.isArray(token.header)
-            ? '<tr>' + token.header.map(cell => `<th>${cell.text || cell}</th>`).join('') + '</tr>'
+            ? '<tr>' + token.header.map(cell => {
+                const align = cell && cell.align ? ` align="${cell.align}"` : '';
+                return `<th${align}>${parseCell(cell)}</th>`;
+              }).join('') + '</tr>'
             : String(token.header);
         }
         if (token.rows) {
           bodyContent = Array.isArray(token.rows)
-            ? token.rows.map(row => '<tr>' + (Array.isArray(row) ? row.map(cell => `<td>${cell.text || cell}</td>`).join('') : `<td>${row}</td>`) + '</tr>').join('')
+            ? token.rows.map(row => '<tr>' + (Array.isArray(row)
+                ? row.map(cell => {
+                    const align = cell && cell.align ? ` align="${cell.align}"` : '';
+                    return `<td${align}>${parseCell(cell)}</td>`;
+                  }).join('')
+                : `<td>${parseCell(row)}</td>`) + '</tr>').join('')
             : String(token.rows);
         }
       } else {
@@ -1424,8 +1486,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // 1. Extract and shield LaTeX mathematical & scientific formulas
     const { text: shieldedText, tokens: mathTokens } = extractMathTokens(raw);
 
-    // 2. Parse markdown with marked
-    let html = window.marked ? marked.parse(shieldedText) : escapeHtml(shieldedText);
+    // 2. Normalize markdown stars so loose spaces or escaped stars format cleanly
+    let normalizedText = normalizeMarkdownStars(shieldedText);
+
+    // 3. Auto-close unclosed bold in streaming or truncated outputs to avoid raw star flashes
+    const starMatches = normalizedText.match(/\*\*/g);
+    if (starMatches && starMatches.length % 2 === 1) {
+      normalizedText += '**';
+    }
+
+    // 4. Parse markdown with marked
+    let html = window.marked ? marked.parse(normalizedText) : escapeHtml(normalizedText);
 
     // 3. Sanitize HTML
     if (window.DOMPurify) {
