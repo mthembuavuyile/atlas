@@ -37,27 +37,48 @@ export function initVoiceDictation() {
 
     try {
       speechRecognizer = new SpeechRecognition();
-      speechRecognizer.continuous = true;
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+      speechRecognizer.continuous = !isMobile;
       speechRecognizer.interimResults = true;
-      speechRecognizer.lang = 'en-US';
+      speechRecognizer.lang = navigator.language || 'en-US';
+
+      let initialPrefix = '';
 
       speechRecognizer.onstart = () => {
         isListening = true;
-        dom.voiceDictationBtn.classList.add('is-listening');
+        initialPrefix = dom.messageInput ? dom.messageInput.value.trim() : '';
+        if (initialPrefix) initialPrefix += ' ';
+        dom.voiceDictationBtn?.classList.add('is-listening');
         dom.voiceDictationBtn.title = 'Listening... Click to stop';
       };
 
       speechRecognizer.onresult = (event) => {
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
-          if (event.results[i].isFinal) {
-            const text = event.results[i][0].transcript.trim();
-            if (text && dom.messageInput) {
-              dom.messageInput.value = (dom.messageInput.value ? dom.messageInput.value + ' ' : '') + text;
-              dom.messageInput.style.height = 'auto';
-              dom.messageInput.style.height = `${Math.min(dom.messageInput.scrollHeight, 200)}px`;
-              updateContextEstimator();
+        let sessionFinal = '';
+        let sessionInterim = '';
+
+        for (let i = 0; i < event.results.length; ++i) {
+          const res = event.results[i];
+          const text = res[0].transcript.trim();
+          if (res.isFinal) {
+            // Deduplicate cumulative Android chunks (e.g. "what is" superseding "what")
+            if (!sessionFinal) {
+              sessionFinal = text;
+            } else if (text.toLowerCase().startsWith(sessionFinal.toLowerCase())) {
+              sessionFinal = text;
+            } else if (!sessionFinal.toLowerCase().includes(text.toLowerCase())) {
+              sessionFinal += ' ' + text;
             }
+          } else {
+            sessionInterim += (sessionInterim ? ' ' : '') + text;
           }
+        }
+
+        const recognizedText = sessionFinal + (sessionInterim ? (sessionFinal ? ' ' : '') + sessionInterim : '');
+        if (dom.messageInput && recognizedText) {
+          dom.messageInput.value = initialPrefix + recognizedText;
+          dom.messageInput.style.height = 'auto';
+          dom.messageInput.style.height = `${Math.min(dom.messageInput.scrollHeight, 200)}px`;
+          updateContextEstimator();
         }
       };
 
