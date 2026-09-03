@@ -13,6 +13,14 @@ import { updateDynamicGreeting } from './theme.js';
 import { getActiveSession, saveSessions, updateSessionMetrics, updateContextEstimator } from './session-manager.js';
 
 let regenerateCallback = null;
+let cachedWelcomeScreen = null;
+
+function getWelcomeScreen() {
+  if (!cachedWelcomeScreen) {
+    cachedWelcomeScreen = dom.welcomeScreen;
+  }
+  return cachedWelcomeScreen;
+}
 
 export function setRegenerateCallback(fn) {
   regenerateCallback = fn;
@@ -63,8 +71,9 @@ export function startStatusAnimation(bubble, modeId) {
 }
 
 export function renderMessageItem(role, content = '', reasoning = '', shouldScroll = true, widgets = [], attachments = []) {
-  if (dom.welcomeScreen && dom.welcomeScreen.parentNode) {
-    dom.welcomeScreen.style.display = 'none';
+  const ws = getWelcomeScreen();
+  if (ws && ws.parentNode) {
+    ws.style.display = 'none';
   }
 
   const row = document.createElement('div');
@@ -314,19 +323,25 @@ export function renderMessageItem(role, content = '', reasoning = '', shouldScro
 
 export function renderSessionMessages(session) {
   if (!dom.messagesContainer) return;
+
+  const ws = getWelcomeScreen();
+  if (ws && ws.parentNode) {
+    ws.parentNode.removeChild(ws);
+  }
+
   dom.messagesContainer.innerHTML = '';
 
   if (!session || !session.messages || session.messages.length === 0) {
-    if (dom.welcomeScreen) {
-      dom.messagesContainer.appendChild(dom.welcomeScreen);
-      dom.welcomeScreen.style.display = 'flex';
+    if (ws) {
+      dom.messagesContainer.appendChild(ws);
+      ws.style.display = 'flex';
       updateDynamicGreeting(state.activeMode);
     }
     return;
   }
 
-  if (dom.welcomeScreen && dom.welcomeScreen.parentNode) {
-    dom.welcomeScreen.style.display = 'none';
+  if (ws && ws.parentNode) {
+    ws.style.display = 'none';
   }
 
   session.messages.forEach(msg => {
