@@ -32,12 +32,12 @@ const ATLAS_TOOLS = [
     type: 'function',
     function: {
       name: 'search_places',
-      description: 'Search for places, local businesses, addresses, attractions, or landmarks using OpenStreetMap.',
+      description: 'Search for specific geographic landmarks, tourist attractions, stadiums, venues, civic amenities, or street addresses using OpenStreetMap Nominatim. DO NOT use this tool for retail product or commercial shopping queries (e.g. "where can I buy boxes / clothes / food / electronics") — answer those directly using general knowledge or web search.',
       parameters: {
         type: 'object',
         properties: {
-          query: { type: 'string', description: 'Place, landmark, or business category, e.g. "coffee shop", "library", "Durban beachfront".' },
-          near: { type: 'string', description: 'Optional city or locality filter, e.g. "Durban", "Johannesburg", "Cape Town".' }
+          query: { type: 'string', description: 'Specific landmark, venue, attraction, or street address, e.g. "Moses Mabhida Stadium", "Eiffel Tower", "uShaka Marine World", "City Hall".' },
+          near: { type: 'string', description: 'Optional city or locality filter, e.g. "Durban", "Pietermaritzburg", "Cape Town".' }
         },
         required: ['query']
       }
