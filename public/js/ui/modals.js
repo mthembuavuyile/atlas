@@ -196,23 +196,27 @@ export function initModals() {
   initKeyboardShortcuts();
 
   dom.sidebarCollapseBtn?.addEventListener('click', () => {
-    if (window.innerWidth <= 768) {
+    if (dom.sidebar?.classList.contains('mobile-open') || window.innerWidth <= 768) {
       closeMobileSidebar();
     } else {
-      dom.sidebar.classList.toggle('collapsed');
+      dom.sidebar?.classList.toggle('collapsed');
     }
   });
 
   dom.sidebarToggleBtn?.addEventListener('click', () => {
     if (window.innerWidth <= 768) {
-      dom.sidebar.classList.toggle('mobile-open');
-      dom.sidebarBackdrop.classList.toggle('active', dom.sidebar.classList.contains('mobile-open'));
+      dom.sidebar?.classList.toggle('mobile-open');
+      dom.sidebarBackdrop?.classList.toggle('active', dom.sidebar?.classList.contains('mobile-open'));
     } else {
-      dom.sidebar.classList.toggle('collapsed');
+      dom.sidebar?.classList.toggle('collapsed');
     }
   });
 
   dom.sidebarBackdrop?.addEventListener('click', closeMobileSidebar);
+  dom.sidebarBackdrop?.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    closeMobileSidebar();
+  });
 
   dom.modelPillTrigger?.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -426,6 +430,7 @@ export function initModals() {
   dom.profileSettingsBtn?.addEventListener('click', () => {
     if (dom.sidebarProfileMenu) dom.sidebarProfileMenu.hidden = true;
     if (dom.settingsSidebarBtn) dom.settingsSidebarBtn.setAttribute('aria-expanded', 'false');
+    if (window.innerWidth <= 768) closeMobileSidebar();
     openUnifiedSettings('general-settings');
   });
 
@@ -568,8 +573,13 @@ export function initModals() {
   });
 
   window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && dom.unifiedSettingsModal?.classList.contains('show')) {
-      closeUnifiedSettings();
+    if (e.key === 'Escape') {
+      if (dom.sidebar?.classList.contains('mobile-open')) {
+        closeMobileSidebar();
+      }
+      if (dom.unifiedSettingsModal?.classList.contains('show')) {
+        closeUnifiedSettings();
+      }
     }
   });
 

@@ -17,8 +17,14 @@ export function setRenderSessionMessagesCallback(fn) {
 }
 
 export function closeMobileSidebar() {
-  if (dom.sidebar) dom.sidebar.classList.remove('open');
-  if (dom.sidebarBackdrop) dom.sidebarBackdrop.classList.remove('show');
+  if (dom.sidebar) {
+    dom.sidebar.classList.remove('mobile-open');
+    dom.sidebar.classList.remove('open');
+  }
+  if (dom.sidebarBackdrop) {
+    dom.sidebarBackdrop.classList.remove('active');
+    dom.sidebarBackdrop.classList.remove('show');
+  }
 }
 
 export function getActiveSession() {
