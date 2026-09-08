@@ -1,15 +1,15 @@
 :root {
-  --bg-color: #051B38;
-  --bg-gradient: linear-gradient(135deg, #051B38 0%, #031227 100%);
-  --text-primary: #F8FAFC;
-  --text-secondary: #CBD5E1;
-  --text-muted: #94A3B8;
-  --accent-color: #FBA919;
-  --accent-hover: #D97706;
-  --card-bg: rgba(10, 46, 92, 0.4);
-  --card-border: rgba(255, 255, 255, 0.08);
-  --font-display: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-sans: 'DM Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --bg-color: var(--site-bg, #051B38);
+  --bg-gradient: var(--site-bg-gradient, linear-gradient(135deg, #051B38 0%, #031227 100%));
+  --text-primary: var(--site-text-primary, #F8FAFC);
+  --text-secondary: var(--site-text-secondary, #CBD5E1);
+  --text-muted: var(--site-text-muted, #94A3B8);
+  --accent-color: var(--site-accent, #FBA919);
+  --accent-hover: var(--site-accent-hover, #D97706);
+  --card-bg: var(--site-card-bg, rgba(10, 46, 92, 0.4));
+  --card-border: var(--site-card-border, rgba(255, 255, 255, 0.08));
+  --font-display: var(--font-display, 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif);
+  --font-sans: var(--font-sans, 'DM Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif);
 }
 
 * {

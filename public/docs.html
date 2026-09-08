@@ -19,16 +19,20 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
+  <link rel="stylesheet" href="/css/site-common.css">
   <link rel="stylesheet" href="/css/docs.css">
+  <script src="/js/site-nav.js" defer></script>
 </head>
 <body>
 
+  <a href="#docsContent" class="skip-to-content">Skip to documentation</a>
+
   <!-- Top Global Header -->
-  <header>
-    <div class="container header-content">
-      <a href="/" class="logo" aria-label="Atlas Homepage">
-        <span class="logo-symbol" aria-hidden="true">
-          <svg width="24" height="24" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <header class="site-header" role="banner">
+    <div class="container site-header-inner">
+      <a href="/" class="site-logo" aria-label="Atlas Homepage">
+        <span class="site-logo-symbol" aria-hidden="true">
+          <svg width="26" height="26" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <linearGradient id="vylex-header-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stop-color="#FBA919" />
@@ -40,18 +44,45 @@
             <ellipse cx="50" cy="50" rx="46" ry="12" stroke="url(#vylex-header-gradient)" stroke-width="3.5" fill="none" transform="rotate(-18 50 50)" />
           </svg>
         </span>
-        <span class="logo-text">Atlas</span>
-        <span class="logo-sub">Docs & Capabilities</span>
+        <div class="site-logo-brand">
+          <span class="site-logo-title">Atlas</span>
+          <span class="site-logo-sub">by Vylex</span>
+        </div>
       </a>
 
-      <nav class="nav-links">
-        <a href="/about.html">About</a>
-        <a href="/docs" class="active">Documentation</a>
-        <a href="https://github.com" target="_blank" rel="noopener">GitHub</a>
-        <a href="/" class="btn-primary">Launch Workspace</a>
+      <nav class="site-nav" aria-label="Main Navigation">
+        <ul class="site-nav-links">
+          <li><a href="/about" class="site-nav-link">About</a></li>
+          <li><a href="/docs" class="site-nav-link active">Documentation</a></li>
+          <li><a href="https://github.com" class="site-nav-link" target="_blank" rel="noopener">GitHub</a></li>
+        </ul>
+        <a href="/" class="site-btn-primary">Launch Workspace</a>
+
+        <!-- Accessible Burger Toggle Button -->
+        <button id="siteBurgerBtn" class="site-burger-btn" aria-label="Open navigation menu" aria-expanded="false" aria-controls="siteMobileDrawer">
+          <span class="burger-box" aria-hidden="true">
+            <span class="burger-line"></span>
+            <span class="burger-line"></span>
+            <span class="burger-line"></span>
+          </span>
+        </button>
       </nav>
     </div>
   </header>
+
+  <!-- Mobile Navigation Drawer & Backdrop Overlay -->
+  <div id="siteBackdropOverlay" class="site-backdrop-overlay" aria-hidden="true"></div>
+  <aside id="siteMobileDrawer" class="site-mobile-drawer" aria-label="Mobile Navigation">
+    <ul class="mobile-drawer-links">
+      <li><a href="/" class="mobile-drawer-link">Workspace</a></li>
+      <li><a href="/about" class="mobile-drawer-link">About Atlas</a></li>
+      <li><a href="/docs" class="mobile-drawer-link active">Documentation &amp; Specs</a></li>
+      <li><a href="https://github.com" class="mobile-drawer-link" target="_blank" rel="noopener">GitHub Repository</a></li>
+    </ul>
+    <div class="mobile-drawer-actions">
+      <a href="/" class="site-btn-primary">Launch Workspace</a>
+    </div>
+  </aside>
 
   <!-- Hero & Instant Search Header -->
   <section class="docs-hero">
@@ -78,6 +109,66 @@
       </div>
     </div>
   </section>
+
+  <!-- Mobile Table of Contents Bar (visible <= 960px) -->
+  <nav class="docs-mobile-toc-bar" id="docsMobileTocBar" aria-label="Mobile Table of Contents">
+    <div class="container">
+      <button class="mobile-toc-toggle-btn" id="mobileTocToggleBtn" type="button" aria-expanded="false" aria-controls="mobileTocMenu">
+        <div class="mobile-toc-label">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="12" x2="15" y2="12"></line>
+            <line x1="3" y1="18" x2="9" y2="18"></line>
+          </svg>
+          <span>Jump to Section</span>
+        </div>
+        <span class="mobile-toc-current" id="mobileTocCurrent">System Overview</span>
+        <svg class="mobile-toc-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </button>
+
+      <div class="mobile-toc-dropdown" id="mobileTocMenu">
+        <div class="sidebar-group">
+          <div class="sidebar-heading">Architecture</div>
+          <ul class="sidebar-nav">
+            <li><a href="#overview">System Overview</a></li>
+            <li><a href="#architecture-diagram">Platform Pipeline</a></li>
+          </ul>
+        </div>
+
+        <div class="sidebar-group">
+          <div class="sidebar-heading">Intelligence Engine</div>
+          <ul class="sidebar-nav">
+            <li><a href="#models">Curated Models <span class="sidebar-count-badge">7</span></a></li>
+            <li><a href="#investigation-modes">Investigation Modes <span class="sidebar-count-badge">8</span></a></li>
+            <li><a href="#reasoning-traces">Reasoning &amp; &lt;think&gt;</a></li>
+          </ul>
+        </div>
+
+        <div class="sidebar-group">
+          <div class="sidebar-heading">Deterministic Tools (19)</div>
+          <ul class="sidebar-nav">
+            <li><a href="#tools-vision-gen">Generative &amp; Vision <span class="sidebar-count-badge">4</span></a></li>
+            <li><a href="#tools-math-sci">Math &amp; Scientific <span class="sidebar-count-badge">3</span></a></li>
+            <li><a href="#tools-grounding">Live World Grounding <span class="sidebar-count-badge">6</span></a></li>
+            <li><a href="#tools-knowledge">Information &amp; Feeds <span class="sidebar-count-badge">6</span></a></li>
+          </ul>
+        </div>
+
+        <div class="sidebar-group">
+          <div class="sidebar-heading">Execution &amp; Workspace</div>
+          <ul class="sidebar-nav">
+            <li><a href="#katex-chemistry">LaTeX &amp; Chemistry Engine</a></li>
+            <li><a href="#project-context">Project Context &amp; Diffing</a></li>
+            <li><a href="#artifacts-canvas">Artifacts Canvas</a></li>
+            <li><a href="#security-gateway">Security &amp; Gateway</a></li>
+            <li><a href="#cli-interface">Terminal CLI</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </nav>
 
   <!-- Main Layout -->
   <div class="container docs-layout">
@@ -142,42 +233,44 @@
           </p>
         </div>
 
-        <table class="tech-spec-table">
-          <thead>
-            <tr>
-              <th>Layer</th>
-              <th>Technologies & Implementations</th>
-              <th>Primary Function</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><strong>Inference Layer</strong></td>
-              <td>OpenRouter API, SSE Streaming, Automated Failover Rotation</td>
-              <td>High-throughput multi-model inference up to 1,000,000 context tokens.</td>
-            </tr>
-            <tr>
-              <td><strong>Reasoning Layer</strong></td>
-              <td>8 Investigation Modes, Chain-of-Thought &lt;think&gt; Parsers</td>
-              <td>Structured hypothesis testing, mathematical derivations, and architecture reviews.</td>
-            </tr>
-            <tr>
-              <td><strong>Execution Layer</strong></td>
-              <td>19 Native Tools & Interactive Visual Widgets</td>
-              <td>Deterministic API fetching, OCR extraction, QR generation, and symbolic math.</td>
-            </tr>
-            <tr>
-              <td><strong>Rendering Layer</strong></td>
-              <td>KaTeX, mhchem, Highlight.js, Split-screen Artifacts Canvas</td>
-              <td>Rich scientific equation rendering and live HTML/CSS sandbox previews.</td>
-            </tr>
-            <tr>
-              <td><strong>Context Layer</strong></td>
-              <td>Multi-file ingestion, Project folder reader, Unified Diff Engine</td>
-              <td>Safe code inspection proposing Git-style diffs without overwriting files.</td>
-            </tr>
-          </tbody>
-        </table>
+        <div id="architecture-diagram" class="table-responsive">
+          <table class="tech-spec-table">
+            <thead>
+              <tr>
+                <th>Layer</th>
+                <th>Technologies & Implementations</th>
+                <th>Primary Function</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Inference Layer</strong></td>
+                <td>OpenRouter API, SSE Streaming, Automated Failover Rotation</td>
+                <td>High-throughput multi-model inference up to 1,000,000 context tokens.</td>
+              </tr>
+              <tr>
+                <td><strong>Reasoning Layer</strong></td>
+                <td>8 Investigation Modes, Chain-of-Thought &lt;think&gt; Parsers</td>
+                <td>Structured hypothesis testing, mathematical derivations, and architecture reviews.</td>
+              </tr>
+              <tr>
+                <td><strong>Execution Layer</strong></td>
+                <td>19 Native Tools & Interactive Visual Widgets</td>
+                <td>Deterministic API fetching, OCR extraction, QR generation, and symbolic math.</td>
+              </tr>
+              <tr>
+                <td><strong>Rendering Layer</strong></td>
+                <td>KaTeX, mhchem, Highlight.js, Split-screen Artifacts Canvas</td>
+                <td>Rich scientific equation rendering and live HTML/CSS sandbox previews.</td>
+              </tr>
+              <tr>
+                <td><strong>Context Layer</strong></td>
+                <td>Multi-file ingestion, Project folder reader, Unified Diff Engine</td>
+                <td>Safe code inspection proposing Git-style diffs without overwriting files.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </section>
 
       <!-- 2. Models & Inference -->
@@ -1119,32 +1212,34 @@ $$\ce{^{238}_{92}U -> ^{234}_{90}Th + ^{4}_{2}\alpha}$$
           </p>
         </div>
 
-        <table class="tech-spec-table">
-          <thead>
-            <tr>
-              <th>Feature</th>
-              <th>How It Works</th>
-              <th>Safety Guarantee</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><strong>Folder Ingestion</strong></td>
-              <td>Drag and drop a project directory or folder into the composer. Atlas reads directory hierarchy, file contents, and architecture.</td>
-              <td>Read-only browser ingestion; files never leave client memory except through prompt completion.</td>
-            </tr>
-            <tr>
-              <td><strong>Unified Diff Proposing</strong></td>
-              <td>When refactoring or debugging code, Atlas generates Git-compatible unified diff blocks (<code>--- a/file</code> / <code>+++ b/file</code>).</td>
-              <td>No automatic overwrites. You review each unified diff before applying changes to disk.</td>
-            </tr>
-            <tr>
-              <td><strong>Artifacts Canvas Sandbox</strong></td>
-              <td>Render generated HTML, CSS, and JS in a secure iframe sandbox on the right side of your screen.</td>
-              <td>Sandbox execution isolates code execution from the main application state.</td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="table-responsive">
+          <table class="tech-spec-table">
+            <thead>
+              <tr>
+                <th>Feature</th>
+                <th>How It Works</th>
+                <th>Safety Guarantee</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Folder Ingestion</strong></td>
+                <td>Drag and drop a project directory or folder into the composer. Atlas reads directory hierarchy, file contents, and architecture.</td>
+                <td>Read-only browser ingestion; files never leave client memory except through prompt completion.</td>
+              </tr>
+              <tr>
+                <td><strong>Unified Diff Proposing</strong></td>
+                <td>When refactoring or debugging code, Atlas generates Git-compatible unified diff blocks (<code>--- a/file</code> / <code>+++ b/file</code>).</td>
+                <td>No automatic overwrites. You review each unified diff before applying changes to disk.</td>
+              </tr>
+              <tr>
+                <td><strong>Artifacts Canvas Sandbox</strong></td>
+                <td>Render generated HTML, CSS, and JS in a secure iframe sandbox on the right side of your screen.</td>
+                <td>Sandbox execution isolates code execution from the main application state.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </section>
 
       <!-- Security & CLI -->
@@ -1157,37 +1252,39 @@ $$\ce{^{238}_{92}U -> ^{234}_{90}Th + ^{4}_{2}\alpha}$$
           </p>
         </div>
 
-        <table class="tech-spec-table">
-          <thead>
-            <tr>
-              <th>Security Component</th>
-              <th>Implementation File</th>
-              <th>Protection Mechanism</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><strong>Zero Client Secret Exposure</strong></td>
-              <td><code>src/services/openrouter.service.js</code></td>
-              <td>OpenRouter API keys are managed exclusively on the backend server. The client never handles credentials.</td>
-            </tr>
-            <tr>
-              <td><strong>Model Whitelist Guard</strong></td>
-              <td><code>src/middleware/modelGuard.js</code></td>
-              <td>Rejects unvetted or malicious model IDs. Only curated models pass through to the inference gateway.</td>
-            </tr>
-            <tr>
-              <td><strong>Endpoint Rate Limiters</strong></td>
-              <td><code>src/middleware/rateLimiter.js</code></td>
-              <td>Independent memory rate limiters for <code>/api/chat</code>, <code>/api/title</code>, and <code>/api/widget/execute</code> prevent runaway loops.</td>
-            </tr>
-            <tr>
-              <td><strong>Tool Execution Disabling</strong></td>
-              <td><code>src/routes/api.routes.js</code></td>
-              <td>Arbitrary tool execution is strictly disabled in production builds to prevent remote code execution.</td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="table-responsive">
+          <table class="tech-spec-table">
+            <thead>
+              <tr>
+                <th>Security Component</th>
+                <th>Implementation File</th>
+                <th>Protection Mechanism</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Zero Client Secret Exposure</strong></td>
+                <td><code>src/services/openrouter.service.js</code></td>
+                <td>OpenRouter API keys are managed exclusively on the backend server. The client never handles credentials.</td>
+              </tr>
+              <tr>
+                <td><strong>Model Whitelist Guard</strong></td>
+                <td><code>src/middleware/modelGuard.js</code></td>
+                <td>Rejects unvetted or malicious model IDs. Only curated models pass through to the inference gateway.</td>
+              </tr>
+              <tr>
+                <td><strong>Endpoint Rate Limiters</strong></td>
+                <td><code>src/middleware/rateLimiter.js</code></td>
+                <td>Independent memory rate limiters for <code>/api/chat</code>, <code>/api/title</code>, and <code>/api/widget/execute</code> prevent runaway loops.</td>
+              </tr>
+              <tr>
+                <td><strong>Tool Execution Disabling</strong></td>
+                <td><code>src/routes/api.routes.js</code></td>
+                <td>Arbitrary tool execution is strictly disabled in production builds to prevent remote code execution.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </section>
 
       <!-- Terminal CLI -->
@@ -1214,22 +1311,30 @@ npm run cli
     </main>
   </div>
 
-  <!-- Global Footer -->
-  <footer>
-    <div class="container footer-content">
-      <div>
-        <p>Atlas is built by <a href="https://vylex.co.za" target="_blank" rel="noopener">Vylex Technologies</a>.</p>
-        <p style="font-size: 0.8rem; margin-top: 0.35rem; color: var(--text-muted);">&copy; 2026 Vylex Technologies. Licensed under MIT.</p>
+  <!-- Unified Global Footer -->
+  <footer class="site-footer" role="contentinfo">
+    <div class="container site-footer-inner">
+      <div class="site-footer-brand">
+        <p>Atlas is built by <a href="https://vylex.co.za/labs" target="_blank" rel="noopener">Vylex Labs</a> (AI &amp; Emerging Technology), a division of <a href="https://vylex.co.za" target="_blank" rel="noopener">Vylex</a>.</p>
+        <p class="site-footer-copy">&copy; 2026 Vylex Technologies. Licensed under MIT.</p>
       </div>
-      <div>
-        <a href="/about.html" style="margin-right: 1.25rem;">About</a>
-        <a href="/docs" style="margin-right: 1.25rem;">Documentation</a>
-        <a href="/" class="btn-primary">Launch Workspace</a>
-      </div>
+      <ul class="site-footer-links">
+        <li><a href="/about">About</a></li>
+        <li><a href="/docs">Documentation</a></li>
+        <li><a href="https://github.com" target="_blank" rel="noopener">GitHub</a></li>
+        <li><a href="/" class="site-btn-primary" style="padding: 0.45rem 1rem; font-size: 0.82rem;">Launch Workspace</a></li>
+      </ul>
     </div>
   </footer>
 
-  <!-- Instant Search Script -->
+  <!-- Floating Back to Top Button -->
+  <button id="docsBackToTop" class="docs-back-to-top" title="Back to top" aria-label="Back to top">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <polyline points="18 15 12 9 6 15"></polyline>
+    </svg>
+  </button>
+
+  <!-- Instant Search, Mobile ToC, and Scrollspy Scripts -->
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const searchInput = document.getElementById('docsSearchInput');
@@ -1260,32 +1365,101 @@ npm run cli
         });
       }
 
-      // Sidebar scrollspy indicator
-      const navLinks = document.querySelectorAll('.sidebar-nav a');
+      // Mobile Table of Contents (ToC) Bar Toggle
+      const mobileTocToggleBtn = document.getElementById('mobileTocToggleBtn');
+      const mobileTocMenu = document.getElementById('mobileTocMenu');
+      const mobileTocCurrent = document.getElementById('mobileTocCurrent');
+
+      if (mobileTocToggleBtn && mobileTocMenu) {
+        function toggleMobileToc(open) {
+          const shouldOpen = open !== undefined ? open : !mobileTocMenu.classList.contains('active');
+          mobileTocMenu.classList.toggle('active', shouldOpen);
+          mobileTocToggleBtn.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
+        }
+
+        mobileTocToggleBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          toggleMobileToc();
+        });
+
+        // Close on outside click
+        document.addEventListener('click', (e) => {
+          if (!mobileTocToggleBtn.contains(e.target) && !mobileTocMenu.contains(e.target)) {
+            toggleMobileToc(false);
+          }
+        });
+
+        // Close on link click inside mobile ToC
+        mobileTocMenu.querySelectorAll('a').forEach(link => {
+          link.addEventListener('click', () => {
+            if (mobileTocCurrent) {
+              const labelText = link.textContent.trim().replace(/\s+\d+$/, '');
+              mobileTocCurrent.textContent = labelText;
+            }
+            toggleMobileToc(false);
+          });
+        });
+      }
+
+      // Sidebar and Mobile ToC scrollspy indicator
+      const desktopNavLinks = document.querySelectorAll('.docs-sidebar .sidebar-nav a');
+      const mobileNavLinks = document.querySelectorAll('.mobile-toc-dropdown .sidebar-nav a');
       const sections = document.querySelectorAll('.docs-section');
+      const backToTopBtn = document.getElementById('docsBackToTop');
 
       window.addEventListener('scroll', () => {
         let currentSectionId = '';
-        const scrollPosition = window.scrollY + 140;
+        let currentSectionTitle = '';
+        const scrollPosition = window.scrollY + 160;
 
         sections.forEach(section => {
           const sectionTop = section.offsetTop;
           const sectionHeight = section.offsetHeight;
           if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
             currentSectionId = section.getAttribute('id');
+            const h2 = section.querySelector('.section-title');
+            if (h2) currentSectionTitle = h2.textContent.trim();
           }
         });
 
         if (currentSectionId) {
-          navLinks.forEach(link => {
+          desktopNavLinks.forEach(link => {
             if (link.getAttribute('href') === `#${currentSectionId}`) {
               link.classList.add('active');
             } else {
               link.classList.remove('active');
             }
           });
+
+          mobileNavLinks.forEach(link => {
+            if (link.getAttribute('href') === `#${currentSectionId}`) {
+              link.classList.add('active');
+            } else {
+              link.classList.remove('active');
+            }
+          });
+
+          if (mobileTocCurrent && currentSectionTitle) {
+            mobileTocCurrent.textContent = currentSectionTitle;
+          }
+        }
+
+        // Back to top visibility
+        if (backToTopBtn) {
+          if (window.scrollY > 400) {
+            backToTopBtn.classList.add('visible');
+          } else {
+            backToTopBtn.classList.remove('visible');
+          }
         }
       });
+
+      // Back to top smooth scroll
+      if (backToTopBtn) {
+        backToTopBtn.addEventListener('click', () => {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+      }
     });
   </script>
 </body>
