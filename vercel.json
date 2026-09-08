@@ -1,11 +1,42 @@
 {
   "version": 2,
+  "cleanUrls": true,
+  "trailingSlash": false,
   "functions": {
     "src/server.js": {
+      "includeFiles": "public/**",
       "maxDuration": 60
     }
   },
   "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/src/server.js"
+    },
+    {
+      "source": "/models",
+      "destination": "/src/server.js"
+    },
+    {
+      "source": "/health",
+      "destination": "/src/server.js"
+    },
+    {
+      "source": "/docs",
+      "destination": "/docs.html"
+    },
+    {
+      "source": "/capabilities",
+      "destination": "/docs.html"
+    },
+    {
+      "source": "/about",
+      "destination": "/about.html"
+    },
+    {
+      "source": "/404",
+      "destination": "/404.html"
+    },
     {
       "source": "/(.*)",
       "destination": "/src/server.js"

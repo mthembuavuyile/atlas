@@ -64,15 +64,15 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(publicDir, 'index.html'));
 });
 
-app.get('/about', (req, res) => {
+app.get(['/about', '/about/'], (req, res) => {
   res.sendFile(path.join(publicDir, 'about.html'));
 });
 
-app.get(['/docs', '/capabilities'], (req, res) => {
+app.get(['/docs', '/docs/', '/capabilities', '/capabilities/'], (req, res) => {
   res.sendFile(path.join(publicDir, 'docs.html'));
 });
 
-app.get('/404', (req, res) => {
+app.get(['/404', '/404/'], (req, res) => {
   res.status(404).sendFile(path.join(publicDir, '404.html'));
 });
 
