@@ -1185,8 +1185,21 @@ a:hover {
 
 .message-content-wrapper {
   max-width: calc(100% - 32px);
+  width: 100%;
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
+}
+
+.message-widgets-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.widget-mount-point {
+  width: 100%;
 }
 
 .message-bubble {

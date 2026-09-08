@@ -124,6 +124,9 @@ export function renderMessageItem(role, content = '', reasoning = '', shouldScro
           wBox.className = 'widget-mount-point';
           wBox.innerHTML = wHtml;
           widgetsContainer.appendChild(wBox);
+          if (window.atlasMountWidget) {
+            window.atlasMountWidget(wBox, w.type, w.data);
+          }
         }
       }
     });

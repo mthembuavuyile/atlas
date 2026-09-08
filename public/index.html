@@ -1257,8 +1257,9 @@
   <script type="module" src="js/widgets/ocr-modal.js"></script>
   <script type="module" src="js/widgets/qr-modal.js"></script>
   <script type="module">
-    import { renderWidget } from './js/widgets/widget-renderer.js';
+    import { renderWidget, mountWidget } from './js/widgets/widget-renderer.js';
     window.atlasRenderWidget = renderWidget;
+    window.atlasMountWidget = mountWidget;
   </script>
   <script type="module" src="js/app.js"></script>
 </body>

@@ -163,6 +163,34 @@ export function detectLocalWidgetIntent(text) {
     return { tool: 'give_advice', args: {}, label: 'Fetched advice.' };
   }
 
+  // Movie Explorer Intent
+  const movie = pickMatch([
+    /^(?:tell me about|info on|details for|synopsis of|who directed)\s+(?:the\s+movie\s+|the\s+film\s+)?["']?(.+?)["']?\??$/i,
+    /^(?:the\s+)?movie\s+["']?(.+?)["']?\??$/i
+  ]);
+  if (movie && !/\b(joke|scripture|verse|weather|news|code|function|places?|stock)\b/i.test(movie)) {
+    return { tool: 'get_movie_info', args: { title: movie }, label: `Fetched movie intelligence for "${movie}".` };
+  }
+
+  // Stock / Market Chart Intent
+  const stock = pickMatch([
+    /^(?:show me\s+)?(?:stock\s+chart|price\s+chart|market\s+chart|chart)\s+(?:for|of)?\s*(.+)\??$/i,
+    /^(?:show me\s+)?([a-z0-9.:]+)\s+(?:stock\s+chart|chart|stock)\??$/i
+  ]);
+  if (stock && /\b(google|apple|nvidia|nvda|tesla|tsla|microsoft|msft|amazon|amzn|meta|nasdaq|nyse|aapl|googl)\b/i.test(stock)) {
+    return { tool: 'get_stock_chart', args: { query: stock }, label: `Loaded interactive market chart for ${stock.toUpperCase()}.` };
+  }
+
+  // Bitcoin Mempool & Network Fees Intent
+  if (/^(?:what are\s+)?(?:bitcoin|btc)\s+(?:mempool|network)?\s*(?:fees|fee rates)\??$/i.test(trimmed) || /^(?:mempool|btc fees|bitcoin fees)$/i.test(trimmed)) {
+    return { tool: 'get_crypto_terminal', args: { asset: 'btc_fees' }, label: 'Fetched Bitcoin network fees and mempool stats.' };
+  }
+
+  // Crypto Sentiment / Fear & Greed Intent
+  if (/^(?:what is\s+)?(?:the\s+)?(?:crypto\s+)?(?:fear and greed|market sentiment)\??$/i.test(trimmed) || /^(?:fear and greed|crypto sentiment)$/i.test(trimmed)) {
+    return { tool: 'get_crypto_terminal', args: { asset: 'fear_and_greed' }, label: 'Fetched Fear & Greed sentiment index.' };
+  }
+
   return null;
 }
 
@@ -180,8 +208,20 @@ export function resolveSlashCommand(prompt) {
   let overrideText = null;
 
   if (command === 'crypto') {
-    toolToCall = 'get_crypto_price';
-    argsPayload = { coin: arg || 'bitcoin' };
+    toolToCall = 'get_crypto_terminal';
+    argsPayload = { coins: arg || 'bitcoin,ethereum,solana' };
+  } else if (command === 'movie' || command === 'film') {
+    toolToCall = 'get_movie_info';
+    argsPayload = { title: arg || 'Interstellar' };
+  } else if (command === 'stock' || command === 'chart' || command === 'ticker') {
+    toolToCall = 'get_stock_chart';
+    argsPayload = { query: arg || 'Google' };
+  } else if (command === 'mempool') {
+    toolToCall = 'get_crypto_terminal';
+    argsPayload = { asset: 'btc_fees' };
+  } else if (command === 'fear' || command === 'sentiment') {
+    toolToCall = 'get_crypto_terminal';
+    argsPayload = { asset: 'fear_and_greed' };
   } else if (command === 'web') {
     isWebSearch = true;
     overrideText = arg;
@@ -292,6 +332,9 @@ export async function runLocalWidget(toolToCall, argsPayload, statusText, contex
       widgetBox.className = 'widget-mount-point';
       widgetBox.innerHTML = widgetHtml;
       widgetsContainer.appendChild(widgetBox);
+      if (window.atlasMountWidget) {
+        window.atlasMountWidget(widgetBox, widgetResult.type, widgetResult.data);
+      }
     }
   }
 

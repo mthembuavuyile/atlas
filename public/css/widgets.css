@@ -1246,3 +1246,374 @@
     font-family: var(--font-mono, monospace);
     color: #34d399;
 }
+
+/* ==========================================================================
+   Movie Explorer Widget Component
+   ========================================================================== */
+
+.atlas-movie-card {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+.atlas-movie-poster-wrap {
+    flex-shrink: 0;
+    width: 110px;
+    height: 160px;
+    border-radius: 6px;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+}
+
+.atlas-movie-poster {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.atlas-movie-poster-placeholder {
+    flex-shrink: 0;
+    width: 110px;
+    height: 160px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px dashed var(--border-subtle, rgba(255, 255, 255, 0.12));
+    color: var(--text-muted, #94a3b8);
+}
+
+.atlas-movie-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.atlas-movie-title-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.atlas-movie-title {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-main, #f8fafc);
+    line-height: 1.3;
+}
+
+.atlas-movie-year {
+    font-size: 0.82rem;
+    color: var(--text-muted, #94a3b8);
+}
+
+.atlas-movie-rating-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    background: var(--accent-primary, #fba919);
+    color: #000;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 3px;
+    letter-spacing: 0.02em;
+}
+
+.atlas-movie-meta {
+    font-size: 0.76rem;
+    color: var(--text-secondary, #cbd5e1);
+    opacity: 0.85;
+}
+
+.atlas-movie-plot {
+    margin: 4px 0 6px 0;
+    font-size: 0.82rem;
+    line-height: 1.45;
+    color: var(--text-secondary, #cbd5e1);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.atlas-movie-credits {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 0.76rem;
+    color: var(--text-muted, #94a3b8);
+    margin-top: auto;
+}
+
+.atlas-movie-credit-line strong {
+    color: var(--text-secondary, #cbd5e1);
+}
+
+.atlas-movie-footer {
+    margin-top: 6px;
+}
+
+.atlas-movie-imdb-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--accent-primary, #fba919);
+    text-decoration: none;
+    border: 1px solid rgba(251, 169, 25, 0.25);
+    background: rgba(251, 169, 25, 0.08);
+    padding: 2px 7px;
+    border-radius: 3px;
+    transition: background 0.15s ease;
+}
+
+.atlas-movie-imdb-link:hover {
+    background: rgba(251, 169, 25, 0.18);
+}
+
+@media (max-width: 520px) {
+    .atlas-movie-card {
+        flex-direction: column;
+    }
+    .atlas-movie-poster-wrap,
+    .atlas-movie-poster-placeholder {
+        width: 100%;
+        height: 180px;
+    }
+}
+
+/* ==========================================================================
+   Stock & Market Interactive Chart Widget (TradingView)
+   ========================================================================== */
+
+.atlas-widget-stock {
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.atlas-stock-container {
+    width: 100%;
+    height: 380px;
+    min-height: 380px;
+    border-radius: 6px;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+    margin-bottom: 8px;
+    position: relative;
+    box-sizing: border-box;
+}
+
+.atlas-tv-widget-host {
+    width: 100%;
+    height: 100%;
+    min-height: 380px;
+    box-sizing: border-box;
+}
+
+.atlas-stock-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 380px;
+    width: 100%;
+    color: var(--text-muted, #94a3b8);
+    font-size: 0.82rem;
+    gap: 8px;
+}
+
+.atlas-stock-container .tradingview-widget-container {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.atlas-stock-container .tradingview-widget-container__widget {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.atlas-stock-container iframe {
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
+}
+
+/* ==========================================================================
+   Crypto Terminal & Multi-Asset Intelligence Widget
+   ========================================================================== */
+
+.atlas-crypto-terminal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.atlas-crypto-section {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.atlas-crypto-section-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted, #94a3b8);
+}
+
+.atlas-crypto-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 8px;
+}
+
+.atlas-crypto-asset-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+    border-radius: 4px;
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.atlas-crypto-asset-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.atlas-crypto-symbol {
+    font-size: 0.78rem;
+    font-weight: 700;
+    font-family: var(--font-mono, monospace);
+    color: var(--accent-primary, #fba919);
+}
+
+.atlas-crypto-change {
+    font-size: 0.68rem;
+    font-weight: 600;
+    font-family: var(--font-mono, monospace);
+    padding: 1px 4px;
+    border-radius: 2px;
+}
+
+.atlas-change-pos {
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.12);
+}
+
+.atlas-change-neg {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.12);
+}
+
+.atlas-crypto-asset-price {
+    font-size: 1.05rem;
+    font-weight: 700;
+    font-family: var(--font-mono, monospace);
+    color: var(--text-main, #f8fafc);
+}
+
+.atlas-block-badge {
+    font-size: 0.68rem;
+    font-family: var(--font-mono, monospace);
+    color: var(--text-secondary, #cbd5e1);
+    background: rgba(255, 255, 255, 0.05);
+    padding: 2px 6px;
+    border-radius: 3px;
+    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+}
+
+.atlas-mempool-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+@media (max-width: 500px) {
+    .atlas-mempool-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.atlas-mempool-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.06));
+    border-radius: 4px;
+    padding: 6px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.atlas-mempool-label {
+    font-size: 0.68rem;
+    color: var(--text-muted, #94a3b8);
+}
+
+.atlas-mempool-val {
+    font-size: 0.88rem;
+    font-weight: 700;
+    font-family: var(--font-mono, monospace);
+    color: var(--text-main, #f8fafc);
+}
+
+.atlas-fng-row {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.06));
+    border-radius: 4px;
+    padding: 8px 10px;
+}
+
+.atlas-fng-score {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.atlas-fng-number {
+    font-size: 1.25rem;
+    font-weight: 800;
+    font-family: var(--font-mono, monospace);
+    line-height: 1;
+}
+
+.atlas-fng-label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.atlas-fng-track {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.atlas-fng-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}

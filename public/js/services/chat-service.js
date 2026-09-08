@@ -398,6 +398,9 @@ export async function executeChatTurn(session) {
                   widgetBox.className = 'widget-mount-point';
                   widgetBox.innerHTML = widgetHtml;
                   widgetsContainer.appendChild(widgetBox);
+                  if (window.atlasMountWidget) {
+                    window.atlasMountWidget(widgetBox, parsed.__widget__.type, parsed.__widget__.data);
+                  }
                   scrollToBottom(false);
                 }
               }

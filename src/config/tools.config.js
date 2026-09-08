@@ -273,4 +273,11 @@ const ATLAS_TOOLS = [
   }
 ];
 
-module.exports = { ATLAS_TOOLS };
+// Dynamically augment with modular capabilities
+const { capabilityRegistry } = require('../capabilities');
+const COMBINED_TOOLS = [
+  ...ATLAS_TOOLS,
+  ...capabilityRegistry.getCapabilitySchemas()
+];
+
+module.exports = { ATLAS_TOOLS: COMBINED_TOOLS, BASE_TOOLS: ATLAS_TOOLS };
