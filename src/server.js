@@ -107,7 +107,11 @@ app.use((req, res) => {
     return res.status(404).sendFile(path.join(publicDir, '404.html'));
   }
   res.status(404).json({
-    error: 'The requested resource was not found.'
+    error: 'The requested resource was not found.',
+    url: req.url,
+    originalUrl: req.originalUrl,
+    matchedPath: req.headers['x-matched-path'],
+    forwardedUri: req.headers['x-forwarded-uri']
   });
 });
 
