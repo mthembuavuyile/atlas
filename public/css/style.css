@@ -1906,6 +1906,18 @@ code {
   color: var(--pill-active-text);
 }
 
+.composer-tool-btn.auto-searching {
+  background: rgba(251, 169, 25, 0.18) !important;
+  border-color: var(--accent-primary, #fba919) !important;
+  color: var(--accent-primary, #fba919) !important;
+  animation: pulse-web-search 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes pulse-web-search {
+  0% { opacity: 0.75; box-shadow: 0 0 0 rgba(251, 169, 25, 0); }
+  100% { opacity: 1; box-shadow: 0 0 8px rgba(251, 169, 25, 0.35); }
+}
+
 .composer-icon-btn {
   background: transparent;
   border: none;
