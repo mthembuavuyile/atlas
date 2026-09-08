@@ -6,6 +6,10 @@
     "src/server.js": {
       "includeFiles": "public/**",
       "maxDuration": 60
+    },
+    "api/index.js": {
+      "includeFiles": "public/**",
+      "maxDuration": 60
     }
   },
   "rewrites": [

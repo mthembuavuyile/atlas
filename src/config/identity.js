@@ -66,6 +66,7 @@ const APP = {
   title: `Atlas by ${COMPANY.tradingAs}`,
   shortTitle: 'Atlas by Vylex Technologies',
   url: 'https://vylex.co.za',
+  github: 'https://github.com/mthembuavuyile/atlas',
   tagline: 'Intelligence for the hard problems',
   subtitle: 'Research · Mathematics · Code · Systems · Problem Solving',
   positioning: 'A technical reasoning workspace for research, mathematics, code, and systems.',

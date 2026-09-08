@@ -80,12 +80,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const cleanHref = linkHref.split('#')[0].replace(/\/$/, '') || '/';
       // Match exactly or handle docs / capabilities alias
-      if (
-        cleanHref === currentPath ||
-        (currentPath === '/capabilities' && cleanHref === '/docs') ||
-        (currentPath === '/docs.html' && cleanHref === '/docs') ||
-        (currentPath === '/about.html' && cleanHref === '/about')
-      ) {
+      const isAbout = (currentPath === '/about' || currentPath === '/about.html') && (cleanHref === '/about' || cleanHref === '/about.html');
+      const isDocs = (currentPath === '/docs' || currentPath === '/docs.html' || currentPath === '/capabilities') && (cleanHref === '/docs' || cleanHref === '/docs.html');
+      const isExact = cleanHref === currentPath;
+
+      if (isExact || isAbout || isDocs) {
         link.classList.add('active');
       }
     });

@@ -9,6 +9,15 @@ const { buildServerBanner } = require('./config/identity');
 
 const app = express();
 
+// Path normalization for Vercel serverless functions & rewrites
+app.use((req, res, next) => {
+  const matchedPath = req.headers['x-matched-path'] || req.headers['x-forwarded-uri'] || req.headers['x-vercel-matched-path'];
+  if (matchedPath && (req.url.startsWith('/src/server') || req.url.startsWith('/api/index') || req.url === '/')) {
+    req.url = matchedPath;
+  }
+  next();
+});
+
 // 1. Security Headers
 app.use(helmet({
   contentSecurityPolicy: false, // Allow inline scripts for the frontend
@@ -64,15 +73,15 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(publicDir, 'index.html'));
 });
 
-app.get(['/about', '/about/'], (req, res) => {
+app.get(['/about', '/about/', '/about.html'], (req, res) => {
   res.sendFile(path.join(publicDir, 'about.html'));
 });
 
-app.get(['/docs', '/docs/', '/capabilities', '/capabilities/'], (req, res) => {
+app.get(['/docs', '/docs/', '/docs.html', '/capabilities', '/capabilities/'], (req, res) => {
   res.sendFile(path.join(publicDir, 'docs.html'));
 });
 
-app.get(['/404', '/404/'], (req, res) => {
+app.get(['/404', '/404/', '/404.html'], (req, res) => {
   res.status(404).sendFile(path.join(publicDir, '404.html'));
 });
 

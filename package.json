@@ -21,6 +21,10 @@
     "multi-model"
   ],
   "author": "Vylex Technologies <hello@vylex.co.za> (https://vylex.co.za)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mthembuavuyile/atlas.git"
+  },
   "license": "MIT",
   "dependencies": {
     "cors": "^2.8.5",
