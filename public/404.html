@@ -33,15 +33,20 @@
   <link
     href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
     rel="stylesheet">
+  <link rel="stylesheet" href="/css/site-common.css">
   <link rel="stylesheet" href="/css/about.css">
+  <script src="/js/site-nav.js" defer></script>
 </head>
 
 <body class="error-page">
 
-  <header>
-    <div class="container header-content">
-      <a href="/" class="logo" aria-label="Atlas Homepage">
-        <span class="logo-symbol" aria-hidden="true">
+  <a href="#mainContent" class="skip-to-content">Skip to content</a>
+
+  <!-- Top Global Header -->
+  <header class="site-header" role="banner">
+    <div class="container site-header-inner">
+      <a href="/" class="site-logo" aria-label="Atlas Homepage">
+        <span class="site-logo-symbol" aria-hidden="true">
           <svg width="26" height="26" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <linearGradient id="vylex-orange-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -55,29 +60,47 @@
               fill="none" transform="rotate(-18 50 50)" />
           </svg>
         </span>
-        <span class="logo-text">Atlas</span>
-        <span class="logo-sub">by Vylex</span>
+        <div class="site-logo-brand">
+          <span class="site-logo-title">Atlas</span>
+          <span class="site-logo-sub">by Vylex</span>
+        </div>
       </a>
-      <nav class="nav-links">
-        <a href="/">Workspace</a>
-        <a href="/about.html#features">Features</a>
-        <a href="/about.html#capabilities">Capabilities</a>
-        <a href="/about.html">About</a>
-        <a href="https://github.com" target="_blank" rel="noopener">GitHub</a>
-        <a href="/" class="btn-primary">Launch App</a>
+
+      <nav class="site-nav" aria-label="Main Navigation">
+        <ul class="site-nav-links">
+          <li><a href="/about" class="site-nav-link">About</a></li>
+          <li><a href="/docs" class="site-nav-link">Documentation</a></li>
+          <li><a href="https://github.com" class="site-nav-link" target="_blank" rel="noopener">GitHub</a></li>
+        </ul>
+        <a href="/" class="site-btn-primary">Launch Workspace</a>
+
+        <!-- Accessible Burger Toggle Button -->
+        <button id="siteBurgerBtn" class="site-burger-btn" aria-label="Open navigation menu" aria-expanded="false" aria-controls="siteMobileDrawer">
+          <span class="burger-box" aria-hidden="true">
+            <span class="burger-line"></span>
+            <span class="burger-line"></span>
+            <span class="burger-line"></span>
+          </span>
+        </button>
       </nav>
-      <button class="mobile-menu-btn" aria-label="Toggle menu">
-        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"
-          stroke-linecap="round" stroke-linejoin="round">
-          <line x1="3" y1="12" x2="21" y2="12"></line>
-          <line x1="3" y1="6" x2="21" y2="6"></line>
-          <line x1="3" y1="18" x2="21" y2="18"></line>
-        </svg>
-      </button>
     </div>
   </header>
 
-  <main>
+  <!-- Mobile Navigation Drawer & Backdrop Overlay -->
+  <div id="siteBackdropOverlay" class="site-backdrop-overlay" aria-hidden="true"></div>
+  <aside id="siteMobileDrawer" class="site-mobile-drawer" aria-label="Mobile Navigation">
+    <ul class="mobile-drawer-links">
+      <li><a href="/" class="mobile-drawer-link">Workspace</a></li>
+      <li><a href="/about" class="mobile-drawer-link">About Atlas</a></li>
+      <li><a href="/docs" class="mobile-drawer-link">Documentation &amp; Specs</a></li>
+      <li><a href="https://github.com" class="mobile-drawer-link" target="_blank" rel="noopener">GitHub Repository</a></li>
+    </ul>
+    <div class="mobile-drawer-actions">
+      <a href="/" class="site-btn-primary">Launch Workspace</a>
+    </div>
+  </aside>
+
+  <main id="mainContent">
     <section class="hero error-hero container">
       <div class="error-badge-wrapper">
         <div class="error-badge">
@@ -220,29 +243,24 @@
     </section>
   </main>
 
-  <footer>
-    <div class="container">
-      <p>Atlas is built by <a href="https://vylex.co.za/labs" target="_blank" rel="noopener">Vylex Labs</a> (AI &
-        Emerging Technology), a division of <a href="https://vylex.co.za" target="_blank" rel="noopener">Vylex</a>.</p>
-      <p style="margin-top: 0.5rem; font-size: 0.8rem; opacity: 0.7;">&copy; 2026 Vylex Technologies. Licensed under
-        MIT.</p>
+  <!-- Unified Global Footer -->
+  <footer class="site-footer" role="contentinfo">
+    <div class="container site-footer-inner">
+      <div class="site-footer-brand">
+        <p>Atlas is built by <a href="https://vylex.co.za/labs" target="_blank" rel="noopener">Vylex Labs</a> (AI &amp; Emerging Technology), a division of <a href="https://vylex.co.za" target="_blank" rel="noopener">Vylex</a>.</p>
+        <p class="site-footer-copy">&copy; 2026 Vylex Technologies. Licensed under MIT.</p>
+      </div>
+      <ul class="site-footer-links">
+        <li><a href="/about">About</a></li>
+        <li><a href="/docs">Documentation</a></li>
+        <li><a href="https://github.com" target="_blank" rel="noopener">GitHub</a></li>
+        <li><a href="/" class="site-btn-primary" style="padding: 0.45rem 1rem; font-size: 0.82rem;">Launch Workspace</a></li>
+      </ul>
     </div>
   </footer>
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      // Mobile menu toggle
-      const btn = document.querySelector('.mobile-menu-btn');
-      const nav = document.querySelector('.nav-links');
-      if (btn && nav) {
-        btn.addEventListener('click', () => {
-          nav.classList.toggle('nav-open');
-        });
-        nav.querySelectorAll('a').forEach(link => {
-          link.addEventListener('click', () => nav.classList.remove('nav-open'));
-        });
-      }
-
       // Display the requested path if available
       try {
         const path = window.location.pathname;
