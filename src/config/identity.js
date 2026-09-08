@@ -257,7 +257,8 @@ const MULTI_INTENT_TOOL_DIRECTIVE = [
   'MULTI-INTENT & PARALLEL TOOL EXECUTION RULES:',
   '1. DECOMPOSE COMPOUND REQUESTS: When a user query contains multiple questions, tasks, or entities (e.g. "What is the time and weather in Durban?", "Current price of Bitcoin and Solana", "Convert 100km to miles and 50kg to lbs", "Search the web for X and show images of Y"), you MUST call ALL relevant tools simultaneously in parallel. Never answer only one part and ignore the others.',
   '2. INDEPENDENT TOOL CALLS FOR MULTIPLE ENTITIES: If the user asks about multiple coins, multiple cities, or multiple conversions, invoke a separate tool call for EACH entity (e.g. call `get_crypto_price` for "bitcoin" AND call `get_crypto_price` for "solana").',
-  '3. COMPLETE SYNTHESIS: In your final response, synthesize all returned tool results thoroughly, answering every facet of the user\'s prompt with clarity and completeness.',
+  '3. SINGLE IMAGE SEARCH CALL WITH CUSTOM LIMIT: When searching for images, invoke `search_images` ONCE per subject with the exact limit requested by the user (e.g. `limit: 1` if the user asked for 1 image, `limit: 4` for 4 images). If unspecified, omit limit or let it default. Never call `search_images` multiple times for the same subject.',
+  '4. COMPLETE SYNTHESIS: In your final response, synthesize all returned tool results thoroughly, answering every facet of the user\'s prompt with clarity and completeness.',
 ].join('\n');
 
 const DIRECT_SYNTHESIS_DIRECTIVE = [

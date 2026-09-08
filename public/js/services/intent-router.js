@@ -100,9 +100,31 @@ export function detectLocalWidgetIntent(text) {
     return { tool: 'get_reddit_posts', args: { subreddit: subreddit || 'news' }, label: 'Fetched live discussions.' };
   }
 
-  const image = pickMatch([/^(?:show me|find|search)\s+(?:an?\s+)?(?:images?|photos?|pictures?)\s+(?:of|for)\s+(.+)$/i, /^photos?\s+(?:of|for)\s+(.+)$/i]);
-  if (image && !/\b(website|portfolio|button|page|component)\b/i.test(image)) {
-    return { tool: 'search_images', args: { query: image }, label: 'Fetched visual references.' };
+  const imageMatch = trimmed.match(/^(?:show me|find|search|get|give me)\s+(?:an?\s+|one\s+|(\d+)\s+)?(?:images?|photos?|pictures?)\s+(?:of|for)\s+(.+)$/i)
+    || trimmed.match(/^(\d+)\s+photos?\s+(?:of|for)\s+(.+)$/i)
+    || trimmed.match(/^photos?\s+(?:of|for)\s+(.+)$/i);
+  if (imageMatch) {
+    let limit = 8;
+    let query = '';
+
+    if (imageMatch[1] && /^\d+$/.test(imageMatch[1])) {
+      limit = Math.min(Math.max(parseInt(imageMatch[1], 10), 1), 12);
+      query = imageMatch[2] || '';
+    } else if (/\b(an?|one)\s+(?:images?|photos?|pictures?)\b/i.test(imageMatch[0])) {
+      limit = 1;
+      query = imageMatch[2] || imageMatch[1] || '';
+    } else {
+      query = imageMatch[2] || imageMatch[1] || '';
+    }
+
+    if (!query) {
+      query = imageMatch[0].replace(/^(?:show me|find|search|get|give me)\s+(?:an?\s+|one\s+|\d+\s+)?(?:images?|photos?|pictures?)\s+(?:of|for)\s+/i, '');
+    }
+    query = stripTrailing(query);
+
+    if (query && !/\b(website|portfolio|button|page|component)\b/i.test(query)) {
+      return { tool: 'search_images', args: { query, limit }, label: 'Fetched visual references.' };
+    }
   }
 
   const math = pickMatch([/^(?:derivative|integral|simplify|factor|solve|limit)\s+(?:of\s+)?(.+)$/i]);
@@ -199,7 +221,15 @@ export function resolveSlashCommand(prompt) {
     argsPayload = { expression: arg || '2+2', operation: 'simplify' };
   } else if (command === 'image') {
     toolToCall = 'search_images';
-    argsPayload = { query: arg || 'beautiful landscape' };
+    const numMatch = (arg || '').match(/^(\d+)\s+(.+)$/);
+    if (numMatch) {
+      argsPayload = {
+        limit: Math.min(Math.max(parseInt(numMatch[1], 10) || 8, 1), 12),
+        query: numMatch[2].trim()
+      };
+    } else {
+      argsPayload = { query: arg || 'beautiful landscape', limit: 8 };
+    }
   } else if (command === 'qr' || command === 'generateqr') {
     toolToCall = 'generate_qr';
     argsPayload = { data: arg || 'Atlas Intelligence' };

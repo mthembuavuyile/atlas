@@ -19,7 +19,7 @@ const TOOL_DISPATCHER = {
   get_weather: (args) => widgetService.getWeather(args.city),
   get_crypto_price: (args) => widgetService.getCryptoPrice(args.coin),
   get_bible_verse: (args) => widgetService.getBibleVerse(args.reference),
-  search_images: (args) => widgetService.searchImages(args.query),
+  search_images: (args) => widgetService.searchImages(args.query, args.limit || args.count),
   generate_image: (args) => widgetService.generateImage(args.prompt, args.aspect_ratio),
   get_news_headlines: (args) => widgetService.getNewsHeadlines(args.topic),
   get_space_news: (args) => widgetService.getSpaceNews(args.topic),
@@ -160,6 +160,7 @@ class ChatController {
         let currentMessages = [...normalizedMessages];
         let iteration = 0;
         const maxIterations = 5;
+        const executedToolCallsInTurn = new Map();
 
         // In build mode, allocate 100% of token budget to code generation without tool schema overhead
         const activeTools = mode === 'build' ? undefined : ATLAS_TOOLS;
@@ -274,29 +275,40 @@ class ChatController {
 
               res.write(`data: ${JSON.stringify({ __tool_start__: { name: toolName, args } })}\n\n`);
 
+              const toolSignature = `${toolName}:${JSON.stringify(args)}`;
               let widgetResult;
-              const handler = TOOL_DISPATCHER[toolName];
-              if (typeof handler === 'function') {
-                try {
-                  widgetResult = await handler(args || {});
-                } catch (toolExecErr) {
-                  console.error(`[Tool Execution Error] ${toolName}:`, toolExecErr.message || toolExecErr);
+              let isRedundant = false;
+
+              if (executedToolCallsInTurn.has(toolSignature)) {
+                widgetResult = executedToolCallsInTurn.get(toolSignature);
+                isRedundant = true;
+              } else {
+                const handler = TOOL_DISPATCHER[toolName];
+                if (typeof handler === 'function') {
+                  try {
+                    widgetResult = await handler(args || {});
+                  } catch (toolExecErr) {
+                    console.error(`[Tool Execution Error] ${toolName}:`, toolExecErr.message || toolExecErr);
+                    widgetResult = {
+                      type: 'error',
+                      data: null,
+                      error: `Execution error in ${toolName}: ${toolExecErr.message || 'Internal failure'}`
+                    };
+                  }
+                } else {
                   widgetResult = {
                     type: 'error',
                     data: null,
-                    error: `Execution error in ${toolName}: ${toolExecErr.message || 'Internal failure'}`
+                    error: `Unknown tool: ${toolName}`
                   };
                 }
-              } else {
-                widgetResult = {
-                  type: 'error',
-                  data: null,
-                  error: `Unknown tool: ${toolName}`
-                };
+                executedToolCallsInTurn.set(toolSignature, widgetResult);
               }
 
-              // Send widget payload to client
-              res.write(`data: ${JSON.stringify({ __widget__: { type: widgetResult.type, data: widgetResult.data, error: widgetResult.error } })}\n\n`);
+              // Send widget payload to client ONLY if not a redundant duplicate
+              if (!isRedundant) {
+                res.write(`data: ${JSON.stringify({ __widget__: { type: widgetResult.type, data: widgetResult.data, error: widgetResult.error } })}\n\n`);
+              }
               res.write(`data: ${JSON.stringify({ __tool_done__: { name: toolName, success: !widgetResult.error } })}\n\n`);
 
               // Structure tool response for LLM

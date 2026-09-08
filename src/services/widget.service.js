@@ -509,7 +509,7 @@ class WidgetService {
     // 4. Images (Free Multi-Provider: Wikimedia Commons, Wikipedia, Unsplash, Pixabay)
     async searchImages(query, limit = 8) {
         const cleanQuery = (query || 'science').trim();
-        const targetLimit = Math.min(Math.max(parseInt(limit, 10) || 8, 2), 12);
+        const targetLimit = Math.min(Math.max(parseInt(limit, 10) || 8, 1), 12);
         const API_KEYS = {
             unsplash: process.env.UNSPLASH_ACCESS_KEY || '',
             pixabay: process.env.PIXABAY_API_KEY || ''
@@ -878,6 +878,17 @@ class WidgetService {
                             imageUrl = p.url;
                         }
 
+                        let videoUrl = null;
+                        if (p.media?.reddit_video?.fallback_url) {
+                            videoUrl = p.media.reddit_video.fallback_url.replace(/&amp;/g, '&');
+                        } else if (p.secure_media?.reddit_video?.fallback_url) {
+                            videoUrl = p.secure_media.reddit_video.fallback_url.replace(/&amp;/g, '&');
+                        } else if (p.preview?.reddit_video_preview?.fallback_url) {
+                            videoUrl = p.preview.reddit_video_preview.fallback_url.replace(/&amp;/g, '&');
+                        } else if (p.url && /\.(mp4|webm)(\?.*)?$/i.test(p.url)) {
+                            videoUrl = p.url;
+                        }
+
                         const permalink = p.permalink 
                             ? (p.permalink.startsWith('http') ? p.permalink : `https://www.reddit.com${p.permalink}`)
                             : (p.url || `https://www.reddit.com/r/${finalSub}`);
@@ -891,7 +902,8 @@ class WidgetService {
                             subreddit: p.subreddit_name_prefixed || `r/${finalSub}`,
                             source: 'Reddit',
                             created_at: p.created_utc ? new Date(p.created_utc * 1000).toLocaleDateString() : 'Recent',
-                            image: imageUrl
+                            image: imageUrl,
+                            video: videoUrl
                         });
                     }
                 }
@@ -917,6 +929,17 @@ class WidgetService {
                             } else if (postData.thumbnail && postData.thumbnail.startsWith('http')) {
                                 imageUrl = postData.thumbnail;
                             }
+                            let videoUrl = null;
+                            if (postData.media?.reddit_video?.fallback_url) {
+                                videoUrl = postData.media.reddit_video.fallback_url.replace(/&amp;/g, '&');
+                            } else if (postData.secure_media?.reddit_video?.fallback_url) {
+                                videoUrl = postData.secure_media.reddit_video.fallback_url.replace(/&amp;/g, '&');
+                            } else if (postData.preview?.reddit_video_preview?.fallback_url) {
+                                videoUrl = postData.preview.reddit_video_preview.fallback_url.replace(/&amp;/g, '&');
+                            } else if (postData.url && /\.(mp4|webm)(\?.*)?$/i.test(postData.url)) {
+                                videoUrl = postData.url;
+                            }
+
                             posts.push({
                                 title: postData.title,
                                 url: `https://www.reddit.com${postData.permalink}`,
@@ -926,7 +949,8 @@ class WidgetService {
                                 subreddit: postData.subreddit_name_prefixed || `r/${finalSub}`,
                                 source: 'Reddit',
                                 created_at: new Date(postData.created_utc * 1000).toLocaleDateString(),
-                                image: imageUrl
+                                image: imageUrl,
+                                video: videoUrl
                             });
                         }
                     }

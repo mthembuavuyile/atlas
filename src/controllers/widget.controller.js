@@ -35,7 +35,7 @@ class WidgetController {
                     result = await widgetService.getBibleVerse(args.reference);
                     break;
                 case 'search_images':
-                    result = await widgetService.searchImages(args.query);
+                    result = await widgetService.searchImages(args.query, args.limit || args.count);
                     break;
                 case 'get_news_headlines':
                     result = await widgetService.getNewsHeadlines(args.topic);

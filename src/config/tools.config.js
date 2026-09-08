@@ -102,11 +102,12 @@ const ATLAS_TOOLS = [
     type: 'function',
     function: {
       name: 'search_images',
-      description: 'Search for existing images or photos of a specific subject on the internet.',
+      description: 'Search for existing images or photos of a specific subject on the internet. You can specify a custom limit if the user requests a specific number of photos (e.g. 1 image, 3 images, 5 images).',
       parameters: {
         type: 'object',
         properties: {
-          query: { type: 'string', description: 'What to search for, e.g. "nebula", "cat"' }
+          query: { type: 'string', description: 'What to search for, e.g. "nebula", "cat"' },
+          limit: { type: 'integer', description: 'Number of images to return (1 to 12). Default is 8 if unspecified. Set to 1 if the user asked for one image.' }
         },
         required: ['query']
       }
