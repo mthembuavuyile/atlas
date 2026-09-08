@@ -1784,6 +1784,18 @@ code {
   border-color: var(--border-active);
 }
 
+.composer-box.auto-web-active {
+  border-color: var(--accent-primary, #fba919) !important;
+  box-shadow: 0 0 16px rgba(251, 169, 25, 0.28), 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.composer-box.auto-reasoning-active {
+  border-color: #a855f7 !important;
+  box-shadow: 0 0 16px rgba(168, 85, 247, 0.28), 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
 .project-context-bar {
   display: flex;
   align-items: center;

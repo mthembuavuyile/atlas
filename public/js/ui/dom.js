@@ -53,6 +53,7 @@ export const dom = {
   get suggestionPillsContainer() { return document.getElementById('suggestionPillsContainer'); },
 
   // Composer
+  get composerBox() { return document.getElementById('composerBox'); },
   get chatForm() { return document.getElementById('chatForm'); },
   get messageInput() { return document.getElementById('messageInput'); },
   get sendBtn() { return document.getElementById('sendBtn'); },

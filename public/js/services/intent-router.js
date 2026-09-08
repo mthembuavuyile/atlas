@@ -365,3 +365,59 @@ export async function runLocalWidget(toolToCall, argsPayload, statusText, contex
 
   scrollToBottom(true);
 }
+
+/**
+ * Balanced Autonomous Need Classifier
+ * Detects if a prompt genuinely requires real-time web grounding or deep reasoning.
+ * Carefully guarded with negative exclusions so it never triggers on standard coding, creative writing, or basic Q&A.
+ */
+export function detectAutonomousNeed(text) {
+  if (!text || typeof text !== 'string') return { needsWeb: false, needsReasoning: false, reason: null };
+  const trimmed = text.trim();
+  const lower = trimmed.toLowerCase();
+
+  // 1. Exclusions: Never auto-trigger on coding, web design, or programming tasks
+  if (state.activeMode === 'build' || /\b(build|write|create|code|html|css|js|javascript|python|component|website|app|portfolio|page|function|class|regex|sql|docker|git|bug|fix)\b/i.test(lower)) {
+    return { needsWeb: false, needsReasoning: false, reason: null };
+  }
+
+  // 2. Exclusions: Static STEM / historical knowledge definitions / creative / conversational
+  if (
+    /^(?:explain|what is|how does|define)\s+(?:photosynthesis|gravity|calculus|mitosis|relativity|tcp|http|dns|binary search|recursion|a black hole)\b/i.test(lower) ||
+    /^(?:write|compose)\s+(?:a poem|a story|an essay|an email|a letter)\b/i.test(lower) ||
+    /^(?:hi|hello|hey|who are you|what can you do|good morning)\b/i.test(lower)
+  ) {
+    return { needsWeb: false, needsReasoning: false, reason: null };
+  }
+
+  let needsWeb = false;
+  let needsReasoning = false;
+  let reason = null;
+
+  // A. Explicit web search request
+  if (/\b(search (?:the )?(?:web|internet|online)|look up (?:online|on the web)|google (?:it|this)|check (?:the )?(?:web|news|internet))\b/i.test(lower)) {
+    needsWeb = true;
+    reason = 'Explicit web search requested';
+  }
+
+  // B. Temporal signals (future or post-cutoff years, current release dates, trailers)
+  const futureOrCurrentYear = /\b(202[5-9]|2030)\b/.test(lower);
+  const temporalStatus = /\b(current(?:ly)?|latest|recent(?:ly)?|today|tonight|this week|this month|breaking news|upcoming)\b/i.test(lower);
+  
+  // C. Highly dynamic real-time domains (release dates, trailers, game announcements, sports scores, live launches, flight tests, upcoming films)
+  const dynamicTopics = /\b(release date|confirmed date|trailer details|trailer|box office|spacex|starship|falcon 9|artemis|gta\s*6|grand theft auto|nfl|nba|premier league|champions league|world cup|election|stock price|earnings report|movies?|films?|theatrical|cinema|releases?)\b/i.test(lower);
+
+  if (!needsWeb && ((futureOrCurrentYear && (dynamicTopics || temporalStatus)) || (temporalStatus && dynamicTopics))) {
+    needsWeb = true;
+    reason = 'Real-time temporal grounding required';
+  }
+
+  // D. Deep Reasoning signals: formal mathematical proofs, complex logic puzzles, multi-step game theory
+  const deepReasoningSignals = /\b(prove that|formal proof|step-by-step proof|derive (?:the|an) equation|solve (?:this|the) (?:logic )?puzzle|game theory equilibrium|knights and knaves|monty hall problem)\b/i.test(lower);
+  if (deepReasoningSignals) {
+    needsReasoning = true;
+    reason = reason ? `${reason} & Complex Multi-Step Reasoning` : 'Complex Multi-Step Reasoning required';
+  }
+
+  return { needsWeb, needsReasoning, reason };
+}

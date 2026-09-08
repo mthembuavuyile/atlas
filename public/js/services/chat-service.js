@@ -11,7 +11,7 @@ import { parseMarkdownSafely, enhanceCodeBlocks, enhanceMathBlocks, renderMathSa
 import { openCodeInCanvas } from '../ui/canvas.js';
 import { getActiveSession, saveSessions, updateSessionMetrics, updateContextEstimator, fetchSessionTitle } from '../ui/session-manager.js';
 import { renderMessageItem, startStatusAnimation, scrollToBottom, renderSessionMessages } from '../ui/message-renderer.js';
-import { detectLocalWidgetIntent, resolveSlashCommand, runLocalWidget } from './intent-router.js';
+import { detectLocalWidgetIntent, resolveSlashCommand, runLocalWidget, detectAutonomousNeed } from './intent-router.js';
 import { syncWebSearchUI } from '../ui/modals.js';
 
 export function buildProjectContext() {
@@ -212,6 +212,51 @@ export async function executeChatTurn(session) {
       payloadMessages[payloadMessages.length - 1].content += projectContext;
     }
     let requestWebSearch = state.isWebSearch;
+    let requestDeepReasoning = state.isDeepReasoning;
+
+    // Balanced Autonomous Agentic Intent Detection
+    const autoNeed = detectAutonomousNeed(prompt);
+    let autoWebActivated = false;
+
+    if (autoNeed.needsWeb && !state.isWebSearch) {
+      state.isWebSearch = true;
+      requestWebSearch = true;
+      autoWebActivated = true;
+      syncWebSearchUI();
+      if (dom.composerBox) {
+        dom.composerBox.classList.add('auto-web-active');
+      }
+    }
+
+    if (autoNeed.needsReasoning && !state.isDeepReasoning) {
+      state.isDeepReasoning = true;
+      requestDeepReasoning = true;
+      if (dom.deepThinkToggleBtn) {
+        dom.deepThinkToggleBtn.classList.add('active-web');
+      }
+      if (dom.composerBox) {
+        dom.composerBox.classList.add('auto-reasoning-active');
+      }
+    }
+
+    if (autoWebActivated) {
+      let agentLog = bubble.querySelector('.agent-activity-log');
+      if (!agentLog) {
+        agentLog = document.createElement('div');
+        agentLog.className = 'agent-activity-log';
+        agentLog.style.cssText = 'margin: 1rem 0; padding: 0.75rem; background: rgba(0,0,0,0.2); border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); font-family: "JetBrains Mono", monospace; font-size: 0.8rem; color: #a1a1aa; display: flex; flex-direction: column; gap: 0.5rem;';
+        bubble.appendChild(agentLog);
+      }
+      const autoItem = document.createElement('div');
+      autoItem.className = 'agent-log-item';
+      autoItem.innerHTML = `
+        <span style="display: flex; align-items: center; gap: 0.5rem; color: #fba919;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1 4-10z"></path></svg>
+          <span>Autonomous Intent: <strong>Activated Live Web Grounding</strong> (${escapeHtml(autoNeed.reason || 'Temporal query detected')})</span>
+        </span>
+      `;
+      agentLog.appendChild(autoItem);
+    }
 
     const widgetContext = { session, bubble, widgetsContainer, statusAnimator, accumulatedWidgets };
 
@@ -265,7 +310,7 @@ export async function executeChatTurn(session) {
             systemPrompt: state.systemPrompt,
             temperature: state.temperature,
             webSearch: requestWebSearch,
-            reasoning: state.isDeepReasoning,
+            reasoning: requestDeepReasoning,
             maxTokens: 4096,
             apiKey: state.apiKey || undefined
           })
@@ -333,12 +378,12 @@ export async function executeChatTurn(session) {
             const toolName = rawToolName.replace(/_/g, ' ');
             const toolId = `tool-${Date.now()}`;
 
-            // Highlight composer Web Search toggle if AI autonomously invoked search_web
-            if (rawToolName === 'search_web' && dom.webSearchToggleBtn) {
-              dom.webSearchToggleBtn.classList.add('active-web', 'auto-searching');
-              const webSearchLabel = document.getElementById('webSearchLabel');
-              if (webSearchLabel) {
-                webSearchLabel.textContent = 'Searching Web...';
+            // Highlight composer Web Search toggle and container if AI autonomously invoked search_web
+            if (rawToolName === 'search_web') {
+              state.isWebSearch = true;
+              syncWebSearchUI();
+              if (dom.composerBox) {
+                dom.composerBox.classList.add('auto-web-active');
               }
             }
 
@@ -551,6 +596,11 @@ export async function executeChatTurn(session) {
     if (dom.stopGenerationBtn) dom.stopGenerationBtn.style.display = 'none';
     if (dom.sendBtn) dom.sendBtn.style.display = 'flex';
     if (dom.streamingIndicator) dom.streamingIndicator.style.display = 'none';
+    if (dom.composerBox) {
+      setTimeout(() => {
+        dom.composerBox?.classList.remove('auto-web-active', 'auto-reasoning-active');
+      }, 4000);
+    }
     syncWebSearchUI();
     scrollToBottom(true);
   }
