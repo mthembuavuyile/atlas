@@ -17,6 +17,25 @@
   padding-bottom: 2rem;
 }
 
+.legal-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  color: var(--site-text-muted);
+  margin-bottom: 1.25rem;
+}
+
+.legal-breadcrumb a {
+  color: var(--site-text-muted);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.legal-breadcrumb a:hover {
+  color: var(--site-accent);
+}
+
 .legal-tag {
   display: inline-flex;
   align-items: center;

@@ -82,17 +82,29 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const currentNormalized = normalizeRoute(window.location.pathname);
+    const currentHash = window.location.hash;
 
     allNavLinks.forEach(link => {
       const linkHref = link.getAttribute('href');
-      if (!linkHref || linkHref.startsWith('http') || linkHref.startsWith('#')) return;
+      if (!linkHref || linkHref.startsWith('http')) return;
+
+      // Special handling for hash anchor links
+      if (linkHref.includes('#')) {
+        const [basePath, targetHash] = linkHref.split('#');
+        const normalizedBase = normalizeRoute(basePath) || currentNormalized;
+        if (normalizedBase === currentNormalized && currentHash === '#' + targetHash) {
+          link.classList.add('active');
+        } else {
+          link.classList.remove('active');
+        }
+        return;
+      }
 
       const linkNormalized = normalizeRoute(linkHref);
 
-      if (linkNormalized === currentNormalized) {
+      if (linkNormalized === currentNormalized && !currentHash) {
         link.classList.add('active');
       } else if (currentNormalized !== '/' && linkNormalized !== currentNormalized) {
-        // Remove stale active classes if navigated
         link.classList.remove('active');
       }
     });
