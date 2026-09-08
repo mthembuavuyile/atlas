@@ -88,6 +88,10 @@ export function renderWidget(type, data) {
       document.dispatchEvent(new CustomEvent('atlas:open-qr-scanner'));
       return null;
     }
+    // Background data retrieval types (synthesized directly into LLM reasoning/response)
+    if (type === 'web_search_results' || type === 'webpage' || type === 'error') {
+      return null;
+    }
     console.warn(`[Atlas Widgets] No widget renderer registered for type: "${type}"`);
     return null;
   }
