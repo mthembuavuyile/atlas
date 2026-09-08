@@ -48,14 +48,17 @@
 }
 
 html {
+  background-color: var(--site-bg);
+  color-scheme: dark;
   scroll-behavior: smooth;
   scroll-padding-top: calc(var(--site-header-height) + 1.5rem);
   -webkit-text-size-adjust: 100%;
+  overscroll-behavior-y: none;
 }
 
 body {
   background: var(--site-bg-gradient);
-  background-attachment: fixed;
+  background-color: var(--site-bg);
   color: var(--site-text-primary);
   font-family: var(--font-sans);
   font-size: 1rem;
@@ -63,6 +66,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
@@ -512,8 +516,8 @@ body.site-menu-locked {
 .site-footer {
   margin-top: auto;
   border-top: 1px solid var(--site-card-border);
-  background: rgba(3, 18, 39, 0.95);
-  padding: 3rem 0;
+  background: rgba(3, 18, 39, 0.98);
+  padding: 3rem 0 calc(3rem + env(safe-area-inset-bottom, 0px));
   font-size: 0.9rem;
   color: var(--site-text-muted);
 }
