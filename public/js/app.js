@@ -303,6 +303,40 @@ function init() {
   } else {
     createNewSession();
   }
+
+  handleIncomingQueryParameters();
+}
+
+function handleIncomingQueryParameters() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const query = params.get('q') || params.get('prompt');
+    const autoSend = params.get('send') === '1' || params.get('send') === 'true' || params.get('demo') === '1';
+
+    if (query && dom.messageInput) {
+      const activeSession = getActiveSession();
+      if (activeSession && activeSession.messages && activeSession.messages.length > 0) {
+        createNewSession();
+      }
+
+      dom.messageInput.value = query;
+      autoResizeTextarea();
+      updateContextEstimator();
+      dom.messageInput.focus();
+
+      // Clean the URL without reloading to keep browser history clean
+      const cleanUrl = window.location.origin + window.location.pathname + window.location.hash;
+      window.history.replaceState({}, document.title, cleanUrl);
+
+      if (autoSend && dom.chatForm) {
+        setTimeout(() => {
+          dom.chatForm.dispatchEvent(new Event('submit', { cancelable: true }));
+        }, 150);
+      }
+    }
+  } catch (err) {
+    console.warn('[Atlas] Failed parsing query parameters:', err);
+  }
 }
 
 if (document.readyState === 'loading') {

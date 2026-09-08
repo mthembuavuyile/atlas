@@ -30,6 +30,10 @@
       "destination": "/about.html"
     },
     {
+      "source": "/atlas",
+      "destination": "/atlas.html"
+    },
+    {
       "source": "/privacy",
       "destination": "/privacy.html"
     },

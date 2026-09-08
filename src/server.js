@@ -32,7 +32,8 @@ app.use((req, res, next) => {
 // 1. Security Headers
 app.use(helmet({
   contentSecurityPolicy: false, // Allow inline scripts for the frontend
-  crossOriginEmbedderPolicy: false // Allow external CDN resources
+  crossOriginEmbedderPolicy: false, // Allow external CDN resources
+  frameguard: false // Allow embedding in iframes from personal sites/portfolio
 }));
 
 // 2. CORS Configuration — supports production domains, Vercel deployments, and dev

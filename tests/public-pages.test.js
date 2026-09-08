@@ -147,4 +147,23 @@ describe('Public Pages Architecture & Layout Standardization', () => {
       server.close();
     }
   });
+
+  test('GET /atlas.html serves valid embed launcher page without X-Frame-Options restriction', async () => {
+    const server = app.listen(0);
+    const port = server.address().port;
+
+    try {
+      const response = await fetch(`http://127.0.0.1:${port}/atlas.html`);
+      assert.strictEqual(response.status, 200);
+      assert.strictEqual(response.headers.get('x-frame-options'), null, 'X-Frame-Options must be unset to allow embedding in iframes');
+      const html = await response.text();
+
+      assert.ok(html.includes('id="promptInput"'));
+      assert.ok(html.includes('id="sendBtn"'));
+      assert.ok(html.includes('id="demoBtn"'));
+      assert.ok(html.includes('id="atlasIframe"'));
+    } finally {
+      server.close();
+    }
+  });
 });
