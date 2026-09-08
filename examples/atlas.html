@@ -1,41 +1,53 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="vylex">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Atlas | Scientific Intelligence — Avuyile Mthembu</title>
   <meta name="description"
-    content="Interactive launcher and typing interface for Atlas, a scientific intelligence and technical reasoning platform by Vylex Technologies.">
-  <link rel="icon" type="image/svg+xml" href="https://vylex.co.za/favicon.svg">
+    content="Interactive launcher and reasoning environment for Atlas by Vylex Technologies. Formulate hypotheses, compute derivations, or launch a live studio demo.">
+  <link rel="icon" type="image/svg+xml" href="http://atlas.vylex.co.za/favicon.svg">
 
-  <!-- Typography: Plus Jakarta Sans & JetBrains Mono -->
+  <!-- Google Fonts: Plus Jakarta Sans, DM Sans, JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
-    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,400&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;1,400&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap"
     rel="stylesheet">
 
   <style>
+    /* ==========================================================================
+       ATLAS BY VYLEX TECHNOLOGIES — AUTHENTIC DESIGN TOKENS
+       Master Brand Palette: Deep Navy #051B38 & Golden Orange #FBA919
+       ========================================================================== */
     :root {
-      --bg-base: #030712;
-      --bg-surface: #071224;
-      --bg-elevated: #0d1e38;
-      --bg-input: #040d1a;
+      --bg-app: #051B38;
+      --bg-sidebar: #031227;
+      --bg-card: #0A2E5C;
+      --bg-card-hover: #0E3D7A;
+      --bg-composer: #0A2E5C;
+      --bg-code: #020B18;
+
+      --accent-primary: #FBA919;
+      --accent-secondary: #FBBF24;
+      --accent-hover: #D97706;
+
+      --text-main: #F8FAFC;
+      --text-secondary: #CBD5E1;
+      --text-muted: #94A3B8;
+      --text-subtle: #64748B;
+
       --border-subtle: rgba(255, 255, 255, 0.08);
-      --border-accent: rgba(56, 189, 248, 0.25);
-      --text-primary: #F8FAFC;
-      --text-secondary: #94A3B8;
-      --text-muted: #64748B;
-      --accent: #0080FF;
-      --accent-hover: #0066CC;
-      --accent-cyan: #38BDF8;
-      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --border-medium: rgba(255, 255, 255, 0.15);
+      --border-active: #FBA919;
+
+      --pill-active-bg: rgba(251, 169, 25, 0.14);
+      --pill-active-text: #FBA919;
+
+      --font-display: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-body: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
       --font-mono: 'JetBrains Mono', monospace;
-      --radius-sm: 6px;
-      --radius-md: 10px;
-      --radius-lg: 14px;
-      --transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     * {
@@ -45,9 +57,9 @@
     }
 
     body {
-      background-color: var(--bg-base);
-      color: var(--text-primary);
-      font-family: var(--font-sans);
+      background-color: var(--bg-app);
+      color: var(--text-main);
+      font-family: var(--font-body);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
@@ -55,378 +67,589 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    /* Top Navigation Header */
-    .top-nav {
-      height: 64px;
+    /* --------------------------------------------------------------------------
+       TOP NAVBAR (AUTHENTIC ATLAS HEADER)
+       -------------------------------------------------------------------------- */
+    .top-navbar {
+      height: 48px;
       border-bottom: 1px solid var(--border-subtle);
-      background: rgba(7, 18, 36, 0.7);
-      backdrop-filter: blur(12px);
-      position: sticky;
-      top: 0;
-      z-index: 50;
+      background: var(--bg-app);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 2rem;
+      padding: 0 16px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
     }
 
-    .nav-brand-group {
+    .nav-left,
+    .nav-right {
       display: flex;
       align-items: center;
-      gap: 1rem;
+      gap: 10px;
     }
 
-    .nav-back-link {
+    .portfolio-back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
       color: var(--text-secondary);
       text-decoration: none;
-      font-size: 0.875rem;
+      font-size: 0.76rem;
       font-weight: 500;
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-      transition: var(--transition);
-      padding: 0.4rem 0.6rem;
-      border-radius: var(--radius-sm);
-    }
-
-    .nav-back-link:hover {
-      color: var(--text-primary);
-      background: rgba(255, 255, 255, 0.05);
-    }
-
-    .nav-divider {
-      color: var(--border-subtle);
-      font-weight: 300;
-    }
-
-    .nav-app-name {
-      font-size: 0.95rem;
-      font-weight: 600;
-      letter-spacing: -0.01em;
-      color: var(--text-primary);
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .nav-status-badge {
-      font-family: var(--font-mono);
-      font-size: 0.7rem;
-      padding: 0.15rem 0.5rem;
-      border-radius: var(--radius-sm);
-      background: rgba(56, 189, 248, 0.1);
-      color: var(--accent-cyan);
-      border: 1px solid rgba(56, 189, 248, 0.2);
-    }
-
-    .nav-actions {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-    }
-
-    .nav-btn-link {
-      font-size: 0.85rem;
-      color: var(--text-secondary);
-      text-decoration: none;
-      padding: 0.4rem 0.8rem;
-      border-radius: var(--radius-sm);
+      padding: 4px 8px;
+      border-radius: 4px;
       border: 1px solid var(--border-subtle);
-      transition: var(--transition);
+      transition: background 0.15s ease, color 0.15s ease;
     }
 
-    .nav-btn-link:hover {
-      color: var(--text-primary);
-      border-color: rgba(255, 255, 255, 0.2);
-      background: rgba(255, 255, 255, 0.04);
+    .portfolio-back-btn:hover {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-main);
+      border-color: var(--border-medium);
     }
 
-    /* Main Container */
-    main {
-      flex: 1;
-      max-width: 860px;
-      width: 100%;
-      margin: 0 auto;
-      padding: 3.5rem 1.5rem 4rem 1.5rem;
+    .brand-group {
       display: flex;
-      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-logo-icon {
+      display: inline-flex;
+      align-items: center;
       justify-content: center;
     }
 
-    /* Hero / Intro */
-    .hero-section {
-      text-align: center;
-      margin-bottom: 2.25rem;
+    .brand-title-wrap {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
     }
 
-    .hero-eyebrow {
-      display: inline-block;
-      font-family: var(--font-mono);
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--accent-cyan);
-      margin-bottom: 0.75rem;
-    }
-
-    .hero-title {
-      font-size: clamp(1.85rem, 4vw, 2.75rem);
+    .brand-title {
+      font-family: var(--font-display);
+      font-size: 0.92rem;
       font-weight: 700;
-      letter-spacing: -0.03em;
-      line-height: 1.15;
-      margin-bottom: 0.85rem;
-      background: linear-gradient(180deg, #FFFFFF 20%, #94A3B8 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.01em;
+      color: var(--text-main);
     }
 
-    .hero-desc {
-      font-size: 1.05rem;
-      color: var(--text-secondary);
-      max-width: 600px;
-      margin: 0 auto;
-      line-height: 1.6;
+    .brand-subtitle {
+      font-size: 0.7rem;
+      color: var(--accent-primary);
+      font-family: var(--font-mono);
+      letter-spacing: 0.02em;
     }
 
-    /* Composer Card (Type UI) */
-    .composer-card {
-      background: var(--bg-surface);
+    .target-host-badge {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      background: rgba(255, 255, 255, 0.04);
       border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-lg);
-      padding: 1.25rem;
-      box-shadow: 0 16px 36px -10px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.04);
-      transition: var(--transition);
+      padding: 3px 7px;
+      border-radius: 4px;
     }
 
-    .composer-card:focus-within {
-      border-color: var(--border-accent);
-      box-shadow: 0 16px 40px -10px rgba(0, 128, 255, 0.15), 0 0 0 1px rgba(56, 189, 248, 0.25);
+    .launch-studio-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--pill-active-bg);
+      border: 1px solid var(--accent-primary);
+      color: var(--accent-primary);
+      text-decoration: none;
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 4px;
+      transition: all 0.15s ease;
+    }
+
+    .launch-studio-btn:hover {
+      background: var(--accent-primary);
+      color: #051B38;
+    }
+
+    /* --------------------------------------------------------------------------
+       MAIN CONTAINER & WELCOME SCREEN
+       -------------------------------------------------------------------------- */
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem 3rem 1rem;
+      max-width: 760px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .welcome-screen {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .welcome-brand-logo {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 14px;
+      filter: drop-shadow(0 4px 12px rgba(251, 169, 25, 0.2));
+    }
+
+    .welcome-heading {
+      font-family: var(--font-display);
+      font-size: clamp(1.2rem, 3.2vw, 1.45rem);
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      color: var(--text-main);
+      margin-bottom: 6px;
+      line-height: 1.35;
+      max-width: 580px;
+    }
+
+    .greeting-action {
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .greeting-punct {
+      margin-right: 2px;
+      color: var(--text-muted);
+    }
+
+    .welcome-subtitle {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      max-width: 480px;
+    }
+
+    /* --------------------------------------------------------------------------
+       INVESTIGATION MODES SELECTOR GRID (EXACT REAL ATLAS MODES)
+       -------------------------------------------------------------------------- */
+    .mode-selector-heading {
+      width: 100%;
+      margin-bottom: 6px;
+      color: var(--text-muted);
+      font-size: 0.67rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      text-align: left;
+    }
+
+    .mode-selector-grid {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      gap: 8px;
+      width: 100%;
+      max-width: 100%;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding: 4px 2px 10px 2px;
+      margin-bottom: 8px;
+      -webkit-overflow-scrolling: touch;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+    }
+
+    .mode-selector-grid::-webkit-scrollbar {
+      display: none;
+    }
+
+    .mode-card-pill {
+      flex: 0 0 110px;
+      min-width: 110px;
+      scroll-snap-align: start;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      padding: 8px 10px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      cursor: pointer;
+      text-align: left;
+      user-select: none;
+      transition: border-color 0.15s ease, background 0.15s ease;
+    }
+
+    .mode-card-pill:hover,
+    .mode-card-pill.active {
+      border-color: var(--accent-primary);
+      background: var(--pill-active-bg);
+    }
+
+    .mode-icon {
+      color: var(--accent-primary);
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+    }
+
+    .mode-name {
+      font-size: 0.77rem;
+      font-weight: 600;
+      color: var(--text-main);
+      line-height: 1.2;
+    }
+
+    .mode-desc-hint {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: 100%;
+      margin-top: 2px;
+    }
+
+    /* Active Mode Info Banner */
+    .active-mode-banner {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 10px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-subtle);
+      border-radius: 4px;
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+    }
+
+    .active-mode-banner-left {
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .active-mode-tag {
+      font-weight: 600;
+      color: var(--accent-primary);
+      margin-right: 6px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    #activeModeDesc {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Mode-Tailored Suggested Prompts */
+    .welcome-suggestions {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+      margin-bottom: 1rem;
+    }
+
+    .suggestion-label {
+      font-size: 0.65rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+
+    .suggestion-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .prompt-card.suggestion-pill {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      font-size: 0.74rem;
+      padding: 5px 9px;
+      border-radius: 4px;
+      cursor: pointer;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      transition: all 0.12s ease;
+    }
+
+    .prompt-card.suggestion-pill:hover {
+      background: var(--bg-card-hover);
+      color: var(--text-main);
+      border-color: var(--border-medium);
+    }
+
+    /* --------------------------------------------------------------------------
+       AUTHENTIC ATLAS INTEGRATED COMPOSER BOX
+       -------------------------------------------------------------------------- */
+    .composer-form {
+      width: 100%;
+    }
+
+    .composer-box {
+      background: var(--bg-composer);
+      border: 1px solid var(--border-medium);
+      border-radius: 8px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+      display: flex;
+      flex-direction: column;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .composer-box:focus-within {
+      border-color: var(--border-active);
+      box-shadow: 0 8px 30px rgba(251, 169, 25, 0.15), 0 0 0 1px var(--border-active);
     }
 
     .composer-textarea {
       width: 100%;
+      padding: 12px 14px 6px;
       background: transparent;
       border: none;
       outline: none;
-      color: var(--text-primary);
-      font-family: var(--font-sans);
-      font-size: 1.05rem;
-      line-height: 1.6;
+      color: var(--text-main);
+      font-size: 0.92rem;
+      font-family: inherit;
       resize: none;
-      min-height: 84px;
-      max-height: 240px;
+      min-height: 52px;
+      max-height: 180px;
+      line-height: 1.5;
     }
 
     .composer-textarea::placeholder {
       color: var(--text-muted);
     }
 
-    /* Demo Chips / Presets */
-    .demo-presets {
-      margin-top: 1rem;
-      padding-top: 0.85rem;
-      border-top: 1px solid rgba(255, 255, 255, 0.05);
+    .composer-bottom-bar {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      justify-content: space-between;
+      padding: 6px 10px 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.04);
+      gap: 6px;
+    }
+
+    .composer-controls-left {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex: 1;
+      min-width: 0;
       flex-wrap: wrap;
     }
 
-    .demo-label {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      font-family: var(--font-mono);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      margin-right: 0.25rem;
-    }
-
-    .demo-chip {
+    .composer-tool-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 7px;
       background: rgba(255, 255, 255, 0.03);
       border: 1px solid var(--border-subtle);
+      border-radius: 4px;
       color: var(--text-secondary);
-      font-size: 0.8rem;
-      padding: 0.35rem 0.7rem;
-      border-radius: var(--radius-sm);
-      cursor: pointer;
-      transition: var(--transition);
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-    }
-
-    .demo-chip:hover {
-      background: rgba(56, 189, 248, 0.08);
-      border-color: rgba(56, 189, 248, 0.3);
-      color: var(--text-primary);
-    }
-
-    /* Composer Bottom Action Bar */
-    .composer-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-top: 1.15rem;
-      padding-top: 0.85rem;
-      border-top: 1px solid rgba(255, 255, 255, 0.06);
-    }
-
-    .composer-meta {
-      display: flex;
-      align-items: center;
-      gap: 0.85rem;
-      font-size: 0.78rem;
-      color: var(--text-muted);
-    }
-
-    .engine-indicator {
-      font-family: var(--font-mono);
-      font-size: 0.75rem;
-      color: var(--text-secondary);
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
-
-    .engine-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--accent-cyan);
-    }
-
-    .composer-buttons {
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-    }
-
-    .btn-secondary {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--border-subtle);
-      color: var(--text-secondary);
-      font-size: 0.85rem;
+      font-size: 0.72rem;
       font-weight: 500;
-      padding: 0.55rem 0.95rem;
-      border-radius: var(--radius-sm);
       cursor: pointer;
-      display: inline-flex;
+      white-space: nowrap;
+      user-select: none;
+      transition: background 0.12s ease, border-color 0.12s ease;
+    }
+
+    .composer-tool-btn:hover {
+      background: rgba(255, 255, 255, 0.07);
+      color: var(--text-main);
+    }
+
+    .composer-tool-btn.active-web {
+      background: var(--pill-active-bg);
+      border-color: var(--accent-primary);
+      color: var(--pill-active-text);
+    }
+
+    .composer-controls-right {
+      display: flex;
       align-items: center;
-      gap: 0.45rem;
-      transition: var(--transition);
+      gap: 8px;
+      flex-shrink: 0;
     }
 
-    .btn-secondary:hover {
-      background: rgba(255, 255, 255, 0.08);
-      color: var(--text-primary);
-      border-color: rgba(255, 255, 255, 0.15);
+    .composer-engine-hint {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      background: rgba(255, 255, 255, 0.04);
+      padding: 2px 6px;
+      border-radius: 3px;
+      border: 1px solid var(--border-subtle);
     }
 
-    .btn-primary {
-      background: var(--accent);
-      border: 1px solid transparent;
-      color: #FFFFFF;
-      font-size: 0.85rem;
-      font-weight: 600;
-      padding: 0.55rem 1.15rem;
-      border-radius: var(--radius-sm);
+    .send-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 4px;
+      background: var(--accent-primary);
+      border: none;
+      color: #051B38;
       cursor: pointer;
-      display: inline-flex;
+      display: flex;
       align-items: center;
-      gap: 0.45rem;
-      transition: var(--transition);
+      justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.15s ease, transform 0.1s ease;
     }
 
-    .btn-primary:hover {
+    .send-btn:hover {
       background: var(--accent-hover);
-      box-shadow: 0 2px 12px rgba(0, 128, 255, 0.35);
+      color: #FFFFFF;
+      transform: translateY(-1px);
     }
 
-    /* Options / Toggles Bar */
-    .options-row {
+    .composer-hints {
       display: flex;
       align-items: center;
       justify-content: space-between;
+      margin-top: 6px;
+      padding: 0 4px;
+      font-size: 0.72rem;
+      color: var(--text-subtle);
+    }
+
+    /* --------------------------------------------------------------------------
+       CONTROLS & ACTION BAR
+       -------------------------------------------------------------------------- */
+    .launcher-actions-bar {
+      width: 100%;
       margin-top: 1.25rem;
-      padding: 0 0.5rem;
-      font-size: 0.82rem;
-      color: var(--text-muted);
-    }
-
-    .toggle-group {
       display: flex;
       align-items: center;
-      gap: 1.25rem;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
     }
 
-    .checkbox-label {
+    .options-left {
       display: flex;
       align-items: center;
-      gap: 0.45rem;
+      gap: 16px;
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+    }
+
+    .option-checkbox {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
       cursor: pointer;
       user-select: none;
     }
 
-    .checkbox-label input {
-      accent-color: var(--accent);
+    .option-checkbox input {
+      accent-color: var(--accent-primary);
       cursor: pointer;
     }
 
-    .embed-toggle-btn {
+    .launcher-btns-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-action-demo {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-medium);
+      color: var(--text-main);
+      font-size: 0.78rem;
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .btn-action-demo:hover {
+      background: rgba(255, 255, 255, 0.09);
+      border-color: var(--accent-primary);
+      color: var(--accent-primary);
+    }
+
+    .toggle-embed-link {
       background: none;
       border: none;
-      color: var(--accent-cyan);
-      font-size: 0.82rem;
+      color: var(--accent-secondary);
+      font-size: 0.78rem;
       cursor: pointer;
       text-decoration: underline;
       text-underline-offset: 3px;
       padding: 0;
     }
 
-    .embed-toggle-btn:hover {
+    .toggle-embed-link:hover {
       color: #FFFFFF;
     }
 
-    /* Inline Iframe Embed Container */
-    .embed-container {
-      display: none;
-      margin-top: 2rem;
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-lg);
-      background: var(--bg-surface);
+    /* --------------------------------------------------------------------------
+       INLINE EMBED IFRAME VIEW
+       -------------------------------------------------------------------------- */
+    .embed-preview-wrapper {
+      width: 100%;
+      margin-top: 1.5rem;
+      border: 1px solid var(--border-medium);
+      border-radius: 8px;
+      background: var(--bg-sidebar);
       overflow: hidden;
-      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7);
+      display: none;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
     }
 
-    .embed-header {
-      padding: 0.65rem 1rem;
-      background: rgba(0, 0, 0, 0.25);
-      border-bottom: 1px solid var(--border-subtle);
+    .embed-preview-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      font-size: 0.78rem;
+      padding: 8px 12px;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border-subtle);
+      font-size: 0.74rem;
       color: var(--text-secondary);
     }
 
-    .embed-frame {
+    .embed-preview-frame {
       width: 100%;
-      height: 720px;
+      height: 750px;
       border: none;
       display: block;
-      background: var(--bg-base);
+      background: var(--bg-app);
     }
 
-    /* Footer */
+    /* --------------------------------------------------------------------------
+       FOOTER
+       -------------------------------------------------------------------------- */
     footer {
       border-top: 1px solid var(--border-subtle);
-      padding: 1.5rem 2rem;
-      font-size: 0.8rem;
-      color: var(--text-muted);
+      padding: 1rem 1.5rem;
+      font-size: 0.75rem;
+      color: var(--text-subtle);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      max-width: 860px;
+      max-width: 760px;
       width: 100%;
       margin: 0 auto;
     }
@@ -434,32 +657,35 @@
     footer a {
       color: var(--text-secondary);
       text-decoration: none;
+      transition: color 0.15s ease;
     }
 
     footer a:hover {
-      color: var(--text-primary);
+      color: var(--accent-primary);
     }
 
-    @media (max-width: 640px) {
-      .top-nav {
-        padding: 0 1rem;
+    @media (max-width: 600px) {
+      .top-navbar {
+        padding: 0 10px;
       }
 
-      .composer-footer {
+      .target-host-badge {
+        display: none;
+      }
+
+      .composer-hints {
         flex-direction: column;
         align-items: flex-start;
-        gap: 0.85rem;
+        gap: 2px;
       }
 
-      .composer-buttons {
-        width: 100%;
+      .launcher-actions-bar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .launcher-btns-group {
         justify-content: flex-end;
-      }
-
-      .options-row {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.75rem;
       }
     }
   </style>
@@ -467,169 +693,451 @@
 
 <body>
 
-  <!-- Personal Navigation Header -->
-  <header class="top-nav">
-    <div class="nav-brand-group">
-      <!-- Change this href to your portfolio home (e.g. / or https://avuyilemthembu.co.za) -->
-      <a href="https://avuyilemthembu.co.za" class="nav-back-link" title="Return to Portfolio">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+  <!-- AUTHENTIC ATLAS NAVBAR -->
+  <header class="top-navbar">
+    <div class="nav-left">
+      <!-- Links back to your personal portfolio -->
+      <a href="https://avuyilemthembu.co.za" class="portfolio-back-btn" title="Return to Personal Portfolio">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
           stroke-linecap="round" stroke-linejoin="round">
           <line x1="19" y1="12" x2="5" y2="12"></line>
           <polyline points="12 19 5 12 12 5"></polyline>
         </svg>
-        <span>Avuyile Mthembu</span>
+        <span>Portfolio</span>
       </a>
-      <span class="nav-divider">/</span>
-      <span class="nav-app-name">
-        Atlas
-        <span class="nav-status-badge">AUTO • 1M</span>
-      </span>
+
+      <div class="brand-group">
+        <div class="brand-logo-icon" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="header-vylex-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#FBA919" />
+                <stop offset="100%" stop-color="#D97706" />
+              </linearGradient>
+            </defs>
+            <path d="M 50 10 L 82 82 L 64 82 L 50 48 L 36 82 L 18 82 Z" fill="url(#header-vylex-gradient)" />
+            <rect x="45" y="56" width="10" height="26" rx="2" fill="url(#header-vylex-gradient)" />
+            <ellipse cx="50" cy="50" rx="46" ry="12" stroke="url(#header-vylex-gradient)" stroke-width="3.5"
+              fill="none" transform="rotate(-18 50 50)" />
+          </svg>
+        </div>
+        <div class="brand-title-wrap">
+          <span class="brand-title">Atlas</span>
+          <span class="brand-subtitle">Reasoning Studio</span>
+        </div>
+      </div>
     </div>
 
-    <div class="nav-actions">
-      <a href="https://vylex.co.za" target="_blank" rel="noopener" class="nav-btn-link">
-        Launch Full Studio ↗
+    <div class="nav-right">
+      <span class="target-host-badge">http://atlas.vylex.co.za/</span>
+      <a href="http://atlas.vylex.co.za/" target="_blank" rel="noopener" class="launch-studio-btn"
+        title="Open directly in Atlas">
+        <span>Open Studio</span>
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="7" y1="17" x2="17" y2="7"></line>
+          <polyline points="7 7 17 7 17 17"></polyline>
+        </svg>
       </a>
     </div>
   </header>
 
-  <!-- Main Content -->
+  <!-- MAIN VIEWPORT -->
   <main>
-    <section class="hero-section">
-      <span class="hero-eyebrow">Scientific Intelligence & Reasoning</span>
-      <h1 class="hero-title">Deliberate. Derive. Execute.</h1>
-      <p class="hero-desc">
-        Atlas is a focused scientific intelligence workspace built by Vylex Technologies.
-        Formulate a hypothesis, compute derivations, or launch a live demo.
-      </p>
-    </section>
-
-    <!-- Interactive Composer / Type UI -->
-    <div class="composer-card">
-      <textarea id="promptInput" class="composer-textarea"
-        placeholder="Type a research question, mathematical derivation, or coding task..." rows="3"
-        autofocus></textarea>
-
-      <!-- Quick Demo Presets -->
-      <div class="demo-presets">
-        <span class="demo-label">Demo Presets:</span>
-        <button type="button" class="demo-chip"
-          data-prompt="Derive the relativistic Doppler effect formula step by step with KaTeX">
-          📐 Doppler Derivation
-        </button>
-        <button type="button" class="demo-chip"
-          data-prompt="Simulate orbital telemetry of a low-Earth orbit satellite undergoing atmospheric drag">
-          🛰️ Orbital Telemetry
-        </button>
-        <button type="button" class="demo-chip"
-          data-prompt="Benchmark Rust vs Go async worker pool performance with memory profiles">
-          ⚡ Rust vs Go Concurrency
-        </button>
-        <button type="button" class="demo-chip"
-          data-prompt="Weather in Durban and atmospheric humidity conditions">
-          🌦️ Durban Weather
-        </button>
+    <!-- WELCOME SCREEN (IDENTICAL TO REAL ATLAS APP) -->
+    <div class="welcome-screen">
+      <div class="welcome-brand-logo" aria-hidden="true">
+        <svg width="44" height="44" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="hero-vylex-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#FBA919" />
+              <stop offset="100%" stop-color="#D97706" />
+            </linearGradient>
+          </defs>
+          <path d="M 50 10 L 82 82 L 64 82 L 50 48 L 36 82 L 18 82 Z" fill="url(#hero-vylex-gradient)" />
+          <rect x="45" y="56" width="10" height="26" rx="2" fill="url(#hero-vylex-gradient)" />
+          <ellipse cx="50" cy="50" rx="46" ry="12" stroke="url(#hero-vylex-gradient)" stroke-width="3.5" fill="none"
+            transform="rotate(-18 50 50)" />
+        </svg>
       </div>
 
-      <!-- Composer Actions -->
-      <div class="composer-footer">
-        <div class="composer-meta">
-          <div class="engine-indicator">
-            <span class="engine-dot"></span>
-            <span>Atlas Engine: Multi-Model Inference</span>
-          </div>
-        </div>
+      <h1 class="welcome-heading">
+        <span id="dynamicGreeting">Good evening</span><span class="greeting-punct">,</span>
+        <span class="greeting-action">what would you like to work on today?</span>
+      </h1>
+      <p class="welcome-subtitle">
+        Ask a question, explore a topic, solve a problem, or build something. Atlas adapts to the work in front of you.
+      </p>
+    </div>
 
-        <div class="composer-buttons">
-          <button type="button" id="demoBtn" class="btn-secondary" title="Launch featured demo in Atlas">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polygon points="5 3 19 12 5 21 5 3"></polygon>
-            </svg>
-            <span>Launch Demo</span>
-          </button>
+    <!-- INVESTIGATION MODES GRID -->
+    <div class="mode-selector-heading">Choose how you want to work</div>
+    <div class="mode-selector-grid" id="modeSelectorGrid">
+      <div class="mode-card-pill active" data-mode="auto"
+        data-desc="Adapts the response to your question while preserving clear, useful reasoning">
+        <span class="mode-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="9"></circle>
+            <path d="M8 12h8"></path>
+            <path d="M12 8v8"></path>
+          </svg>
+        </span>
+        <span class="mode-name">Auto</span>
+        <span class="mode-desc-hint">Adapts to question</span>
+      </div>
 
-          <button type="button" id="sendBtn" class="btn-primary" title="Send query to Atlas (Enter)">
-            <span>Send to Atlas</span>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-              stroke-linecap="round" stroke-linejoin="round">
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-              <polyline points="12 5 19 12 12 19"></polyline>
-            </svg>
-          </button>
-        </div>
+      <div class="mode-card-pill" data-mode="research"
+        data-desc="Synthesizes academic papers, literature reviews, and evidence landscapes">
+        <span class="mode-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+          </svg>
+        </span>
+        <span class="mode-name">Research</span>
+        <span class="mode-desc-hint">Literature & evidence</span>
+      </div>
+
+      <div class="mode-card-pill" data-mode="solve"
+        data-desc="Performs step-by-step mathematical proofs and symbolic derivations">
+        <span class="mode-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect width="16" height="20" x="4" y="2" rx="2"></rect>
+            <line x1="8" y1="6" x2="16" y2="6"></line>
+            <line x1="16" y1="14" x2="16" y2="18"></line>
+            <path d="M16 10h.01"></path>
+            <path d="M12 10h.01"></path>
+            <path d="M8 10h.01"></path>
+          </svg>
+        </span>
+        <span class="mode-name">Solve</span>
+        <span class="mode-desc-hint">Math & derivations</span>
+      </div>
+
+      <div class="mode-card-pill" data-mode="build"
+        data-desc="Generates production architectures, full-stack systems, and robust code">
+        <span class="mode-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="16 18 22 12 16 6"></polyline>
+            <polyline points="8 6 2 12 8 18"></polyline>
+          </svg>
+        </span>
+        <span class="mode-name">Build</span>
+        <span class="mode-desc-hint">Systems & code</span>
+      </div>
+
+      <div class="mode-card-pill" data-mode="engineer"
+        data-desc="Deconstructs distributed systems, concurrency limits, and failure modes">
+        <span class="mode-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect width="18" height="18" x="3" y="3" rx="2"></rect>
+            <path d="M9 9h6v6H9z"></path>
+          </svg>
+        </span>
+        <span class="mode-name">Engineer</span>
+        <span class="mode-desc-hint">Architecture & limits</span>
+      </div>
+
+      <div class="mode-card-pill" data-mode="experiment"
+        data-desc="Simulates experimental variables, data sets, and scientific hypotheses">
+        <span class="mode-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10 2v7.31M14 9.3V1.99M8.5 2h7M14 9.3a6.5 6.5 0 1 1-4 0"></path>
+          </svg>
+        </span>
+        <span class="mode-name">Experiment</span>
+        <span class="mode-desc-hint">Data & simulation</span>
+      </div>
+
+      <div class="mode-card-pill" data-mode="reason"
+        data-desc="Deliberates step by step with deep chain-of-thought logic verification">
+        <span class="mode-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"></circle>
+            <circle cx="19" cy="6" r="2"></circle>
+            <circle cx="5" cy="6" r="2"></circle>
+            <circle cx="19" cy="18" r="2"></circle>
+            <circle cx="5" cy="18" r="2"></circle>
+            <line x1="7" y1="7" x2="10" y2="10"></line>
+            <line x1="17" y1="7" x2="14" y2="10"></line>
+          </svg>
+        </span>
+        <span class="mode-name">Reason</span>
+        <span class="mode-desc-hint">Logical breakdown</span>
+      </div>
+
+      <div class="mode-card-pill" data-mode="discover"
+        data-desc="Explores emergent concepts and novel hypotheses across multidimensional domains">
+        <span class="mode-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+          </svg>
+        </span>
+        <span class="mode-name">Discover</span>
+        <span class="mode-desc-hint">Hypothesis generator</span>
       </div>
     </div>
 
-    <!-- Options Row -->
-    <div class="options-row">
-      <div class="toggle-group">
-        <label class="checkbox-label" title="When checked, opens Atlas in a new browser tab">
+    <!-- Active Mode Info Banner -->
+    <div class="active-mode-banner" id="activeModeBanner">
+      <div class="active-mode-banner-left">
+        <span class="active-mode-tag" id="activeModeTag">Mode: Auto</span>
+        <span id="activeModeDesc">Adapts the response to your question while preserving clear, useful reasoning</span>
+      </div>
+    </div>
+
+    <!-- Mode-Tailored Suggested Prompts -->
+    <div class="welcome-suggestions">
+      <span class="suggestion-label">Suggested Prompts</span>
+      <div class="suggestion-pills" id="suggestionPills">
+        <!-- Dynamically populated based on active mode -->
+      </div>
+    </div>
+
+    <!-- REAL ATLAS INTEGRATED COMPOSER -->
+    <form class="composer-form" id="launcherForm">
+      <div class="composer-box" id="composerBox">
+        <textarea id="promptInput" class="composer-textarea" placeholder="What would you like to work on?" rows="2"
+          autofocus></textarea>
+
+        <div class="composer-bottom-bar">
+          <div class="composer-controls-left">
+            <button type="button" class="composer-tool-btn" id="reasoningToggleBtn" title="Toggle reasoning depth">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"></circle>
+                <circle cx="19" cy="6" r="2"></circle>
+                <circle cx="5" cy="6" r="2"></circle>
+                <line x1="7" y1="7" x2="10" y2="10"></line>
+              </svg>
+              <span>Reasoning</span>
+            </button>
+
+            <button type="button" class="composer-tool-btn" id="webToggleBtn" title="Toggle real-time web search">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="2" y1="12" x2="22" y2="12"></line>
+                <path
+                  d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                </path>
+              </svg>
+              <span id="webToggleLabel">Web Off</span>
+            </button>
+          </div>
+
+          <div class="composer-controls-right">
+            <span class="composer-engine-hint" id="engineHint">AUTO • 1M</span>
+            <button type="submit" id="sendBtn" class="send-btn" aria-label="Send to Atlas" title="Send (Enter)">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="19" x2="12" y2="5"></line>
+                <polyline points="5 12 12 5 19 12"></polyline>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="composer-hints">
+        <span id="tokenEstimator">~0 tokens</span>
+        <span>Shift+Enter for newline • Atlas by Vylex Technologies</span>
+      </div>
+    </form>
+
+    <!-- LAUNCHER ACTIONS -->
+    <div class="launcher-actions-bar">
+      <div class="options-left">
+        <label class="option-checkbox" title="Open Atlas in a new browser tab">
           <input type="checkbox" id="newTabCheckbox" checked>
           <span>Open in new tab</span>
         </label>
-
-        <label class="checkbox-label" title="When checked, automatically triggers generation upon arrival in Atlas">
-          <input type="checkbox" id="autoExecuteCheckbox" checked>
-          <span>Execute automatically on load</span>
-        </label>
+        <button type="button" id="embedToggleBtn" class="toggle-embed-link">
+          Preview in Inline Frame ↓
+        </button>
       </div>
 
-      <button type="button" id="embedToggleBtn" class="embed-toggle-btn">
-        Switch to Inline Embed View ↓
-      </button>
+      <div class="launcher-btns-group">
+        <button type="button" id="demoBtn" class="btn-action-demo" title="Launch featured demo in Atlas">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+          <span>Launch Demo</span>
+        </button>
+      </div>
     </div>
 
-    <!-- Optional Inline Iframe Container -->
-    <div class="embed-container" id="embedContainer">
-      <div class="embed-header">
-        <span>Atlas Live Embedded Workspace</span>
-        <button type="button" id="closeEmbedBtn" class="embed-toggle-btn">Close Embed ↑</button>
+    <!-- OPTIONAL INLINE STUDIO IFRAME -->
+    <div class="embed-preview-wrapper" id="embedWrapper">
+      <div class="embed-preview-header">
+        <span>Atlas Studio Live Preview (http://atlas.vylex.co.za/)</span>
+        <button type="button" id="closeEmbedBtn" class="toggle-embed-link">Close Preview ↑</button>
       </div>
-      <iframe id="atlasIframe" class="embed-frame" title="Atlas Embedded Workspace" src="about:blank"
+      <iframe id="atlasIframe" class="embed-preview-frame" title="Atlas Studio" src="about:blank"
         allow="clipboard-write; camera; microphone"></iframe>
     </div>
   </main>
 
-  <!-- Footer -->
+  <!-- FOOTER -->
   <footer>
     <div>Developed by <a href="https://avuyilemthembu.co.za">Avuyile Mthembu</a></div>
-    <div>Powered by <a href="https://vylex.co.za" target="_blank" rel="noopener">Vylex Technologies</a></div>
+    <div>Powered by <a href="http://atlas.vylex.co.za/" target="_blank" rel="noopener">Atlas · Vylex Technologies</a></div>
   </footer>
 
   <script>
     /**
      * ATLAS TARGET CONFIGURATION
      * -------------------------------------------------------------
-     * If testing locally, this defaults to 'http://localhost:3000'.
-     * In production on your website, it connects to 'https://vylex.co.za'.
+     * Target specified: http://atlas.vylex.co.za/
+     * If testing locally on localhost, falls back to http://localhost:3000
      */
     const IS_LOCAL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const ATLAS_BASE_URL = IS_LOCAL ? 'http://localhost:3000' : 'https://vylex.co.za';
+    const ATLAS_TARGET_URL = IS_LOCAL ? 'http://localhost:3000' : 'http://atlas.vylex.co.za';
+
+    // State
+    let activeMode = 'auto';
+    let isWebActive = false;
 
     // DOM Elements
     const promptInput = document.getElementById('promptInput');
-    const sendBtn = document.getElementById('sendBtn');
+    const launcherForm = document.getElementById('launcherForm');
     const demoBtn = document.getElementById('demoBtn');
+    const webToggleBtn = document.getElementById('webToggleBtn');
+    const webToggleLabel = document.getElementById('webToggleLabel');
+    const activeModeTag = document.getElementById('activeModeTag');
+    const activeModeDesc = document.getElementById('activeModeDesc');
+    const suggestionPills = document.getElementById('suggestionPills');
+    const tokenEstimator = document.getElementById('tokenEstimator');
     const newTabCheckbox = document.getElementById('newTabCheckbox');
-    const autoExecuteCheckbox = document.getElementById('autoExecuteCheckbox');
-    const demoChips = document.querySelectorAll('.demo-chip');
     const embedToggleBtn = document.getElementById('embedToggleBtn');
     const closeEmbedBtn = document.getElementById('closeEmbedBtn');
-    const embedContainer = document.getElementById('embedContainer');
+    const embedWrapper = document.getElementById('embedWrapper');
     const atlasIframe = document.getElementById('atlasIframe');
+    const dynamicGreeting = document.getElementById('dynamicGreeting');
 
-    // Auto-resize textarea
+    // Mode-Tailored Prompts
+    const MODE_SUGGESTIONS = {
+      auto: [
+        "Synthesize the current approaches, contested claims, and experimental gaps in room-temperature superconductivity.",
+        "Why does this experimental result contradict the standard thermodynamic hypothesis? Identify confounding variables.",
+        "Deconstruct the scalability, failure modes, and database partitioning for a 10M req/min distributed system."
+      ],
+      research: [
+        "Synthesize the literature and consensus regarding quantum coherence times in topological qubits.",
+        "Analyze competing hypotheses explaining anomalous dark matter galactic rotation curves."
+      ],
+      solve: [
+        "Derive the relativistic Doppler effect formula step by step with KaTeX notation.",
+        "Solve the one-dimensional heat equation with Dirichlet boundary conditions analytically."
+      ],
+      build: [
+        "Design a high-throughput event processing pipeline in Go using lock-free channels.",
+        "Generate a reactive financial order book visualizer with DOM canvas rendering."
+      ],
+      engineer: [
+        "Deconstruct the tail-latency bottlenecks and cache invalidation strategies in distributed Redis clusters.",
+        "Compare memory-safety guarantees between Rust borrow checker and Zig manual allocators."
+      ],
+      experiment: [
+        "Simulate orbital decay for a 500kg low-Earth orbit satellite undergoing variable solar flare drag.",
+        "Model pharmacokinetic drug distribution using a two-compartment differential system."
+      ],
+      reason: [
+        "Evaluate the logical consistency of Newcomb's paradox under causal vs evidential decision theory.",
+        "Break down the counterarguments against Penrose-Lucas Gödelian argument on machine intelligence."
+      ],
+      discover: [
+        "Hypothesize how neuromorphic memristor crossbars could accelerate sparse tensor contractions.",
+        "Propose an experimental framework to detect micro-scale gravitational anomalies in tabletop interferometry."
+      ]
+    };
+
+    // Dynamic Time-Aware Greeting (Atlas Strict UI Fidelity)
+    function updateGreeting() {
+      const hour = new Date().getHours();
+      if (hour >= 4 && hour < 12) {
+        dynamicGreeting.textContent = 'Good morning';
+      } else if (hour >= 12 && hour < 18) {
+        dynamicGreeting.textContent = 'Good afternoon';
+      } else {
+        dynamicGreeting.textContent = 'Good evening';
+      }
+    }
+    updateGreeting();
+
+    // Render Mode Suggestions
+    function renderSuggestions(mode) {
+      const prompts = MODE_SUGGESTIONS[mode] || MODE_SUGGESTIONS.auto;
+      suggestionPills.innerHTML = '';
+      prompts.forEach(p => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'prompt-card suggestion-pill';
+        btn.textContent = p.length > 70 ? p.slice(0, 70) + '...' : p;
+        btn.title = p;
+        btn.addEventListener('click', () => {
+          promptInput.value = p;
+          autoResize();
+          updateTokenCount();
+          promptInput.focus();
+        });
+        suggestionPills.appendChild(btn);
+      });
+    }
+    renderSuggestions(activeMode);
+
+    // Mode Selection Handlers
+    document.querySelectorAll('.mode-card-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        document.querySelectorAll('.mode-card-pill').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+
+        activeMode = pill.getAttribute('data-mode');
+        const modeName = pill.querySelector('.mode-name')?.textContent || activeMode;
+        const modeDesc = pill.getAttribute('data-desc');
+
+        activeModeTag.textContent = `Mode: ${modeName}`;
+        activeModeDesc.textContent = modeDesc;
+        renderSuggestions(activeMode);
+      });
+    });
+
+    // Web Search Toggle
+    webToggleBtn.addEventListener('click', () => {
+      isWebActive = !isWebActive;
+      webToggleBtn.classList.toggle('active-web', isWebActive);
+      webToggleLabel.textContent = isWebActive ? 'Web On' : 'Web Off';
+    });
+
+    // Auto-Resize Textarea
     function autoResize() {
       promptInput.style.height = 'auto';
-      promptInput.style.height = Math.min(promptInput.scrollHeight, 240) + 'px';
+      promptInput.style.height = Math.min(promptInput.scrollHeight, 180) + 'px';
     }
-    promptInput.addEventListener('input', autoResize);
+    promptInput.addEventListener('input', () => {
+      autoResize();
+      updateTokenCount();
+    });
 
-    // Build redirection or iframe URL with parameters
-    function buildAtlasUrl(promptText, execute = true) {
-      const url = new URL(ATLAS_BASE_URL);
-      if (promptText && promptText.trim()) {
-        url.searchParams.set('q', promptText.trim());
+    // Context Token Estimator
+    function updateTokenCount() {
+      const chars = promptInput.value.length;
+      const tokens = Math.ceil(chars / 4);
+      tokenEstimator.textContent = `~${tokens} tokens`;
+    }
+
+    // Build Atlas Destination URL
+    function buildTargetUrl(promptText, execute = true) {
+      const url = new URL(ATLAS_TARGET_URL);
+      let query = (promptText || '').trim();
+
+      if (isWebActive && query && !query.startsWith('/web')) {
+        query = `/web ${query}`;
+      }
+
+      if (query) {
+        url.searchParams.set('q', query);
+      }
+      if (activeMode && activeMode !== 'auto') {
+        url.searchParams.set('mode', activeMode);
       }
       if (execute) {
         url.searchParams.set('send', '1');
@@ -637,69 +1145,56 @@
       return url.toString();
     }
 
-    // Launch action (redirect or update inline iframe)
+    // Launch Dispatcher
     function launchAtlas(promptText, execute = true) {
-      const targetUrl = buildAtlasUrl(promptText, execute);
+      const destination = buildTargetUrl(promptText, execute);
 
-      // If inline iframe is currently active, load inside the iframe
-      if (embedContainer.style.display === 'block') {
-        atlasIframe.src = targetUrl;
+      if (embedWrapper.style.display === 'block') {
+        atlasIframe.src = destination;
         atlasIframe.scrollIntoView({ behavior: 'smooth' });
         return;
       }
 
-      // Otherwise redirect or open in new tab
       if (newTabCheckbox.checked) {
-        window.open(targetUrl, '_blank', 'noopener');
+        window.open(destination, '_blank', 'noopener');
       } else {
-        window.location.href = targetUrl;
+        window.location.href = destination;
       }
     }
 
-    // Send Button click handler
-    sendBtn.addEventListener('click', () => {
-      const text = promptInput.value.trim();
-      const execute = autoExecuteCheckbox.checked;
-      launchAtlas(text, execute);
+    // Submit form handler
+    launcherForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const prompt = promptInput.value.trim();
+      launchAtlas(prompt, true);
     });
 
-    // Enter key submits prompt (Shift+Enter for newline)
+    // Keydown (Enter to send, Shift+Enter for newline)
     promptInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
-        sendBtn.click();
+        launcherForm.dispatchEvent(new Event('submit'));
       }
     });
 
-    // Preset Demo Button click handler
+    // Launch Demo button
     demoBtn.addEventListener('click', () => {
-      const defaultDemoPrompt = "Derive the relativistic Doppler effect formula step by step with KaTeX";
-      const currentVal = promptInput.value.trim();
-      const promptToRun = currentVal.length > 0 ? currentVal : defaultDemoPrompt;
-      launchAtlas(promptToRun, true);
+      const prompts = MODE_SUGGESTIONS[activeMode] || MODE_SUGGESTIONS.auto;
+      const demoPrompt = promptInput.value.trim() || prompts[0];
+      launchAtlas(demoPrompt, true);
     });
 
-    // Demo chip click handlers
-    demoChips.forEach(chip => {
-      chip.addEventListener('click', () => {
-        const prompt = chip.getAttribute('data-prompt');
-        promptInput.value = prompt;
-        autoResize();
-        promptInput.focus();
-      });
-    });
-
-    // Inline Embed Toggle Handlers
+    // Inline Embed View Toggle Handlers
     embedToggleBtn.addEventListener('click', () => {
-      embedContainer.style.display = 'block';
-      const promptText = promptInput.value.trim();
-      atlasIframe.src = buildAtlasUrl(promptText, false);
+      embedWrapper.style.display = 'block';
+      const prompt = promptInput.value.trim();
+      atlasIframe.src = buildTargetUrl(prompt, false);
       embedToggleBtn.style.display = 'none';
-      embedContainer.scrollIntoView({ behavior: 'smooth' });
+      embedWrapper.scrollIntoView({ behavior: 'smooth' });
     });
 
     closeEmbedBtn.addEventListener('click', () => {
-      embedContainer.style.display = 'none';
+      embedWrapper.style.display = 'none';
       embedToggleBtn.style.display = 'inline';
       atlasIframe.src = 'about:blank';
     });

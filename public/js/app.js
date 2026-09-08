@@ -13,7 +13,8 @@ import {
   renderModelOptions,
   syncModelDisplay,
   checkBackendHealth,
-  updateDynamicGreeting
+  updateDynamicGreeting,
+  selectMode
 } from './ui/theme.js';
 import {
   getActiveSession,
@@ -311,7 +312,12 @@ function handleIncomingQueryParameters() {
   try {
     const params = new URLSearchParams(window.location.search);
     const query = params.get('q') || params.get('prompt');
+    const mode = params.get('mode');
     const autoSend = params.get('send') === '1' || params.get('send') === 'true' || params.get('demo') === '1';
+
+    if (mode) {
+      selectMode(mode);
+    }
 
     if (query && dom.messageInput) {
       const activeSession = getActiveSession();
