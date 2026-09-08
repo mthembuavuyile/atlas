@@ -8,8 +8,6 @@
   --accent-hover: var(--site-accent-hover, #D97706);
   --card-bg: var(--site-card-bg, rgba(10, 46, 92, 0.4));
   --card-border: var(--site-card-border, rgba(255, 255, 255, 0.08));
-  --font-display: var(--font-display, 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif);
-  --font-sans: var(--font-sans, 'DM Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif);
 }
 
 .btn-primary {

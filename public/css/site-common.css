@@ -166,6 +166,13 @@ body.site-menu-locked {
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+.site-logo-symbol svg {
+  width: 26px;
+  height: 26px;
+  display: block;
+  flex-shrink: 0;
+}
+
 .site-logo:hover .site-logo-symbol {
   transform: rotate(-10deg) scale(1.06);
 }
@@ -177,6 +184,7 @@ body.site-menu-locked {
 }
 
 .site-logo-title {
+  font-family: var(--font-display);
   font-size: 1.35rem;
   font-weight: 800;
   letter-spacing: -0.4px;
@@ -185,11 +193,11 @@ body.site-menu-locked {
 }
 
 .site-logo-sub {
+  font-family: var(--font-sans);
   font-size: 0.72rem;
   font-weight: 600;
   color: var(--site-text-muted);
   letter-spacing: 0.04em;
-  font-family: var(--font-sans);
   text-transform: none;
   opacity: 0.85;
 }

@@ -978,7 +978,8 @@ class WidgetService {
                                 subreddit: `c/${item.community?.name || finalSub}`,
                                 source: 'Lemmy',
                                 created_at: post.published ? new Date(post.published).toLocaleDateString() : 'Recent',
-                                image: post.thumbnail_url || null
+                                image: post.thumbnail_url || null,
+                                video: null
                             });
                         }
                     }
@@ -1005,7 +1006,8 @@ class WidgetService {
                                 subreddit: 'Hacker News',
                                 source: 'Hacker News',
                                 created_at: item.created_at ? new Date(item.created_at).toLocaleDateString() : 'Recent',
-                                image: null
+                                image: null,
+                                video: null
                             });
                         }
                     }

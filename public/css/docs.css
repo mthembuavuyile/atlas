@@ -17,9 +17,6 @@
   --accent-hover: var(--site-accent-hover, #D97706);
   --accent-glow: var(--site-accent-glow, rgba(251, 169, 25, 0.15));
   --code-bg: var(--site-code-bg, #020B18);
-  --font-display: var(--font-display, 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif);
-  --font-sans: var(--font-sans, 'DM Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
-  --font-mono: var(--font-mono, 'JetBrains Mono', monospace);
   --radius-sm: var(--site-radius-sm, 6px);
   --radius-md: var(--site-radius-md, 10px);
   --radius-lg: var(--site-radius-lg, 14px);
