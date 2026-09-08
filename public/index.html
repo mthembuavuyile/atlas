@@ -10,6 +10,8 @@
   <meta name="description"
     content="Atlas is a scientific intelligence and technical reasoning platform by Vylex Technologies. Form hypotheses, verify derivations, model systems, and execute computational actions.">
   <link rel="canonical" href="https://vylex.co.za">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="alternate icon" href="/favicon.ico">
 
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
@@ -823,7 +825,7 @@
         </div>
 
         <div class="canvas-pane" id="canvasPreviewPane">
-          <iframe id="canvasPreviewFrame" sandbox="allow-scripts allow-same-origin"
+          <iframe id="canvasPreviewFrame" sandbox="allow-scripts allow-modals"
             title="Artifact HTML Preview"></iframe>
         </div>
 
@@ -1003,13 +1005,13 @@
                   <p style="margin: 4px 0 10px 0; font-size: 0.82rem; color: var(--text-tertiary);">Supply your personal
                     OpenRouter key for uninterrupted access with private quota. Stored securely in local browser
                     storage.</p>
-                  <div class="settings-flex-row" style="gap: 8px; align-items: center;">
+                  <form class="settings-flex-row" style="gap: 8px; align-items: center;" onsubmit="event.preventDefault(); document.getElementById('saveApiKeyBtn')?.click();">
                     <input type="password" id="customApiKeyInput" class="system-prompt-editor"
                       style="height: 38px; padding: 6px 12px; font-family: monospace; font-size: 0.85rem; flex: 1;"
                       placeholder="sk-or-v1-..." autocomplete="off">
-                    <button id="saveApiKeyBtn" class="primary-modal-btn"
+                    <button type="button" id="saveApiKeyBtn" class="primary-modal-btn"
                       style="white-space: nowrap; padding: 0 16px; height: 38px;">Save Key</button>
-                  </div>
+                  </form>
                   <div id="apiKeyStatusHint"
                     style="display: none; font-size: 0.8rem; color: var(--text-secondary); margin-top: 6px;">Key active
                     in local session.</div>

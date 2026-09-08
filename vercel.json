@@ -3,11 +3,7 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "functions": {
-    "src/server.js": {
-      "includeFiles": "public/**",
-      "maxDuration": 60
-    },
-    "api/index.js": {
+    "api/*.js": {
       "includeFiles": "public/**",
       "maxDuration": 60
     }
@@ -15,15 +11,19 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/src/server.js"
+      "destination": "/api/[...slug].js"
+    },
+    {
+      "source": "/api",
+      "destination": "/api/index.js"
     },
     {
       "source": "/models",
-      "destination": "/src/server.js"
+      "destination": "/api/index.js"
     },
     {
       "source": "/health",
-      "destination": "/src/server.js"
+      "destination": "/api/index.js"
     },
     {
       "source": "/docs",
@@ -40,10 +40,6 @@
     {
       "source": "/404",
       "destination": "/404.html"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/src/server.js"
     }
   ]
 }

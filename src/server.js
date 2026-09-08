@@ -12,8 +12,19 @@ const app = express();
 // Path normalization for Vercel serverless functions & rewrites
 app.use((req, res, next) => {
   const matchedPath = req.headers['x-matched-path'] || req.headers['x-forwarded-uri'] || req.headers['x-vercel-matched-path'];
-  if (matchedPath && (req.url.startsWith('/src/server') || req.url.startsWith('/api/index') || req.url === '/')) {
-    req.url = matchedPath;
+  if (matchedPath && (
+    req.url.startsWith('/src/server') ||
+    req.url.startsWith('/api/index') ||
+    req.url.startsWith('/api/[...slug]') ||
+    req.url.startsWith('/[...slug]') ||
+    req.url === '/'
+  )) {
+    const queryIndex = req.url.indexOf('?');
+    if (queryIndex !== -1 && !matchedPath.includes('?')) {
+      req.url = matchedPath + req.url.slice(queryIndex);
+    } else {
+      req.url = matchedPath;
+    }
   }
   next();
 });
@@ -79,6 +90,11 @@ app.get(['/about', '/about/', '/about.html'], (req, res) => {
 
 app.get(['/docs', '/docs/', '/docs.html', '/capabilities', '/capabilities/'], (req, res) => {
   res.sendFile(path.join(publicDir, 'docs.html'));
+});
+
+app.get(['/favicon.ico', '/favicon.svg'], (req, res) => {
+  const file = req.path.endsWith('.svg') ? 'favicon.svg' : 'favicon.ico';
+  res.sendFile(path.join(publicDir, file));
 });
 
 app.get(['/404', '/404/', '/404.html'], (req, res) => {

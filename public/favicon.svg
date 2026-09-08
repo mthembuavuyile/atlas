@@ -1,0 +1,10 @@
+<svg width="100" height="100" viewBox="-10 -5 120 100" xmlns="http://www.w3.org/2000/svg">
+    <!-- Orbital Ring -->
+    <ellipse cx="50" cy="50" rx="58" ry="16" fill="none" stroke="#fba919" stroke-width="6" transform="rotate(-15 50 50)" />
+    
+    <!-- The Inverted V (Atlas A) -->
+    <path d="M20 90 L50 30 L80 90 L100 90 L50 0 L0 90 Z" fill="#fba919" />
+    
+    <!-- Vertical Block -->
+    <rect x="42" y="60" width="16" height="30" fill="#fba919" />
+</svg>
