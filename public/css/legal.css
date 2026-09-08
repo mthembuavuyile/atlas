@@ -1,0 +1,153 @@
+/* ==========================================================================
+   ATLAS BY VYLEX TECHNOLOGIES — LEGAL & POLICY PAGES STYLESHEET
+   Shared layout, typography, and card components for Privacy, Terms, & Policies.
+   ========================================================================== */
+
+.legal-content {
+  max-width: 860px;
+  width: 100%;
+  margin: 3.5rem auto 5rem;
+  padding: 0 1.5rem;
+  box-sizing: border-box;
+}
+
+.legal-header {
+  margin-bottom: 2.5rem;
+  border-bottom: 1px solid var(--site-card-border);
+  padding-bottom: 2rem;
+}
+
+.legal-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  background: rgba(251, 169, 25, 0.12);
+  border: 1px solid rgba(251, 169, 25, 0.3);
+  border-radius: 20px;
+  color: var(--site-accent);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+
+.legal-title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--site-text-primary);
+  line-height: 1.15;
+  margin-bottom: 0.75rem;
+}
+
+.legal-meta {
+  font-size: 0.9rem;
+  color: var(--site-text-muted);
+}
+
+.legal-section {
+  margin-bottom: 2.75rem;
+}
+
+.legal-section h2 {
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: var(--site-text-primary);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.legal-section h2::before {
+  content: "";
+  display: inline-block;
+  width: 4px;
+  height: 1.2rem;
+  background: var(--site-accent);
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.legal-section p {
+  color: var(--site-text-secondary);
+  font-size: 1rem;
+  line-height: 1.7;
+  margin-bottom: 1rem;
+}
+
+.legal-section ul {
+  list-style: none;
+  padding-left: 0;
+  margin-bottom: 1.25rem;
+}
+
+.legal-section ul li {
+  position: relative;
+  padding-left: 1.5rem;
+  color: var(--site-text-secondary);
+  font-size: 0.96rem;
+  line-height: 1.65;
+  margin-bottom: 0.6rem;
+}
+
+.legal-section ul li::before {
+  content: "•";
+  position: absolute;
+  left: 0.4rem;
+  color: var(--site-accent);
+  font-weight: bold;
+}
+
+.legal-card {
+  background: var(--site-card-bg);
+  border: 1px solid var(--site-card-border);
+  border-radius: var(--site-radius-md);
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.legal-card h3 {
+  font-size: 1.1rem;
+  color: var(--site-text-primary);
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+}
+
+.legal-card p {
+  margin-bottom: 0;
+  font-size: 0.92rem;
+  color: var(--site-text-muted);
+}
+
+.legal-card a {
+  color: var(--site-accent);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.legal-card a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .legal-content {
+    margin: 2rem auto 3.5rem;
+    padding: 0 1.25rem;
+  }
+
+  .legal-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+  }
+
+  .legal-section {
+    margin-bottom: 2.25rem;
+  }
+}
