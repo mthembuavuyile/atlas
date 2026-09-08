@@ -44,7 +44,8 @@ const SLATE_2026 = [
     genre: 'Sci-Fi, Action, Adventure',
     plot: 'Din Djarin and his young apprentice Grogu embark on a new feature-film journey across the outer rim of the galaxy.',
     cast: 'Pedro Pascal, Sigourney Weaver',
-    poster: null,
+    poster: 'https://m.media-amazon.com/images/M/MV5BYjRkYzAzNjktZmRhMy00NjRiLWE0OTMtYmRmMTE5NDkzY2NlXkEyXkFqcGc@._V1_QL75_UX380_CR0,0,380,562_.jpg',
+    imdbID: 'tt30825738',
     status: 'Confirmed Release'
   },
   {
@@ -56,7 +57,8 @@ const SLATE_2026 = [
     genre: 'Action, Sci-Fi, Adventure',
     plot: 'Kara Zor-El travels the cosmos with Krypto on a sci-fi revenge journey across alien worlds.',
     cast: 'Milly Alcock, Matthias Schoenaerts, Eve Ridley',
-    poster: null,
+    poster: 'https://m.media-amazon.com/images/M/MV5BMmJkOTE0MWUtY2E5OS00NzEyLWI4NjEtYzQzYzFmMjk5ODE3XkEyXkFqcGc@._V1_QL75_UX380_CR0,0,380,562_.jpg',
+    imdbID: 'tt8814476',
     status: 'Confirmed Release'
   },
   {
@@ -68,7 +70,8 @@ const SLATE_2026 = [
     genre: 'Action, Adventure, Sci-Fi',
     plot: 'Peter Parker navigates a new era in New York following the multiversal spell, facing street-level and cosmic threats.',
     cast: 'Tom Holland, Zendaya',
-    poster: null,
+    poster: 'https://m.media-amazon.com/images/M/MV5BOWNjYWM3NWItOGE0ZS00MWRjLThiZWEtYjc4ZmNmMmU5ZTVmXkEyXkFqcGc@._V1_QL75_UX380_CR0,0,380,562_.jpg',
+    imdbID: 'tt22084616',
     status: 'Slated Release'
   },
   {
@@ -80,7 +83,8 @@ const SLATE_2026 = [
     genre: 'Animation, Adventure, Comedy',
     plot: 'Woody, Buzz, and the gang confront the ultimate modern challenge: kids obsession with electronics and tablet screens.',
     cast: 'Tom Hanks, Tim Allen',
-    poster: null,
+    poster: 'https://m.media-amazon.com/images/M/MV5BZTI1YTBiNmEtYWUxZi00YzFkLWIzNjMtMmZjMmY2NzM0ZWMzXkEyXkFqcGc@._V1_QL75_UX380_CR0,0,380,562_.jpg',
+    imdbID: 'tt29355505',
     status: 'Confirmed Release'
   },
   {
@@ -92,7 +96,8 @@ const SLATE_2026 = [
     genre: 'Animation, Adventure, Comedy',
     plot: 'Shrek, Donkey, and Princess Fiona return for a brand-new adventure in the kingdom of Far Far Away.',
     cast: 'Mike Myers, Eddie Murphy, Cameron Diaz',
-    poster: null,
+    poster: 'https://m.media-amazon.com/images/M/MV5BNmNkNmRkNDAtOTMzNC00MWYzLWJhNjMtYjNkZTNjODVhOTg2XkEyXkFqcGc@._V1_QL75_UX380_CR0,0,380,562_.jpg',
+    imdbID: 'tt6113186',
     status: 'Confirmed Release'
   },
   {
@@ -104,7 +109,7 @@ const SLATE_2026 = [
     genre: 'Sci-Fi, Drama, Adventure',
     plot: 'Twelve years into Paul Atreides reign as Emperor, holy war rages across the known universe as conspiracies threaten Arrakis.',
     cast: 'Timothée Chalamet, Zendaya, Florence Pugh, Anya Taylor-Joy',
-    poster: null,
+    poster: 'https://m.media-amazon.com/images/M/MV5BZTJkYjdmYjYtOGMyNC00ZGU1LThkY2ItYTc1OTVlMmE2YWY1XkEyXkFqcGc@._V1_QL75_UX380_CR0,0,380,562_.jpg',
     status: 'In Development'
   }
 ];

@@ -34,7 +34,7 @@ class ChatController {
     if (activeToolsState.webSearch) {
       stateContexts.push("- Live Web Search toggle is ENABLED in UI. Real-time internet grounding is active.");
     } else {
-      stateContexts.push("- Live Web Search toggle is currently off in UI, but you have access to function tools (including 'search_web' and 'discover_movies') to fetch real-time or upcoming release intelligence when needed.");
+      stateContexts.push("- Live Web Search toggle is currently OFF in UI. However, you have access to autonomous function tools (including 'search_web' and 'discover_movies') to fetch real-time or upcoming release intelligence when needed. If a query requires current facts, future release calendars, or live internet data, autonomously invoke the 'search_web' tool. When you invoke 'search_web', the system will automatically activate and highlight the Web Search indicator in the user interface.");
     }
     
     if (activeToolsState.hasAttachments) {

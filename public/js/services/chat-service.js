@@ -12,6 +12,7 @@ import { openCodeInCanvas } from '../ui/canvas.js';
 import { getActiveSession, saveSessions, updateSessionMetrics, updateContextEstimator, fetchSessionTitle } from '../ui/session-manager.js';
 import { renderMessageItem, startStatusAnimation, scrollToBottom, renderSessionMessages } from '../ui/message-renderer.js';
 import { detectLocalWidgetIntent, resolveSlashCommand, runLocalWidget } from './intent-router.js';
+import { syncWebSearchUI } from '../ui/modals.js';
 
 export function buildProjectContext() {
   if (!state.projectFiles || state.projectFiles.length === 0) return '';
@@ -328,8 +329,18 @@ export async function executeChatTurn(session) {
           // Agentic ReAct Loop UI Feedback
           if (parsed.__tool_start__) {
             if (statusAnimator) { statusAnimator.stop(); statusAnimator = null; }
-            const toolName = parsed.__tool_start__.name.replace(/_/g, ' ');
+            const rawToolName = parsed.__tool_start__.name;
+            const toolName = rawToolName.replace(/_/g, ' ');
             const toolId = `tool-${Date.now()}`;
+
+            // Highlight composer Web Search toggle if AI autonomously invoked search_web
+            if (rawToolName === 'search_web' && dom.webSearchToggleBtn) {
+              dom.webSearchToggleBtn.classList.add('active-web', 'auto-searching');
+              const webSearchLabel = document.getElementById('webSearchLabel');
+              if (webSearchLabel) {
+                webSearchLabel.textContent = 'Searching Web...';
+              }
+            }
 
             let agentLog = bubble.querySelector('.agent-activity-log');
             if (!agentLog) {
@@ -342,7 +353,7 @@ export async function executeChatTurn(session) {
             const logItem = document.createElement('div');
             logItem.className = 'agent-log-item';
             logItem.id = toolId;
-            logItem.dataset.tool = parsed.__tool_start__.name;
+            logItem.dataset.tool = rawToolName;
             logItem.innerHTML = `
               <span style="display: flex; align-items: center; gap: 0.5rem;">
                 <svg class="tool-spinner" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation: spin 1s linear infinite;"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>
@@ -356,6 +367,14 @@ export async function executeChatTurn(session) {
 
           if (parsed.__tool_done__) {
             const toolName = parsed.__tool_done__.name;
+
+            // Reset composer Web Search button if AI finished search_web
+            if (toolName === 'search_web') {
+              setTimeout(() => {
+                syncWebSearchUI();
+              }, 1200);
+            }
+
             const agentLog = bubble.querySelector('.agent-activity-log');
             if (agentLog) {
               const logItem = agentLog.querySelector(`[data-tool="${toolName}"]:last-child`);
@@ -532,6 +551,7 @@ export async function executeChatTurn(session) {
     if (dom.stopGenerationBtn) dom.stopGenerationBtn.style.display = 'none';
     if (dom.sendBtn) dom.sendBtn.style.display = 'flex';
     if (dom.streamingIndicator) dom.streamingIndicator.style.display = 'none';
+    syncWebSearchUI();
     scrollToBottom(true);
   }
 }
