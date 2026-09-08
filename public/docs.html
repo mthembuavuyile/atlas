@@ -16,7 +16,56 @@
   <meta property="og:url" content="https://vylex.co.za/docs">
   <meta property="og:title" content="Atlas Documentation & Technical Specifications">
   <meta property="og:description" content="Technical documentation and capabilities for Atlas: 19 tools, 7 curated models, KaTeX math & chemistry, computer vision OCR, and project context diffing.">
+  <meta property="og:image" content="https://vylex.co.za/atlas-og-image.jpg">
   <meta property="og:site_name" content="Vylex Technologies">
+
+  <!-- Twitter / X -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://vylex.co.za/docs">
+  <meta name="twitter:title" content="Atlas Documentation & Technical Specifications | Vylex Technologies">
+  <meta name="twitter:description" content="Technical documentation and capabilities for Atlas: 19 tools, 7 curated models, KaTeX math & chemistry, computer vision OCR, and project context diffing.">
+  <meta name="twitter:image" content="https://vylex.co.za/atlas-og-image.jpg">
+
+  <!-- Structured Data (JSON-LD) for Sitelinks -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "TechArticle",
+        "@id": "https://vylex.co.za/docs#article",
+        "url": "https://vylex.co.za/docs",
+        "name": "Atlas Documentation & Technical Specifications",
+        "headline": "Atlas Documentation & Technical Specifications | Vylex Technologies",
+        "description": "Technical documentation and capabilities for Atlas: 19 deterministic tools, 7 curated inference models, KaTeX math/chemistry engine, and execution layer.",
+        "inLanguage": "en",
+        "breadcrumb": {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Home",
+              "item": "https://vylex.co.za/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Documentation",
+              "item": "https://vylex.co.za/docs"
+            }
+          ]
+        },
+        "publisher": {
+          "@type": "Organization",
+          "name": "Vylex Technologies",
+          "url": "https://vylex.co.za",
+          "description": "Vylex builds AI powered apps, scientific intelligence tools, and developer workspaces."
+        }
+      }
+    ]
+  }
+  </script>
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -56,8 +105,10 @@
 
       <nav class="site-nav" aria-label="Main Navigation">
         <ul class="site-nav-links">
-          <li><a href="/about.html" class="site-nav-link">About</a></li>
-          <li><a href="/docs.html" class="site-nav-link active">Documentation</a></li>
+          <li><a href="/about" class="site-nav-link">About</a></li>
+          <li><a href="/docs" class="site-nav-link active">Documentation</a></li>
+          <li><a href="/privacy" class="site-nav-link">Privacy</a></li>
+          <li><a href="/terms" class="site-nav-link">Terms</a></li>
           <li><a href="https://github.com/mthembuavuyile/atlas" class="site-nav-link" target="_blank" rel="noopener">GitHub</a></li>
         </ul>
         <a href="/" class="site-btn-primary">Launch Workspace</a>
@@ -79,8 +130,10 @@
   <aside id="siteMobileDrawer" class="site-mobile-drawer" aria-label="Mobile Navigation">
     <ul class="mobile-drawer-links">
       <li><a href="/" class="mobile-drawer-link">Workspace</a></li>
-      <li><a href="/about.html" class="mobile-drawer-link">About Atlas</a></li>
-      <li><a href="/docs.html" class="mobile-drawer-link active">Documentation &amp; Specs</a></li>
+      <li><a href="/about" class="mobile-drawer-link">About Atlas</a></li>
+      <li><a href="/docs" class="mobile-drawer-link active">Documentation &amp; Specs</a></li>
+      <li><a href="/privacy" class="mobile-drawer-link">Privacy Policy</a></li>
+      <li><a href="/terms" class="mobile-drawer-link">Terms of Service</a></li>
       <li><a href="https://github.com/mthembuavuyile/atlas" class="mobile-drawer-link" target="_blank" rel="noopener">GitHub Repository</a></li>
     </ul>
     <div class="mobile-drawer-actions">
@@ -94,9 +147,9 @@
       <div class="docs-breadcrumb">
         <a href="/">Atlas</a>
         <span>/</span>
-        <a href="/about.html">Overview</a>
+        <a href="/about">Overview</a>
         <span>/</span>
-        <span>Documentation & Technical Specifications</span>
+        <span>Documentation &amp; Technical Specifications</span>
       </div>
       <h1 class="docs-hero-title">Technical Reference & Capabilities</h1>
       <p class="docs-hero-lead">
@@ -1323,8 +1376,10 @@ npm run cli
         <p class="site-footer-copy">&copy; 2026 Vylex Technologies. Licensed under MIT.</p>
       </div>
       <ul class="site-footer-links">
-        <li><a href="/about.html">About</a></li>
-        <li><a href="/docs.html">Documentation</a></li>
+        <li><a href="/about">About</a></li>
+        <li><a href="/docs">Documentation</a></li>
+        <li><a href="/privacy">Privacy</a></li>
+        <li><a href="/terms">Terms</a></li>
         <li><a href="https://github.com/mthembuavuyile/atlas" target="_blank" rel="noopener">GitHub</a></li>
         <li><a href="/" class="site-btn-primary" style="padding: 0.45rem 1rem; font-size: 0.82rem;">Launch Workspace</a></li>
       </ul>

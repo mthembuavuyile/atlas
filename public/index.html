@@ -9,54 +9,109 @@
   <title>Atlas | Scientific Intelligence Platform by Vylex Technologies</title>
   <meta name="description"
     content="Atlas is a scientific intelligence and technical reasoning platform by Vylex Technologies. Form hypotheses, verify derivations, model systems, and execute computational actions.">
-  <link rel="canonical" href="https://vylex.co.za">
+  <link rel="canonical" href="https://vylex.co.za/">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="alternate icon" href="/favicon.ico">
 
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://vylex.co.za">
+  <meta property="og:url" content="https://vylex.co.za/">
   <meta property="og:title" content="Atlas | Scientific Intelligence Platform by Vylex Technologies">
   <meta property="og:description"
-    content="Scientific Intelligence. Technical Reasoning. Problem Solving. Multi-model inference, structured derivations, and execution layer.">
+    content="Scientific Intelligence. Technical Reasoning. Problem Solving. Multi-model inference, structured derivations, and execution layer. Vylex builds AI powered apps.">
+  <meta property="og:image" content="https://vylex.co.za/atlas-og-image.jpg">
   <meta property="og:site_name" content="Vylex Technologies">
 
   <!-- Twitter / X -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:url" content="https://vylex.co.za">
+  <meta name="twitter:url" content="https://vylex.co.za/">
   <meta name="twitter:title" content="Atlas | Scientific Intelligence Platform by Vylex Technologies">
   <meta name="twitter:description"
-    content="Scientific Intelligence. Technical Reasoning. Problem Solving. Multi-model inference, structured derivations, and execution layer.">
+    content="Scientific Intelligence. Technical Reasoning. Problem Solving. Multi-model inference, structured derivations, and execution layer. Vylex builds AI powered apps.">
+  <meta name="twitter:image" content="https://vylex.co.za/atlas-og-image.jpg">
 
-  <!-- JSON-LD Structured Data for Google Sitelinks -->
+  <!-- JSON-LD Structured Data for Google Sitelinks & Knowledge Graph -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
-    "@type": "WebApplication",
-    "name": "Atlas",
-    "alternateName": "Atlas by Vylex Technologies",
-    "url": "https://vylex.co.za",
-    "applicationCategory": "ScientificApplication",
-    "operatingSystem": "All",
-    "creator": {
-      "@type": "Organization",
-      "name": "Vylex Technologies",
-      "url": "https://vylex.co.za",
-      "founder": {
-        "@type": "Person",
-        "name": "Avuyile Mthembu",
-        "url": "https://avuyilemthembu.co.za",
-        "hasCredential": {
-          "@type": "EducationalOccupationalCredential",
-          "name": "Diploma in Systems Development",
-          "recognizedBy": {
-            "@type": "EducationalOrganization",
-            "name": "Boston City Campus"
-          }
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://vylex.co.za/#website",
+        "url": "https://vylex.co.za/",
+        "name": "Atlas",
+        "alternateName": [
+          "Atlas by Vylex Technologies",
+          "Atlas AI",
+          "Atlas Workspace"
+        ],
+        "description": "Scientific intelligence and technical reasoning workspace built by Vylex Technologies. Multi-model inference, deterministic tools, KaTeX mathematical derivations, code artifacts, and execution.",
+        "publisher": {
+          "@type": "Organization",
+          "@id": "https://vylex.co.za/#organization",
+          "name": "Vylex Technologies",
+          "legalName": "Vylex (Pty) Ltd",
+          "url": "https://vylex.co.za",
+          "logo": "https://vylex.co.za/atlas-og-image.jpg",
+          "description": "Vylex builds AI powered apps, scientific intelligence tools, and developer workspaces.",
+          "founder": {
+            "@type": "Person",
+            "name": "Avuyile Mthembu",
+            "url": "https://avuyilemthembu.co.za",
+            "jobTitle": "Systems Architect & Developer"
+          },
+          "sameAs": [
+            "https://github.com/mthembuavuyile/atlas"
+          ]
         }
+      },
+      {
+        "@type": "WebApplication",
+        "@id": "https://vylex.co.za/#webapplication",
+        "name": "Atlas",
+        "alternateName": "Atlas by Vylex Technologies",
+        "url": "https://vylex.co.za/",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "All",
+        "browserRequirements": "Requires JavaScript. Requires modern browser (Chrome, Firefox, Safari, Edge).",
+        "creator": {
+          "@type": "Organization",
+          "name": "Vylex Technologies",
+          "url": "https://vylex.co.za"
+        },
+        "description": "Scientific intelligence and technical reasoning platform featuring multi-model inference, hypothesis testing, mathematical verification, and action execution."
+      },
+      {
+        "@type": "SiteNavigationElement",
+        "name": "Workspace",
+        "description": "Interactive multi-model AI reasoning environment and artifacts canvas.",
+        "url": "https://vylex.co.za/"
+      },
+      {
+        "@type": "SiteNavigationElement",
+        "name": "About Atlas",
+        "description": "Platform overview, architecture, and company information.",
+        "url": "https://vylex.co.za/about"
+      },
+      {
+        "@type": "SiteNavigationElement",
+        "name": "Documentation",
+        "description": "Exhaustive documentation for all 19 tools, models, and specifications.",
+        "url": "https://vylex.co.za/docs"
+      },
+      {
+        "@type": "SiteNavigationElement",
+        "name": "Privacy Policy",
+        "description": "Client-side key storage and privacy practices.",
+        "url": "https://vylex.co.za/privacy"
+      },
+      {
+        "@type": "SiteNavigationElement",
+        "name": "Terms of Service",
+        "description": "MIT licensing and software terms.",
+        "url": "https://vylex.co.za/terms"
       }
-    },
-    "description": "Scientific intelligence and technical reasoning platform featuring multi-model inference, hypothesis testing, mathematical verification, and action execution."
+    ]
   }
   </script>
 
@@ -199,6 +254,29 @@
                 </div>
               </div>
 
+              <div class="profile-menu-nav">
+                <a href="/about" class="profile-nav-link">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                  <span>About Atlas</span>
+                </a>
+                <a href="/docs" class="profile-nav-link">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+                  <span>Documentation</span>
+                </a>
+                <a href="/privacy" class="profile-nav-link">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                  <span>Privacy Policy</span>
+                </a>
+                <a href="/terms" class="profile-nav-link">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                  <span>Terms of Service</span>
+                </a>
+                <a href="https://github.com/mthembuavuyile/atlas" target="_blank" rel="noopener" class="profile-nav-link">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"></path></svg>
+                  <span>GitHub</span>
+                </a>
+              </div>
+
               <button id="profileSettingsBtn" class="profile-settings-btn" type="button">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                   stroke-linecap="round" stroke-linejoin="round">
@@ -212,6 +290,16 @@
             </div>
           </div>
         </div>
+
+        <nav class="sidebar-meta-nav" aria-label="Quick links">
+          <a href="/about">About</a>
+          <span class="meta-sep">&bull;</span>
+          <a href="/docs">Docs</a>
+          <span class="meta-sep">&bull;</span>
+          <a href="/privacy">Privacy</a>
+          <span class="meta-sep">&bull;</span>
+          <a href="/terms">Terms</a>
+        </nav>
       </div>
     </aside>
 

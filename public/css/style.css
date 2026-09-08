@@ -491,6 +491,58 @@ a:hover {
   color: var(--text-main);
 }
 
+.profile-menu-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.profile-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.76rem;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.profile-nav-link:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-main);
+}
+
+.sidebar-meta-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding-top: 8px;
+  margin-top: 6px;
+  font-size: 0.68rem;
+  color: var(--text-muted);
+}
+
+.sidebar-meta-nav a {
+  color: var(--text-muted);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.sidebar-meta-nav a:hover {
+  color: var(--accent-primary);
+}
+
+.meta-sep {
+  opacity: 0.4;
+  font-size: 0.5rem;
+}
+
 /* --------------------------------------------------------------------------
    CENTER CHAT MAIN
    -------------------------------------------------------------------------- */

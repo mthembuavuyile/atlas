@@ -92,6 +92,22 @@ app.get(['/docs', '/docs/', '/docs.html', '/capabilities', '/capabilities/'], (r
   res.sendFile(path.join(publicDir, 'docs.html'));
 });
 
+app.get(['/privacy', '/privacy/', '/privacy.html'], (req, res) => {
+  res.sendFile(path.join(publicDir, 'privacy.html'));
+});
+
+app.get(['/terms', '/terms/', '/terms.html'], (req, res) => {
+  res.sendFile(path.join(publicDir, 'terms.html'));
+});
+
+app.get('/robots.txt', (req, res) => {
+  res.type('text/plain').sendFile(path.join(publicDir, 'robots.txt'));
+});
+
+app.get('/sitemap.xml', (req, res) => {
+  res.type('application/xml').sendFile(path.join(publicDir, 'sitemap.xml'));
+});
+
 app.get(['/favicon.ico', '/favicon.svg'], (req, res) => {
   const file = req.path.endsWith('.svg') ? 'favicon.svg' : 'favicon.ico';
   res.sendFile(path.join(publicDir, file));
