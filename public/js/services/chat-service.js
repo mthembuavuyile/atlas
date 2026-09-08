@@ -379,15 +379,27 @@ export async function executeChatTurn(session) {
 
           if (parsed.__widget__) {
             if (statusAnimator) { statusAnimator.stop(); statusAnimator = null; }
-            accumulatedWidgets.push(parsed.__widget__);
-            if (window.atlasRenderWidget) {
-              const widgetHtml = window.atlasRenderWidget(parsed.__widget__.type, parsed.__widget__.data);
-              if (widgetHtml && widgetsContainer) {
-                const widgetBox = document.createElement('div');
-                widgetBox.className = 'widget-mount-point';
-                widgetBox.innerHTML = widgetHtml;
-                widgetsContainer.appendChild(widgetBox);
-                scrollToBottom(false);
+
+            // Deduplicate redundant widget payloads of same type and query within this turn
+            const widgetType = parsed.__widget__.type;
+            const widgetQuery = (parsed.__widget__.data?.query || parsed.__widget__.data?.prompt || parsed.__widget__.data?.subreddit || '').trim().toLowerCase();
+            const isDuplicateWidget = accumulatedWidgets.some(w =>
+              w.type === widgetType &&
+              (w.data?.query || w.data?.prompt || w.data?.subreddit || '').trim().toLowerCase() === widgetQuery &&
+              widgetQuery.length > 0
+            );
+
+            if (!isDuplicateWidget) {
+              accumulatedWidgets.push(parsed.__widget__);
+              if (window.atlasRenderWidget) {
+                const widgetHtml = window.atlasRenderWidget(parsed.__widget__.type, parsed.__widget__.data);
+                if (widgetHtml && widgetsContainer) {
+                  const widgetBox = document.createElement('div');
+                  widgetBox.className = 'widget-mount-point';
+                  widgetBox.innerHTML = widgetHtml;
+                  widgetsContainer.appendChild(widgetBox);
+                  scrollToBottom(false);
+                }
               }
             }
             continue;

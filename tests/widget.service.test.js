@@ -72,4 +72,28 @@ describe('Widget Service Deterministic Capabilities', () => {
       assert.strictEqual(typeof dispatcher[tool], 'function', `Tool "${tool}" must be a function in TOOL_DISPATCHER`);
     }
   });
+
+  test('searchImages respects custom limit parameter (limit=1 and limit=4)', async () => {
+    const resSingle = await widgetService.searchImages('quantum', 1);
+    assert.strictEqual(resSingle.type, 'image');
+    assert.ok(Array.isArray(resSingle.data.images));
+    assert.strictEqual(resSingle.data.images.length, 1, 'Should return exactly 1 image when limit=1');
+
+    const resFour = await widgetService.searchImages('computer', 4);
+    assert.strictEqual(resFour.type, 'image');
+    assert.ok(Array.isArray(resFour.data.images));
+    assert.strictEqual(resFour.data.images.length, 4, 'Should return exactly 4 images when limit=4');
+  });
+
+  test('getRedditPosts returns valid structure with video property compatibility', async () => {
+    const res = await widgetService.getRedditPosts('technology');
+    assert.strictEqual(res.type, 'reddit');
+    assert.ok(Array.isArray(res.data.posts));
+    if (res.data.posts.length > 0) {
+      const firstPost = res.data.posts[0];
+      assert.ok('title' in firstPost);
+      assert.ok('url' in firstPost);
+      assert.ok('video' in firstPost);
+    }
+  });
 });
