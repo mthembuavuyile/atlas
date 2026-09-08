@@ -27,10 +27,14 @@ class ChatController {
 
     // 2. Dynamic State Awareness (Let the model know what it can do right now)
     const stateContexts = [];
+    const now = new Date();
+    const currentDateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    stateContexts.push(`- Current System Date: ${currentDateStr} (Current Year: ${now.getFullYear()}). You are operating in real time in ${now.getFullYear()}. Never claim that we are in 2024 or earlier.`);
+
     if (activeToolsState.webSearch) {
-      stateContexts.push("- Live Web Search is currently ENABLED. You have access to real-time internet grounding.");
+      stateContexts.push("- Live Web Search toggle is ENABLED in UI. Real-time internet grounding is active.");
     } else {
-      stateContexts.push("- Live Web Search is currently DISABLED. Rely on your base knowledge.");
+      stateContexts.push("- Live Web Search toggle is currently off in UI, but you have access to function tools (including 'search_web' and 'discover_movies') to fetch real-time or upcoming release intelligence when needed.");
     }
     
     if (activeToolsState.hasAttachments) {

@@ -163,7 +163,21 @@ export function detectLocalWidgetIntent(text) {
     return { tool: 'give_advice', args: {}, label: 'Fetched advice.' };
   }
 
-  // Movie Explorer Intent
+  // Movie Suggestions & Release Slate Intent (e.g. "2026 movies", "upcoming 2026 movies", "movies in 2026")
+  const upcomingMatch = trimmed.match(/^(?:what are\s+)?(?:some\s+)?(?:good\s+|upcoming\s+|top\s+)?(?:(\d{4})\s+movies|movies\s+(?:in|for|from|released in)\s+(\d{4}))\??$/i)
+    || trimmed.match(/^(\d{4})\s+movies\??$/i);
+  if (upcomingMatch) {
+    const yr = upcomingMatch[1] || upcomingMatch[2] || '2026';
+    return { tool: 'discover_movies', args: { year: yr, query: `${yr} movies` }, label: `Retrieved ${yr} theatrical release slate & upcoming movies.` };
+  }
+
+  const suggestionMatch = trimmed.match(/^(?:suggest|recommend|find|show me)\s+(?:some\s+)?(?:movies|films)(?:\s+(?:about|like|for|in)?\s*(.+))?$/i);
+  if (suggestionMatch) {
+    const q = (suggestionMatch[1] || '').trim();
+    return { tool: 'discover_movies', args: { query: q || 'upcoming blockbusters' }, label: `Discovered movie recommendations${q ? ` for "${q}"` : ''}.` };
+  }
+
+  // Movie Explorer Intent (Single Film)
   const movie = pickMatch([
     /^(?:tell me about|info on|details for|synopsis of|who directed)\s+(?:the\s+movie\s+|the\s+film\s+)?["']?(.+?)["']?\??$/i,
     /^(?:the\s+)?movie\s+["']?(.+?)["']?\??$/i
@@ -202,17 +216,17 @@ export function resolveSlashCommand(prompt) {
   const command = slashMatch[1].toLowerCase();
   const arg = slashMatch[2] || '';
 
-  let toolToCall = null;
-  let argsPayload = {};
-  let isWebSearch = false;
-  let overrideText = null;
-
-  if (command === 'crypto') {
-    toolToCall = 'get_crypto_terminal';
-    argsPayload = { coins: arg || 'bitcoin,ethereum,solana' };
+  if (command === 'movies' || command === 'upcoming') {
+    toolToCall = 'discover_movies';
+    argsPayload = { query: arg || '2026 movies', year: arg && /^\d{4}$/.test(arg.trim()) ? arg.trim() : '2026' };
   } else if (command === 'movie' || command === 'film') {
-    toolToCall = 'get_movie_info';
-    argsPayload = { title: arg || 'Interstellar' };
+    if (/^\d{4}$/.test((arg || '').trim())) {
+      toolToCall = 'discover_movies';
+      argsPayload = { year: arg.trim(), query: `${arg.trim()} movies` };
+    } else {
+      toolToCall = 'get_movie_info';
+      argsPayload = { title: arg || 'Interstellar' };
+    }
   } else if (command === 'stock' || command === 'chart' || command === 'ticker') {
     toolToCall = 'get_stock_chart';
     argsPayload = { query: arg || 'Google' };

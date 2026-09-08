@@ -268,6 +268,15 @@ function initComposerListeners() {
       createNewSession();
     }
   });
+
+  window.atlasQueryMovie = (title) => {
+    if (!title || !dom.messageInput) return;
+    dom.messageInput.value = `/movie ${title}`;
+    autoResizeTextarea();
+    if (dom.chatForm) {
+      dom.chatForm.dispatchEvent(new Event('submit'));
+    }
+  };
 }
 
 function init() {

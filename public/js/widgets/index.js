@@ -24,6 +24,7 @@ import { renderGenerateImageWidget } from './generate-image-widget.js';
 
 // Modular Component Widgets
 import { movieWidget } from './components/movie-widget.js';
+import { movieCollectionWidget } from './components/movie-collection-widget.js';
 import { stockWidget } from './components/stock-widget.js';
 import { cryptoTerminalWidget } from './components/crypto-terminal-widget.js';
 
@@ -66,6 +67,7 @@ registerRenderer('generate_qr', renderQrWidget);
 
 // 2. Register New Modular Components
 registerComponent(movieWidget);
+registerComponent(movieCollectionWidget);
 registerComponent(stockWidget);
 registerComponent(cryptoTerminalWidget);
 
