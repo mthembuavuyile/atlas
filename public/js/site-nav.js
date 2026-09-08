@@ -1,7 +1,7 @@
 /**
  * Atlas Website Common Navigation & Mobile Drawer Controller
  * Provides accessible burger menu toggling, Escape dismiss, backdrop clicks,
- * scroll locking, and active route detection.
+ * scroll locking, and robust active route detection across all public pages.
  */
 document.addEventListener('DOMContentLoaded', () => {
   const burgerBtn = document.getElementById('siteBurgerBtn');
@@ -71,24 +71,32 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Automatic Active Link Highlighting
+  // Automatic Active Link Highlighting with clean path normalization
   try {
-    const currentPath = window.location.pathname.replace(/\/$/, '') || '/';
+    const normalizeRoute = (rawPath) => {
+      if (!rawPath) return '';
+      let p = rawPath.split('#')[0].split('?')[0].trim();
+      p = p.replace(/\.html$/, '').replace(/\/$/, '') || '/';
+      if (p === '/capabilities') p = '/docs';
+      return p;
+    };
+
+    const currentNormalized = normalizeRoute(window.location.pathname);
+
     allNavLinks.forEach(link => {
       const linkHref = link.getAttribute('href');
-      if (!linkHref) return;
+      if (!linkHref || linkHref.startsWith('http') || linkHref.startsWith('#')) return;
 
-      const cleanHref = linkHref.split('#')[0].replace(/\/$/, '') || '/';
-      // Match exactly or handle docs / capabilities alias
-      const isAbout = (currentPath === '/about' || currentPath === '/about.html') && (cleanHref === '/about' || cleanHref === '/about.html');
-      const isDocs = (currentPath === '/docs' || currentPath === '/docs.html' || currentPath === '/capabilities') && (cleanHref === '/docs' || cleanHref === '/docs.html');
-      const isExact = cleanHref === currentPath;
+      const linkNormalized = normalizeRoute(linkHref);
 
-      if (isExact || isAbout || isDocs) {
+      if (linkNormalized === currentNormalized) {
         link.classList.add('active');
+      } else if (currentNormalized !== '/' && linkNormalized !== currentNormalized) {
+        // Remove stale active classes if navigated
+        link.classList.remove('active');
       }
     });
   } catch (err) {
-    console.debug('Active link match error:', err);
+    console.debug('Active link match notice:', err);
   }
 });
