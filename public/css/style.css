@@ -2006,6 +2006,81 @@ code {
   #activePromptLabel {
     display: none;
   }
+
+  /* --- Welcome Screen Mobile --- */
+  .welcome-brand-logo svg {
+    width: 32px;
+    height: 32px;
+  }
+
+  .welcome-brand-logo {
+    margin-bottom: 8px;
+  }
+
+  .welcome-heading {
+    font-size: 1.05rem;
+    margin-bottom: 3px;
+  }
+
+  .welcome-subtitle {
+    font-size: 0.74rem;
+  }
+
+  /* --- Mode Cards: smaller to show more in scroll --- */
+  .mode-selector-grid {
+    gap: 6px;
+    padding: 2px 2px 8px 2px;
+    margin-bottom: 6px;
+    -webkit-mask-image: linear-gradient(to right, #000 85%, transparent 100%);
+    mask-image: linear-gradient(to right, #000 85%, transparent 100%);
+  }
+
+  .mode-card-pill {
+    flex: 0 0 95px;
+    min-width: 95px;
+    padding: 6px 8px;
+  }
+
+  .mode-card-pill:last-child {
+    flex: 0 0 95px;
+    min-width: 95px;
+  }
+
+  .mode-name {
+    font-size: 0.72rem;
+  }
+
+  .mode-desc-hint {
+    font-size: 0.6rem;
+  }
+
+  .mode-icon svg {
+    width: 13px;
+    height: 13px;
+  }
+
+  /* --- Active Mode Banner wrap --- */
+  .active-mode-banner {
+    font-size: 0.68rem;
+    padding: 4px 7px;
+  }
+
+  .active-mode-banner-left {
+    flex-wrap: wrap;
+    gap: 2px;
+  }
+
+  #activeModeDesc {
+    white-space: normal;
+  }
+
+  /* --- Suggestion pills wrap --- */
+  .prompt-card.suggestion-pill {
+    font-size: 0.7rem;
+    padding: 4px 7px;
+    white-space: normal;
+    line-height: 1.35;
+  }
 }
 
 @media (max-width: 420px) {

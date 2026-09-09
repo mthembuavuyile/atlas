@@ -67,9 +67,7 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    /* --------------------------------------------------------------------------
-       TOP NAVBAR (AUTHENTIC ATLAS HEADER)
-       -------------------------------------------------------------------------- */
+    /* Top Navbar */
     .top-navbar {
       height: 48px;
       border-bottom: 1px solid var(--border-subtle);
@@ -173,9 +171,7 @@
       color: #051B38;
     }
 
-    /* --------------------------------------------------------------------------
-       MAIN CONTAINER & WELCOME SCREEN
-       -------------------------------------------------------------------------- */
+    /* Main Container */
     main {
       flex: 1;
       display: flex;
@@ -233,9 +229,7 @@
       max-width: 480px;
     }
 
-    /* --------------------------------------------------------------------------
-       INVESTIGATION MODES SELECTOR GRID (EXACT REAL ATLAS MODES)
-       -------------------------------------------------------------------------- */
+    /* Modes Grid */
     .mode-selector-heading {
       width: 100%;
       margin-bottom: 6px;
@@ -394,9 +388,7 @@
       border-color: var(--border-medium);
     }
 
-    /* --------------------------------------------------------------------------
-       AUTHENTIC ATLAS INTEGRATED COMPOSER BOX
-       -------------------------------------------------------------------------- */
+    /* Composer */
     .composer-form {
       width: 100%;
     }
@@ -450,7 +442,14 @@
       gap: 6px;
       flex: 1;
       min-width: 0;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+
+    .composer-controls-left::-webkit-scrollbar {
+      display: none;
     }
 
     .composer-tool-btn {
@@ -529,9 +528,7 @@
       color: var(--text-subtle);
     }
 
-    /* --------------------------------------------------------------------------
-       CONTROLS & ACTION BAR
-       -------------------------------------------------------------------------- */
+    /* Actions Bar */
     .launcher-actions-bar {
       width: 100%;
       margin-top: 1.25rem;
@@ -605,9 +602,7 @@
       color: #FFFFFF;
     }
 
-    /* --------------------------------------------------------------------------
-       INLINE EMBED IFRAME VIEW
-       -------------------------------------------------------------------------- */
+    /* Inline Embed Iframe */
     .embed-preview-wrapper {
       width: 100%;
       margin-top: 1.5rem;
@@ -638,9 +633,7 @@
       background: var(--bg-app);
     }
 
-    /* --------------------------------------------------------------------------
-       FOOTER
-       -------------------------------------------------------------------------- */
+    /* Footer */
     footer {
       border-top: 1px solid var(--border-subtle);
       padding: 1rem 1.5rem;
@@ -664,28 +657,245 @@
       color: var(--accent-primary);
     }
 
+    /* ================================================================
+       MOBILE RESPONSIVE — Samsung A13 / 360px+ viewport
+       ================================================================ */
     @media (max-width: 600px) {
+
+      /* --- Navbar --- */
       .top-navbar {
-        padding: 0 10px;
+        padding: 0 8px;
+        height: 42px;
+        gap: 4px;
+      }
+
+      .nav-left {
+        gap: 6px;
+        min-width: 0;
+        overflow: hidden;
+      }
+
+      .portfolio-back-btn span {
+        display: none;
+      }
+
+      .portfolio-back-btn {
+        padding: 4px 6px;
+      }
+
+      .brand-subtitle {
+        display: none;
+      }
+
+      .brand-title {
+        font-size: 0.85rem;
       }
 
       .target-host-badge {
         display: none;
       }
 
-      .composer-hints {
-        flex-direction: column;
-        align-items: flex-start;
+      .launch-studio-btn span {
+        display: none;
+      }
+
+      .launch-studio-btn {
+        padding: 4px 6px;
+      }
+
+      /* --- Welcome Hero --- */
+      .welcome-screen {
+        margin-bottom: 1rem;
+      }
+
+      .welcome-brand-logo svg {
+        width: 32px;
+        height: 32px;
+      }
+
+      .welcome-brand-logo {
+        margin-bottom: 8px;
+      }
+
+      .welcome-heading {
+        font-size: 1.05rem;
+        margin-bottom: 4px;
+      }
+
+      .welcome-subtitle {
+        font-size: 0.76rem;
+        line-height: 1.4;
+      }
+
+      /* --- Mode Selector Grid --- */
+      .mode-selector-heading {
+        font-size: 0.62rem;
+        margin-bottom: 4px;
+      }
+
+      .mode-selector-grid {
+        gap: 6px;
+        padding: 2px 1px 8px 1px;
+        margin-bottom: 6px;
+        /* Right-edge fade scroll indicator */
+        -webkit-mask-image: linear-gradient(to right, #000 85%, transparent 100%);
+        mask-image: linear-gradient(to right, #000 85%, transparent 100%);
+      }
+
+      .mode-card-pill {
+        flex: 0 0 88px;
+        min-width: 88px;
+        padding: 6px 8px;
+        border-radius: 5px;
+      }
+
+      .mode-icon svg {
+        width: 13px;
+        height: 13px;
+      }
+
+      .mode-name {
+        font-size: 0.72rem;
+      }
+
+      .mode-desc-hint {
+        font-size: 0.6rem;
+      }
+
+      /* --- Active Mode Banner --- */
+      .active-mode-banner {
+        padding: 5px 8px;
+        font-size: 0.68rem;
+        margin-bottom: 8px;
+      }
+
+      .active-mode-banner-left {
+        flex-wrap: wrap;
         gap: 2px;
       }
 
+      #activeModeDesc {
+        white-space: normal;
+      }
+
+      /* --- Suggested Prompts --- */
+      .welcome-suggestions {
+        gap: 4px;
+        margin-bottom: 0.75rem;
+      }
+
+      .suggestion-label {
+        font-size: 0.6rem;
+      }
+
+      .suggestion-pills {
+        gap: 5px;
+      }
+
+      .prompt-card.suggestion-pill {
+        font-size: 0.7rem;
+        padding: 4px 7px;
+        white-space: normal;
+        line-height: 1.35;
+      }
+
+      /* --- Composer --- */
+      main {
+        padding: 1rem 0.6rem 1.5rem 0.6rem;
+      }
+
+      .composer-textarea {
+        padding: 10px 10px 4px;
+        font-size: 0.86rem;
+        min-height: 44px;
+      }
+
+      .composer-bottom-bar {
+        padding: 4px 6px 5px;
+      }
+
+      .composer-controls-left {
+        gap: 4px;
+      }
+
+      .composer-tool-btn {
+        padding: 3px 5px;
+        font-size: 0.68rem;
+        gap: 3px;
+      }
+
+      .composer-engine-hint {
+        font-size: 0.64rem;
+        padding: 2px 5px;
+      }
+
+      .send-btn {
+        width: 28px;
+        height: 28px;
+      }
+
+      .composer-hints {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1px;
+        font-size: 0.68rem;
+        margin-top: 4px;
+      }
+
+      /* --- Launcher Actions --- */
       .launcher-actions-bar {
         flex-direction: column;
         align-items: stretch;
+        margin-top: 0.75rem;
+        gap: 8px;
+      }
+
+      .options-left {
+        gap: 10px;
+        font-size: 0.74rem;
       }
 
       .launcher-btns-group {
         justify-content: flex-end;
+      }
+
+      .btn-action-demo {
+        font-size: 0.74rem;
+        padding: 5px 10px;
+      }
+
+      /* --- Inline Embed --- */
+      .embed-preview-frame {
+        height: 450px;
+      }
+
+      /* --- Footer --- */
+      footer {
+        flex-direction: column;
+        text-align: center;
+        gap: 4px;
+        padding: 0.75rem 1rem;
+        font-size: 0.72rem;
+      }
+
+      footer div {
+        white-space: nowrap;
+      }
+    }
+
+    /* Extra small screens (below 360px) */
+    @media (max-width: 359px) {
+      .mode-card-pill {
+        flex: 0 0 78px;
+        min-width: 78px;
+      }
+
+      .welcome-heading {
+        font-size: 0.95rem;
+      }
+
+      .composer-tool-btn span {
+        display: none;
       }
     }
   </style>
@@ -693,10 +903,9 @@
 
 <body>
 
-  <!-- AUTHENTIC ATLAS NAVBAR -->
+  <!-- TOP NAVBAR -->
   <header class="top-navbar">
     <div class="nav-left">
-      <!-- Links back to your personal portfolio -->
       <a href="https://avuyilemthembu.co.za" class="portfolio-back-btn" title="Return to Personal Portfolio">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
           stroke-linecap="round" stroke-linejoin="round">
@@ -730,8 +939,7 @@
 
     <div class="nav-right">
       <span class="target-host-badge">https://atlas.vylex.co.za/</span>
-      <a href="https://atlas.vylex.co.za/" target="_blank" rel="noopener" class="launch-studio-btn"
-        title="Open directly in Atlas">
+      <a href="https://atlas.vylex.co.za/" target="_blank" rel="noopener" class="launch-studio-btn" title="Open directly in Atlas">
         <span>Open Studio</span>
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <line x1="7" y1="17" x2="17" y2="7"></line>
@@ -743,7 +951,6 @@
 
   <!-- MAIN VIEWPORT -->
   <main>
-    <!-- WELCOME SCREEN (IDENTICAL TO REAL ATLAS APP) -->
     <div class="welcome-screen">
       <div class="welcome-brand-logo" aria-hidden="true">
         <svg width="44" height="44" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -769,7 +976,7 @@
       </p>
     </div>
 
-    <!-- INVESTIGATION MODES GRID -->
+    <!-- 8 REAL ATLAS MODES GRID -->
     <div class="mode-selector-heading">Choose how you want to work</div>
     <div class="mode-selector-grid" id="modeSelectorGrid">
       <div class="mode-card-pill active" data-mode="auto"
@@ -894,7 +1101,7 @@
       </div>
     </div>
 
-    <!-- REAL ATLAS INTEGRATED COMPOSER -->
+    <!-- COMPOSER -->
     <form class="composer-form" id="launcherForm">
       <div class="composer-box" id="composerBox">
         <textarea id="promptInput" class="composer-textarea" placeholder="What would you like to work on?" rows="2"
@@ -986,8 +1193,8 @@
     /**
      * ATLAS TARGET CONFIGURATION
      * -------------------------------------------------------------
-     * Target specified: https://atlas.vylex.co.za/
-     * If testing locally on localhost, points to local dev server.
+     * Automatically points to the current host when served on localhost,
+     * or https://atlas.vylex.co.za when accessed from an external website.
      */
     const IS_SAME_ORIGIN = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname.endsWith('vylex.co.za');
     const ATLAS_TARGET_URL = IS_SAME_ORIGIN ? '/' : 'https://atlas.vylex.co.za/';
@@ -1050,7 +1257,7 @@
       ]
     };
 
-    // Dynamic Time-Aware Greeting (Atlas Strict UI Fidelity)
+    // Dynamic Time-Aware Greeting
     function updateGreeting() {
       const hour = new Date().getHours();
       if (hour >= 4 && hour < 12) {

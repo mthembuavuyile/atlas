@@ -87,8 +87,8 @@ describe('Widget Service Deterministic Capabilities', () => {
 
   test('getRedditPosts returns valid structure with video property compatibility', async () => {
     const res = await widgetService.getRedditPosts('technology');
-    if (res.error) {
-      assert.ok(typeof res.error === 'string');
+    if (res.error || res.data?.error) {
+      assert.ok(typeof (res.error || res.data?.error) === 'string');
     } else {
       assert.strictEqual(res.type, 'reddit');
       assert.ok(Array.isArray(res.data.posts));

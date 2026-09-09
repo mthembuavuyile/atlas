@@ -442,7 +442,14 @@
       gap: 6px;
       flex: 1;
       min-width: 0;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+
+    .composer-controls-left::-webkit-scrollbar {
+      display: none;
     }
 
     .composer-tool-btn {
@@ -650,28 +657,245 @@
       color: var(--accent-primary);
     }
 
+    /* ================================================================
+       MOBILE RESPONSIVE — Samsung A13 / 360px+ viewport
+       ================================================================ */
     @media (max-width: 600px) {
+
+      /* --- Navbar --- */
       .top-navbar {
-        padding: 0 10px;
+        padding: 0 8px;
+        height: 42px;
+        gap: 4px;
+      }
+
+      .nav-left {
+        gap: 6px;
+        min-width: 0;
+        overflow: hidden;
+      }
+
+      .portfolio-back-btn span {
+        display: none;
+      }
+
+      .portfolio-back-btn {
+        padding: 4px 6px;
+      }
+
+      .brand-subtitle {
+        display: none;
+      }
+
+      .brand-title {
+        font-size: 0.85rem;
       }
 
       .target-host-badge {
         display: none;
       }
 
-      .composer-hints {
-        flex-direction: column;
-        align-items: flex-start;
+      .launch-studio-btn span {
+        display: none;
+      }
+
+      .launch-studio-btn {
+        padding: 4px 6px;
+      }
+
+      /* --- Welcome Hero --- */
+      .welcome-screen {
+        margin-bottom: 1rem;
+      }
+
+      .welcome-brand-logo svg {
+        width: 32px;
+        height: 32px;
+      }
+
+      .welcome-brand-logo {
+        margin-bottom: 8px;
+      }
+
+      .welcome-heading {
+        font-size: 1.05rem;
+        margin-bottom: 4px;
+      }
+
+      .welcome-subtitle {
+        font-size: 0.76rem;
+        line-height: 1.4;
+      }
+
+      /* --- Mode Selector Grid --- */
+      .mode-selector-heading {
+        font-size: 0.62rem;
+        margin-bottom: 4px;
+      }
+
+      .mode-selector-grid {
+        gap: 6px;
+        padding: 2px 1px 8px 1px;
+        margin-bottom: 6px;
+        /* Right-edge fade scroll indicator */
+        -webkit-mask-image: linear-gradient(to right, #000 85%, transparent 100%);
+        mask-image: linear-gradient(to right, #000 85%, transparent 100%);
+      }
+
+      .mode-card-pill {
+        flex: 0 0 88px;
+        min-width: 88px;
+        padding: 6px 8px;
+        border-radius: 5px;
+      }
+
+      .mode-icon svg {
+        width: 13px;
+        height: 13px;
+      }
+
+      .mode-name {
+        font-size: 0.72rem;
+      }
+
+      .mode-desc-hint {
+        font-size: 0.6rem;
+      }
+
+      /* --- Active Mode Banner --- */
+      .active-mode-banner {
+        padding: 5px 8px;
+        font-size: 0.68rem;
+        margin-bottom: 8px;
+      }
+
+      .active-mode-banner-left {
+        flex-wrap: wrap;
         gap: 2px;
       }
 
+      #activeModeDesc {
+        white-space: normal;
+      }
+
+      /* --- Suggested Prompts --- */
+      .welcome-suggestions {
+        gap: 4px;
+        margin-bottom: 0.75rem;
+      }
+
+      .suggestion-label {
+        font-size: 0.6rem;
+      }
+
+      .suggestion-pills {
+        gap: 5px;
+      }
+
+      .prompt-card.suggestion-pill {
+        font-size: 0.7rem;
+        padding: 4px 7px;
+        white-space: normal;
+        line-height: 1.35;
+      }
+
+      /* --- Composer --- */
+      main {
+        padding: 1rem 0.6rem 1.5rem 0.6rem;
+      }
+
+      .composer-textarea {
+        padding: 10px 10px 4px;
+        font-size: 0.86rem;
+        min-height: 44px;
+      }
+
+      .composer-bottom-bar {
+        padding: 4px 6px 5px;
+      }
+
+      .composer-controls-left {
+        gap: 4px;
+      }
+
+      .composer-tool-btn {
+        padding: 3px 5px;
+        font-size: 0.68rem;
+        gap: 3px;
+      }
+
+      .composer-engine-hint {
+        font-size: 0.64rem;
+        padding: 2px 5px;
+      }
+
+      .send-btn {
+        width: 28px;
+        height: 28px;
+      }
+
+      .composer-hints {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1px;
+        font-size: 0.68rem;
+        margin-top: 4px;
+      }
+
+      /* --- Launcher Actions --- */
       .launcher-actions-bar {
         flex-direction: column;
         align-items: stretch;
+        margin-top: 0.75rem;
+        gap: 8px;
+      }
+
+      .options-left {
+        gap: 10px;
+        font-size: 0.74rem;
       }
 
       .launcher-btns-group {
         justify-content: flex-end;
+      }
+
+      .btn-action-demo {
+        font-size: 0.74rem;
+        padding: 5px 10px;
+      }
+
+      /* --- Inline Embed --- */
+      .embed-preview-frame {
+        height: 450px;
+      }
+
+      /* --- Footer --- */
+      footer {
+        flex-direction: column;
+        text-align: center;
+        gap: 4px;
+        padding: 0.75rem 1rem;
+        font-size: 0.72rem;
+      }
+
+      footer div {
+        white-space: nowrap;
+      }
+    }
+
+    /* Extra small screens (below 360px) */
+    @media (max-width: 359px) {
+      .mode-card-pill {
+        flex: 0 0 78px;
+        min-width: 78px;
+      }
+
+      .welcome-heading {
+        font-size: 0.95rem;
+      }
+
+      .composer-tool-btn span {
+        display: none;
       }
     }
   </style>
