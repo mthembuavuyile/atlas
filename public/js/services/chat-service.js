@@ -486,16 +486,24 @@ export async function executeChatTurn(session) {
             if (!isDuplicateWidget) {
               accumulatedWidgets.push(parsed.__widget__);
               if (window.atlasRenderWidget) {
-                const widgetHtml = window.atlasRenderWidget(parsed.__widget__.type, parsed.__widget__.data);
-                if (widgetHtml && widgetsContainer) {
-                  const widgetBox = document.createElement('div');
-                  widgetBox.className = 'widget-mount-point';
-                  widgetBox.innerHTML = widgetHtml;
-                  widgetsContainer.appendChild(widgetBox);
-                  if (window.atlasMountWidget) {
-                    window.atlasMountWidget(widgetBox, parsed.__widget__.type, parsed.__widget__.data);
+                try {
+                  const widgetHtml = window.atlasRenderWidget(parsed.__widget__.type, parsed.__widget__.data);
+                  if (widgetHtml && widgetsContainer) {
+                    const widgetBox = document.createElement('div');
+                    widgetBox.className = 'widget-mount-point';
+                    widgetBox.innerHTML = widgetHtml;
+                    widgetsContainer.appendChild(widgetBox);
+                    if (window.atlasMountWidget) {
+                      try {
+                        window.atlasMountWidget(widgetBox, parsed.__widget__.type, parsed.__widget__.data);
+                      } catch (mErr) {
+                        console.warn('[Atlas Widgets] Streaming widget mount error:', mErr);
+                      }
+                    }
+                    scrollToBottom(false);
                   }
-                  scrollToBottom(false);
+                } catch (wErr) {
+                  console.warn('[Atlas Widgets] Streaming widget render error:', wErr);
                 }
               }
             }

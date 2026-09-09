@@ -26,7 +26,12 @@ export function formatTimeAgo(dateString) {
 }
 
 export function formatNumber(num) {
-    return Number(num).toLocaleString('en-US', {
+    const val = Number(num);
+    if (isNaN(val)) return '0';
+    if (Number.isInteger(val)) {
+        return val.toLocaleString('en-US');
+    }
+    return val.toLocaleString('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 6
     });

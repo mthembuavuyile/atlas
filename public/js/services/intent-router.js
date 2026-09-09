@@ -9,6 +9,7 @@ import { API_BASE } from '../config/constants.js';
 import { parseMarkdownSafely } from '../markdown/parser.js';
 import { saveSessions, updateSessionMetrics } from '../ui/session-manager.js';
 import { scrollToBottom } from '../ui/message-renderer.js';
+import { renderWidget, mountWidget } from '../widgets/widget-renderer.js';
 
 export function detectLocalWidgetIntent(text) {
   if (!text || typeof text !== 'string') return null;
@@ -342,21 +343,39 @@ export async function runLocalWidget(toolToCall, argsPayload, statusText, contex
     body: JSON.stringify({ tool: toolToCall, args: argsPayload })
   });
 
-  if (!res.ok) throw new Error('Widget service failed');
+  if (!res.ok) {
+    let errorMsg = `Widget service failed with status ${res.status}`;
+    try {
+      const errData = await res.json();
+      if (errData?.error) errorMsg = errData.error;
+    } catch (_) {}
+    throw new Error(errorMsg);
+  }
   const widgetResult = await res.json();
 
   accumulatedWidgets.push(widgetResult);
 
-  if (window.atlasRenderWidget) {
-    const widgetHtml = window.atlasRenderWidget(widgetResult.type, widgetResult.data);
-    if (widgetHtml && widgetsContainer) {
-      const widgetBox = document.createElement('div');
-      widgetBox.className = 'widget-mount-point';
-      widgetBox.innerHTML = widgetHtml;
-      widgetsContainer.appendChild(widgetBox);
-      if (window.atlasMountWidget) {
-        window.atlasMountWidget(widgetBox, widgetResult.type, widgetResult.data);
+  const renderer = (typeof renderWidget === 'function' ? renderWidget : window.atlasRenderWidget);
+  const mounter = (typeof mountWidget === 'function' ? mountWidget : window.atlasMountWidget);
+
+  if (renderer) {
+    try {
+      const widgetHtml = renderer(widgetResult.type, widgetResult.data);
+      if (widgetHtml && widgetsContainer) {
+        const widgetBox = document.createElement('div');
+        widgetBox.className = 'widget-mount-point';
+        widgetBox.innerHTML = widgetHtml;
+        widgetsContainer.appendChild(widgetBox);
+        if (mounter) {
+          try {
+            mounter(widgetBox, widgetResult.type, widgetResult.data);
+          } catch (mErr) {
+            console.warn('[Atlas Widgets] Widget mount error:', mErr);
+          }
+        }
       }
+    } catch (rErr) {
+      console.warn('[Atlas Widgets] Widget render error:', rErr);
     }
   }
 
