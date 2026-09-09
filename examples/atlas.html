@@ -7,7 +7,7 @@
   <title>Atlas | Scientific Intelligence — Avuyile Mthembu</title>
   <meta name="description"
     content="Interactive launcher and reasoning environment for Atlas by Vylex Technologies. Formulate hypotheses, compute derivations, or launch a live studio demo.">
-  <link rel="icon" type="image/svg+xml" href="http://atlas.vylex.co.za/favicon.svg">
+  <link rel="icon" type="image/svg+xml" href="https://atlas.vylex.co.za/favicon.svg">
 
   <!-- Google Fonts: Plus Jakarta Sans, DM Sans, JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -729,8 +729,8 @@
     </div>
 
     <div class="nav-right">
-      <span class="target-host-badge">http://atlas.vylex.co.za/</span>
-      <a href="http://atlas.vylex.co.za/" target="_blank" rel="noopener" class="launch-studio-btn"
+      <span class="target-host-badge">https://atlas.vylex.co.za/</span>
+      <a href="https://atlas.vylex.co.za/" target="_blank" rel="noopener" class="launch-studio-btn"
         title="Open directly in Atlas">
         <span>Open Studio</span>
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -968,7 +968,7 @@
     <!-- OPTIONAL INLINE STUDIO IFRAME -->
     <div class="embed-preview-wrapper" id="embedWrapper">
       <div class="embed-preview-header">
-        <span>Atlas Studio Live Preview (http://atlas.vylex.co.za/)</span>
+        <span>Atlas Studio Live Preview (https://atlas.vylex.co.za/)</span>
         <button type="button" id="closeEmbedBtn" class="toggle-embed-link">Close Preview ↑</button>
       </div>
       <iframe id="atlasIframe" class="embed-preview-frame" title="Atlas Studio" src="about:blank"
@@ -979,18 +979,18 @@
   <!-- FOOTER -->
   <footer>
     <div>Developed by <a href="https://avuyilemthembu.co.za">Avuyile Mthembu</a></div>
-    <div>Powered by <a href="http://atlas.vylex.co.za/" target="_blank" rel="noopener">Atlas · Vylex Technologies</a></div>
+    <div>Powered by <a href="https://atlas.vylex.co.za/" target="_blank" rel="noopener">Atlas · Vylex Technologies</a></div>
   </footer>
 
   <script>
     /**
      * ATLAS TARGET CONFIGURATION
      * -------------------------------------------------------------
-     * Target specified: http://atlas.vylex.co.za/
-     * If testing locally on localhost, falls back to http://localhost:3000
+     * Target specified: https://atlas.vylex.co.za/
+     * If testing locally on localhost, points to local dev server.
      */
-    const IS_LOCAL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const ATLAS_TARGET_URL = IS_LOCAL ? 'http://localhost:3000' : 'http://atlas.vylex.co.za';
+    const IS_SAME_ORIGIN = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname.endsWith('vylex.co.za');
+    const ATLAS_TARGET_URL = IS_SAME_ORIGIN ? '/' : 'https://atlas.vylex.co.za/';
 
     // State
     let activeMode = 'auto';
@@ -1126,7 +1126,7 @@
 
     // Build Atlas Destination URL
     function buildTargetUrl(promptText, execute = true) {
-      const url = new URL(ATLAS_TARGET_URL);
+      const url = new URL(ATLAS_TARGET_URL, window.location.origin);
       let query = (promptText || '').trim();
 
       if (isWebActive && query && !query.startsWith('/web')) {
@@ -1198,6 +1198,31 @@
       embedToggleBtn.style.display = 'inline';
       atlasIframe.src = 'about:blank';
     });
+
+    // Support incoming query parameters to atlas.html launcher itself
+    try {
+      const selfParams = new URLSearchParams(window.location.search);
+      const incomingQuery = selfParams.get('q') || selfParams.get('prompt');
+      const incomingMode = selfParams.get('mode');
+      const incomingEmbed = selfParams.get('embed') === '1' || selfParams.get('preview') === '1';
+
+      if (incomingMode && MODE_SUGGESTIONS[incomingMode]) {
+        const modePill = document.querySelector(`.mode-card-pill[data-mode="${incomingMode}"]`);
+        if (modePill) modePill.click();
+      }
+
+      if (incomingQuery) {
+        promptInput.value = incomingQuery;
+        autoResize();
+        updateTokenCount();
+      }
+
+      if (incomingEmbed) {
+        embedToggleBtn.click();
+      }
+    } catch (e) {
+      console.warn('[Atlas Launcher] Error parsing launcher parameters:', e);
+    }
   </script>
 </body>
 

@@ -216,6 +216,11 @@ export function resolveSlashCommand(prompt) {
   const command = slashMatch[1].toLowerCase();
   const arg = slashMatch[2] || '';
 
+  let toolToCall = null;
+  let argsPayload = {};
+  let isWebSearch = false;
+  let overrideText = null;
+
   if (command === 'movies' || command === 'upcoming') {
     toolToCall = 'discover_movies';
     argsPayload = { query: arg || '2026 movies', year: arg && /^\d{4}$/.test(arg.trim()) ? arg.trim() : '2026' };
@@ -308,6 +313,9 @@ export function resolveSlashCommand(prompt) {
     argsPayload = nearMatch
       ? { query: nearMatch[1].trim(), near: nearMatch[2].trim() }
       : { query: arg || 'coffee shop' };
+  } else {
+    // Unrecognized slash command; do not hijack, let main reasoning engine handle
+    return null;
   }
 
   return {

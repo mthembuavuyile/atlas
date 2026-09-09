@@ -47,43 +47,48 @@ export function formatUserFriendlyError(err, statusCode = null) {
 
   const raw = (err && (err.message || String(err))) || '';
   const lower = raw.toLowerCase();
+  const effectiveStatus = statusCode || (err && err.status) || null;
 
   if (
     lower.includes('free-models-per-day') ||
     lower.includes('daily free reasoning quota') ||
     lower.includes('free tier daily') ||
-    lower.includes('purchase credits to raise')
+    lower.includes('purchase credits to raise') ||
+    lower.includes('quota reached')
   ) {
     return {
       title: 'Daily Free Quota Reached',
       desc: 'The shared daily free reasoning quota has been reached (50 requests/day). It automatically resets at midnight UTC.',
-      action: 'You can configure a custom OpenRouter key in Settings for immediate access.',
+      action: 'Configure your personal OpenRouter key in Settings for immediate, private quota.',
       type: 'warning',
-      canRetry: false
+      canRetry: false,
+      openSettings: true
     };
   }
 
-  if (statusCode === 401 || lower.includes('api key not configured') || lower.includes('unauthorized') || lower.includes('invalid api key')) {
+  if (effectiveStatus === 401 || lower.includes('api key not configured') || lower.includes('unauthorized') || lower.includes('invalid api key')) {
     return {
       title: 'API Key Required',
-      desc: 'OpenRouter API key is missing or invalid.',
+      desc: 'An OpenRouter API key is required to complete this request.',
       action: 'You can supply your own OpenRouter key in Settings to continue.',
       type: 'warning',
-      canRetry: false
+      canRetry: false,
+      openSettings: true
     };
   }
 
-  if (statusCode === 429 || lower.includes('rate limit') || lower.includes('too many requests')) {
+  if (effectiveStatus === 429 || lower.includes('rate limit') || lower.includes('too many requests')) {
     return {
       title: 'Rate Limit Reached',
-      desc: 'You are sending messages too fast.',
-      action: 'Please wait a few seconds before trying again.',
+      desc: 'The reasoning engines are momentarily rate-limited or busy.',
+      action: 'Please wait a few seconds before trying again, or configure a personal key in Settings.',
       type: 'warning',
-      canRetry: true
+      canRetry: true,
+      openSettings: true
     };
   }
 
-  if (statusCode === 413 || lower.includes('payload too large')) {
+  if (effectiveStatus === 413 || lower.includes('payload too large')) {
     return {
       title: 'File Too Large',
       desc: 'This file is too large to be processed.',
@@ -93,7 +98,7 @@ export function formatUserFriendlyError(err, statusCode = null) {
     };
   }
 
-  if (statusCode === 403 || lower.includes('unauthorized model') || lower.includes('not available')) {
+  if (effectiveStatus === 403 || lower.includes('unauthorized model') || lower.includes('not available')) {
     return {
       title: 'Model Unavailable',
       desc: 'This reasoning model is momentarily unavailable.',
@@ -104,10 +109,10 @@ export function formatUserFriendlyError(err, statusCode = null) {
   }
 
   if (
-    statusCode === 500 ||
-    statusCode === 503 ||
-    statusCode === 504 ||
-    statusCode === 502 ||
+    effectiveStatus === 500 ||
+    effectiveStatus === 503 ||
+    effectiveStatus === 504 ||
+    effectiveStatus === 502 ||
     lower.includes('high demand') ||
     lower.includes('concurrency') ||
     lower.includes('overloaded') ||
@@ -134,7 +139,7 @@ export function formatUserFriendlyError(err, statusCode = null) {
     };
   }
 
-  if (statusCode === 400 && lower.includes('system prompt')) {
+  if (effectiveStatus === 400 && lower.includes('system prompt')) {
     return {
       title: 'Instructions Too Long',
       desc: 'Your custom instructions exceed the allowed character limit.',
@@ -144,12 +149,14 @@ export function formatUserFriendlyError(err, statusCode = null) {
     };
   }
 
+  const isGeneric = !raw || lower.includes('request failed') || lower.includes('object object');
   return {
     title: 'Service Notice',
-    desc: 'Something went wrong while processing your request.',
-    action: 'Please try again shortly.',
+    desc: isGeneric ? 'Something went wrong while processing your request.' : raw,
+    action: 'Please try again shortly or configure a custom key in Settings.',
     type: 'error',
-    canRetry: true
+    canRetry: true,
+    openSettings: effectiveStatus === 429 || effectiveStatus === 401 || lower.includes('key')
   };
 }
 
@@ -159,10 +166,18 @@ export function renderErrorCard(errorInfo) {
     : `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`;
 
   const retryBtn = errorInfo.canRetry
-    ? `<button class="atlas-retry-btn" onclick="window.atlasRetryLast()" style="margin-top: 10px; padding: 6px 12px; background: var(--border-light); border: 1px solid var(--border-focus); border-radius: 4px; color: var(--text-main); font-family: inherit; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px;">${ICONS.retry} Try Again</button>`
+    ? `<button class="atlas-retry-btn" onclick="window.atlasRetryLast()" style="padding: 6px 12px; background: var(--border-light); border: 1px solid var(--border-focus); border-radius: 4px; color: var(--text-main); font-family: inherit; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px;">${ICONS.retry} Try Again</button>`
+    : '';
+
+  const settingsBtn = errorInfo.openSettings
+    ? `<button class="atlas-settings-btn" onclick="window.atlasOpenSettings && window.atlasOpenSettings('general-settings')" style="padding: 6px 12px; background: rgba(251,169,25,0.14); border: 1px solid var(--accent-primary, #fba919); border-radius: 4px; color: var(--accent-primary, #fba919); font-family: inherit; font-size: 13px; font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg> Configure Key in Settings</button>`
     : '';
 
   const actionText = errorInfo.action ? `<div class="atlas-error-action" style="margin-top: 4px; font-weight: 500;">${escapeHtml(errorInfo.action)}</div>` : '';
+
+  const actionsRow = (retryBtn || settingsBtn)
+    ? `<div class="atlas-error-actions-row" style="margin-top: 10px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">${settingsBtn}${retryBtn}</div>`
+    : '';
 
   return `
     <div class="atlas-error-card ${errorInfo.type}">
@@ -171,7 +186,7 @@ export function renderErrorCard(errorInfo) {
         <div class="atlas-error-title">${escapeHtml(errorInfo.title)}</div>
         <div class="atlas-error-desc">${escapeHtml(errorInfo.desc)}</div>
         ${actionText}
-        ${retryBtn}
+        ${actionsRow}
       </div>
     </div>
   `;
@@ -326,12 +341,27 @@ export async function executeChatTurn(session) {
       } catch (err) {
         if (err.name === 'AbortError') throw err;
 
+        // Immediate check: If daily quota is reached, do not waste time retrying 3 times
+        const errMsgLower = (err.message || '').toLowerCase();
+        const isQuotaExhausted = errMsgLower.includes('free-models-per-day') ||
+                                 errMsgLower.includes('daily free reasoning quota') ||
+                                 errMsgLower.includes('free tier daily') ||
+                                 errMsgLower.includes('purchase credits to raise') ||
+                                 errMsgLower.includes('quota reached');
+
+        if (isQuotaExhausted) {
+          throw err;
+        }
+
         if (err.status && err.status >= 400 && err.status < 500 && err.status !== 429 && err.status !== 408) {
           throw err;
         }
 
         if (attempt === retries) {
-          throw new Error(`Connection failed after ${retries} attempts. The network or upstream provider is unstable. Please try again.`);
+          // Preserve the original server error message and HTTP status code
+          const finalErr = new Error(err.message || `Connection failed after ${retries} attempts.`);
+          finalErr.status = err.status || 500;
+          throw finalErr;
         }
 
         console.warn(`[Atlas Network Guard] Request failed (attempt ${attempt}/${retries}): ${err.message}. Retrying in ${delay}ms...`);

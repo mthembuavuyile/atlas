@@ -166,4 +166,47 @@ describe('Public Pages Architecture & Layout Standardization', () => {
       server.close();
     }
   });
+
+  test('GET /atlas and /atlas/ route cleanly to launcher page with HTTPS links', async () => {
+    const server = app.listen(0);
+    const port = server.address().port;
+
+    try {
+      const resRoute = await fetch(`http://127.0.0.1:${port}/atlas`);
+      assert.strictEqual(resRoute.status, 200);
+      const html = await resRoute.text();
+      assert.ok(html.includes('id="promptInput"'));
+      assert.ok(html.includes('https://atlas.vylex.co.za/'), 'Should link to HTTPS atlas.vylex.co.za');
+      assert.ok(!html.includes('http://atlas.vylex.co.za'), 'Should not contain insecure http://atlas.vylex.co.za links');
+
+      const resTrailing = await fetch(`http://127.0.0.1:${port}/atlas/`);
+      assert.strictEqual(resTrailing.status, 200);
+    } finally {
+      server.close();
+    }
+  });
+
+  test('atlas.html and examples/atlas.html maintain strict HTTPS protocol fidelity', () => {
+    const fs = require('fs');
+    const path = require('path');
+
+    const publicAtlas = fs.readFileSync(path.join(__dirname, '../public/atlas.html'), 'utf8');
+    const exampleAtlas = fs.readFileSync(path.join(__dirname, '../examples/atlas.html'), 'utf8');
+
+    assert.ok(!publicAtlas.includes('http://atlas.vylex.co.za'), 'public/atlas.html must not use http:// for atlas.vylex.co.za');
+    assert.ok(!exampleAtlas.includes('http://atlas.vylex.co.za'), 'examples/atlas.html must not use http:// for atlas.vylex.co.za');
+    assert.ok(publicAtlas.includes('https://atlas.vylex.co.za'), 'public/atlas.html must reference https://atlas.vylex.co.za');
+    assert.ok(exampleAtlas.includes('https://atlas.vylex.co.za'), 'examples/atlas.html must reference https://atlas.vylex.co.za');
+  });
+
+  test('intent-router.js strictly declares slash command variables without ReferenceErrors', () => {
+    const fs = require('fs');
+    const path = require('path');
+
+    const code = fs.readFileSync(path.join(__dirname, '../public/js/services/intent-router.js'), 'utf8');
+    assert.ok(code.includes('let toolToCall = null;'), 'Must declare toolToCall');
+    assert.ok(code.includes('let isWebSearch = false;'), 'Must declare isWebSearch');
+    assert.ok(code.includes('let argsPayload = {};'), 'Must declare argsPayload');
+    assert.ok(code.includes('let overrideText = null;'), 'Must declare overrideText');
+  });
 });

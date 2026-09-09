@@ -145,7 +145,19 @@ class OpenRouterService {
 
       // Status codes eligible for automatic rotation:
       // 429 (Rate Limit / Concurrency), 500, 502, 503, 504 (Provider Down / Overloaded), 408 (Timeout)
+      // 400/404 (if provider endpoints unavailable, model retired, or tools unsupported)
+      const isEndpointIssue = (response.status === 400 || response.status === 404) && (
+        lower.includes('no endpoints') ||
+        lower.includes('not found') ||
+        lower.includes('unavailable') ||
+        lower.includes('not supported') ||
+        lower.includes('tool') ||
+        lower.includes('disabled') ||
+        lower.includes('provider')
+      );
+
       const isRetryable = [429, 500, 502, 503, 504, 408].includes(response.status) ||
+                          isEndpointIssue ||
                           lower.includes('rate limit') ||
                           lower.includes('overloaded') ||
                           lower.includes('concurrency') ||
@@ -154,6 +166,11 @@ class OpenRouterService {
       if (isRetryable) {
         console.warn(`⚡ [Auto-Rotation Triggered]: Model "${model}" returned ${response.status} (${rawMessage}). Rotating to next available engine in pool...`);
         
+        // If error was due to unsupported tools, fall back gracefully without tools
+        const fallbackTools = (lower.includes('tool') && (lower.includes('not support') || lower.includes('unsupported')))
+          ? undefined
+          : tools;
+
         // Fast 100ms jittered backoff
         await this.sleep(100);
 
@@ -162,7 +179,7 @@ class OpenRouterService {
           failedModel: model,
           temperature,
           stream,
-          tools,
+          tools: fallbackTools,
           maxTokens,
           reasoning,
           apiKey: activeKey,

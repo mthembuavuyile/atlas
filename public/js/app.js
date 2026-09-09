@@ -305,6 +305,10 @@ function init() {
     createNewSession();
   }
 
+  window.atlasOpenSettings = (tab = 'general-settings') => {
+    openUnifiedSettings(tab);
+  };
+
   handleIncomingQueryParameters();
 }
 
@@ -314,6 +318,13 @@ function handleIncomingQueryParameters() {
     const query = params.get('q') || params.get('prompt');
     const mode = params.get('mode');
     const autoSend = params.get('send') === '1' || params.get('send') === 'true' || params.get('demo') === '1';
+    const apiKeyParam = params.get('key') || params.get('apiKey');
+
+    if (apiKeyParam && typeof apiKeyParam === 'string' && apiKeyParam.trim().startsWith('sk-or-')) {
+      state.apiKey = apiKeyParam.trim();
+      localStorage.setItem('atlas_openrouter_api_key', state.apiKey);
+      if (dom.customApiKeyInput) dom.customApiKeyInput.value = state.apiKey;
+    }
 
     if (mode) {
       selectMode(mode);
@@ -337,7 +348,7 @@ function handleIncomingQueryParameters() {
       if (autoSend && dom.chatForm) {
         setTimeout(() => {
           dom.chatForm.dispatchEvent(new Event('submit', { cancelable: true }));
-        }, 150);
+        }, 200);
       }
     }
   } catch (err) {
