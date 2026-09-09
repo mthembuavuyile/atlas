@@ -9,6 +9,8 @@
     "cli": "node src/cli/chat-cli.js",
     "reddit": "node src/cli/reddit-cli.js",
     "quickstart": "node examples/quickstart.js",
+    "sitemap": "node scripts/generate-sitemap.js",
+    "sitemap:check": "node scripts/generate-sitemap.js --check",
     "test": "node --test tests/"
   },
   "keywords": [

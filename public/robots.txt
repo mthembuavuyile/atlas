@@ -1,5 +1,5 @@
 # https://www.robotstxt.org/robotstxt.html
-# Atlas by Vylex Technologies — https://vylex.co.za
+# Atlas by Vylex Technologies — https://atlas.vylex.co.za
 
 User-agent: *
 Allow: /
@@ -7,5 +7,6 @@ Allow: /
 # Prevent crawling of dynamic backend API endpoints
 Disallow: /api/
 
-# Sitemap location for Google Search Console and web indexers
-Sitemap: https://vylex.co.za/sitemap.xml
+# Sitemap location for Google Search Console, Bing, and web indexers
+Sitemap: https://atlas.vylex.co.za/sitemap.xml
+Host: https://atlas.vylex.co.za
