@@ -209,4 +209,23 @@ describe('Public Pages Architecture & Layout Standardization', () => {
     assert.ok(code.includes('let argsPayload = {};'), 'Must declare argsPayload');
     assert.ok(code.includes('let overrideText = null;'), 'Must declare overrideText');
   });
+
+  test('index.html and style.css ensure mobile attachment menu is positioned left: 0 and controls do not wrap', () => {
+    const fs = require('fs');
+    const path = require('path');
+
+    const html = fs.readFileSync(path.join(__dirname, '../public/index.html'), 'utf8');
+    const css = fs.readFileSync(path.join(__dirname, '../public/css/style.css'), 'utf8');
+
+    // In index.html, composer-attach-wrapper must appear before deepThinkToggleBtn and webSearchToggleBtn
+    const attachIdx = html.indexOf('class="composer-attach-wrapper"');
+    const deepThinkIdx = html.indexOf('id="deepThinkToggleBtn"');
+    assert.ok(attachIdx > -1 && deepThinkIdx > -1, 'Both elements must exist in index.html');
+    assert.ok(attachIdx < deepThinkIdx, 'composer-attach-wrapper must precede deepThinkToggleBtn');
+
+    // In style.css, controls must avoid multi-line wrapping and mobile menu must anchor to left: 0
+    assert.ok(css.includes('flex-wrap: nowrap;'), 'Controls must be flex-wrap: nowrap');
+    assert.ok(css.includes('max-width: calc(100vw - 24px);'), 'Mobile attach menu must have proper max-width');
+  });
 });
+

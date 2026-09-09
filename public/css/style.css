@@ -1881,7 +1881,7 @@ code {
   gap: 4px;
   flex: 1;
   min-width: 0;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .composer-controls-left::-webkit-scrollbar {
@@ -1956,14 +1956,16 @@ code {
   position: relative;
   display: inline-flex;
   align-items: center;
+  flex-shrink: 0;
 }
 
 .composer-attach-menu {
   position: absolute;
   bottom: calc(100% + 8px);
   left: 0;
-  min-width: 250px;
-  max-width: calc(100vw - 32px);
+  right: auto;
+  min-width: 240px;
+  max-width: min(280px, calc(100vw - 24px));
   background: var(--bg-card);
   border: 1px solid var(--border-medium);
   border-radius: 8px;
@@ -1983,8 +1985,57 @@ code {
 
 @media (max-width: 768px) {
   .composer-attach-menu {
-    left: auto;
-    right: 0;
+    left: 0;
+    right: auto;
+    min-width: 230px;
+    max-width: calc(100vw - 24px);
+  }
+}
+
+@media (max-width: 600px) {
+  .composer-controls-left {
+    gap: 3px;
+  }
+
+  .composer-tool-btn {
+    padding: 3px 5px;
+    font-size: 0.68rem;
+  }
+
+  /* Compact personalization button on mobile: show icon, hide verbose text */
+  #activePromptLabel {
+    display: none;
+  }
+}
+
+@media (max-width: 420px) {
+  /* On compact mobile viewports (e.g. Samsung Galaxy A13 at 360px-384px width) */
+  .composer-bottom-bar {
+    padding: 3px 4px 4px;
+    gap: 2px;
+  }
+
+  .composer-controls-left {
+    gap: 2px;
+  }
+
+  .composer-tool-btn {
+    padding: 3px 5px;
+    gap: 3px;
+  }
+
+  .composer-icon-btn {
+    min-width: 24px;
+    min-height: 24px;
+    padding: 3px;
+  }
+
+  #deepThinkToggleBtn span {
+    display: none;
+  }
+
+  #webSearchLabel {
+    font-size: 0.65rem;
   }
 }
 

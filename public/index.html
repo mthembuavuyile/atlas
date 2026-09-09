@@ -670,56 +670,6 @@
             <div class="composer-bottom-bar">
               <!-- Left: Controls & Grounding Toggles -->
               <div class="composer-controls-left">
-                <button type="button" class="composer-tool-btn" id="openSysPromptModalBtn"
-                  title="Personalization & Custom Instructions">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="3"></circle>
-                    <path
-                      d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
-                    </path>
-                  </svg>
-                  <span id="activePromptLabel">Personalization</span>
-                </button>
-
-                <button type="button" class="composer-tool-btn" id="deepThinkToggleBtn"
-                  title="Toggle Chain-of-Thought Reasoning">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="3"></circle>
-                    <circle cx="19" cy="6" r="2"></circle>
-                    <circle cx="5" cy="6" r="2" />
-                    <circle cx="19" cy="18" r="2" />
-                    <circle cx="5" cy="18" r="2" />
-                    <line x1="7" y1="7" x2="10" y2="10" />
-                    <line x1="17" y1="7" x2="14" y2="10" />
-                    <line x1="7" y1="17" x2="10" y2="14" />
-                    <line x1="17" y1="17" x2="14" y2="14" />
-                  </svg>
-                  <span>Reasoning</span>
-                </button>
-
-                <button type="button" class="composer-tool-btn" id="webSearchToggleBtn"
-                  title="Toggle Real-Time Search Grounding">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="2" y1="12" x2="22" y2="12"></line>
-                    <path
-                      d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
-                    </path>
-                  </svg>
-                  <span id="webSearchLabel">Web Off</span>
-                </button>
-
-                <!-- Voice Dictation Input -->
-                <button type="button" class="composer-icon-btn" id="voiceDictationBtn"
-                  title="Dictate Prompt (Speech to Text)" aria-label="Voice Dictation">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path>
-                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-                    <line x1="12" y1="19" x2="12" y2="22"></line>
-                  </svg>
-                </button>
-
                 <!-- Unified Input Attachments & Scanners Trigger -->
                 <div class="composer-attach-wrapper">
                   <button type="button" class="composer-icon-btn" id="composerAttachBtn" title="Attachments, QR & OCR"
@@ -778,6 +728,56 @@
                     </button>
                   </div>
                 </div>
+
+                <!-- Voice Dictation Input -->
+                <button type="button" class="composer-icon-btn" id="voiceDictationBtn"
+                  title="Dictate Prompt (Speech to Text)" aria-label="Voice Dictation">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                    <line x1="12" y1="19" x2="12" y2="22"></line>
+                  </svg>
+                </button>
+
+                <button type="button" class="composer-tool-btn" id="openSysPromptModalBtn"
+                  title="Personalization & Custom Instructions">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path
+                      d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                    </path>
+                  </svg>
+                  <span id="activePromptLabel">Personalization</span>
+                </button>
+
+                <button type="button" class="composer-tool-btn" id="deepThinkToggleBtn"
+                  title="Toggle Chain-of-Thought Reasoning">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <circle cx="19" cy="6" r="2"></circle>
+                    <circle cx="5" cy="6" r="2" />
+                    <circle cx="19" cy="18" r="2" />
+                    <circle cx="5" cy="18" r="2" />
+                    <line x1="7" y1="7" x2="10" y2="10" />
+                    <line x1="17" y1="7" x2="14" y2="10" />
+                    <line x1="7" y1="17" x2="10" y2="14" />
+                    <line x1="17" y1="17" x2="14" y2="14" />
+                  </svg>
+                  <span>Reasoning</span>
+                </button>
+
+                <button type="button" class="composer-tool-btn" id="webSearchToggleBtn"
+                  title="Toggle Real-Time Search Grounding">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="2" y1="12" x2="22" y2="12"></line>
+                    <path
+                      d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                    </path>
+                  </svg>
+                  <span id="webSearchLabel">Web Off</span>
+                </button>
 
                 <div class="streaming-status-tag" id="streamingIndicator" style="display: none;">
                   <span class="status-spinner"></span>
