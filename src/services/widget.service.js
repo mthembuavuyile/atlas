@@ -851,17 +851,20 @@ class WidgetService {
         return result;
     }
 
-    // 6. Reddit & Community Discussions
-    async getRedditPosts(subreddit) {
-        const rawSub = (subreddit || 'news').toString().trim();
-        const cleanSub = rawSub.replace(/^\/?r\//i, '').replace(/^[#@]/, '').replace(/\/+$/, '').trim();
+    // Helper: Fetch discussions from a single community with multi-tier fallbacks
+    async _fetchSingleSubreddit(sub, limit = 10) {
+        const cleanSub = (sub || 'news').toString().trim().replace(/^\/?r\//i, '').replace(/^[#@]/, '').replace(/\/+$/, '').trim();
         const finalSub = cleanSub || 'news';
+        const cacheKey = `reddit:${finalSub.toLowerCase()}:${limit}`;
+        const cached = cache.get(cacheKey);
+        if (cached) return cached;
+
         const posts = [];
         let sourceName = 'Community Discussions';
 
         // Tier 1: Photon / Arctic Shift Reddit API
         try {
-            const photonRes = await fetchWithTimeout(`https://arctic-shift.photon-reddit.com/api/posts/search?subreddit=${encodeURIComponent(finalSub)}&limit=15`, { timeoutMs: 3500 }, 3500);
+            const photonRes = await fetchWithTimeout(`https://arctic-shift.photon-reddit.com/api/posts/search?subreddit=${encodeURIComponent(finalSub)}&limit=${Math.max(limit, 15)}`, { timeoutMs: 3500 }, 3500);
             if (photonRes.ok) {
                 const data = await photonRes.json();
                 if (Array.isArray(data.data) && data.data.length > 0) {
@@ -905,6 +908,7 @@ class WidgetService {
                             image: imageUrl,
                             video: videoUrl
                         });
+                        if (posts.length >= limit) break;
                     }
                 }
             }
@@ -913,7 +917,7 @@ class WidgetService {
         // Tier 2: Direct Reddit API with custom User-Agent
         if (posts.length === 0) {
             try {
-                const redditRes = await fetchWithTimeout(`https://www.reddit.com/r/${encodeURIComponent(finalSub)}/hot.json?limit=10&raw_json=1`, {
+                const redditRes = await fetchWithTimeout(`https://www.reddit.com/r/${encodeURIComponent(finalSub)}/hot.json?limit=${Math.max(limit, 10)}&raw_json=1`, {
                     headers: { 'User-Agent': 'web:atlasapp:v1.2.0 (by /u/atlas_agent)' },
                     timeoutMs: 3000
                 }, 3000);
@@ -952,6 +956,7 @@ class WidgetService {
                                 image: imageUrl,
                                 video: videoUrl
                             });
+                            if (posts.length >= limit) break;
                         }
                     }
                 }
@@ -961,7 +966,7 @@ class WidgetService {
         // Tier 3: Lemmy Federated Fallback
         if (posts.length === 0) {
             try {
-                const lemmyRes = await fetchWithTimeout(`https://lemmy.world/api/v3/post/list?community_name=${encodeURIComponent(finalSub)}&limit=10`, { timeoutMs: 2500 }, 2500);
+                const lemmyRes = await fetchWithTimeout(`https://lemmy.world/api/v3/post/list?community_name=${encodeURIComponent(finalSub)}&limit=${Math.max(limit, 10)}`, { timeoutMs: 2500 }, 2500);
                 if (lemmyRes.ok) {
                     const lemmyData = await lemmyRes.json();
                     if (lemmyData.posts?.length) {
@@ -981,6 +986,7 @@ class WidgetService {
                                 image: post.thumbnail_url || null,
                                 video: null
                             });
+                            if (posts.length >= limit) break;
                         }
                     }
                 }
@@ -990,7 +996,7 @@ class WidgetService {
         // Tier 4: Hacker News Discussions Fallback
         if (posts.length === 0) {
             try {
-                const hnRes = await fetchWithTimeout(`https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(finalSub)}&tags=story&hitsPerPage=10`, { timeoutMs: 2500 }, 2500);
+                const hnRes = await fetchWithTimeout(`https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(finalSub)}&tags=story&hitsPerPage=${Math.max(limit, 10)}`, { timeoutMs: 2500 }, 2500);
                 if (hnRes.ok) {
                     const hnData = await hnRes.json();
                     if (hnData.hits?.length) {
@@ -1009,27 +1015,103 @@ class WidgetService {
                                 image: null,
                                 video: null
                             });
+                            if (posts.length >= limit) break;
                         }
                     }
                 }
             } catch (e) {}
         }
 
+        const result = { posts, sourceName, subreddit: finalSub };
         if (posts.length > 0) {
+            cache.set(cacheKey, result, 300);
+        }
+        return result;
+    }
+
+    // 6. Reddit & Community Discussions (Supports single or multi-subreddit queries)
+    async getRedditPosts(subreddit, limit = null) {
+        const rawInput = (subreddit || 'news').toString().trim();
+        // Split by commas, plus signs, or ' and '
+        const rawParts = rawInput.split(/[,+]|\s+and\s+/i);
+        const subList = rawParts
+            .map(s => s.replace(/^\/?r\//i, '').replace(/^[#@]/, '').replace(/\/+$/, '').trim())
+            .filter(s => s.length > 0 && /^[a-zA-Z0-9_]+$/.test(s));
+
+        const uniqueSubs = [...new Set(subList)];
+        if (uniqueSubs.length === 0) uniqueSubs.push('news');
+
+        const parsedLimit = typeof limit === 'number' && limit > 0 ? Math.min(Math.floor(limit), 50) : null;
+
+        // Single subreddit fast path
+        if (uniqueSubs.length === 1) {
+            const singleLimit = parsedLimit || 5;
+            const res = await this._fetchSingleSubreddit(uniqueSubs[0], Math.max(singleLimit, 10));
+            if (res.posts.length > 0) {
+                return {
+                    type: 'reddit',
+                    data: {
+                        subreddit: `r/${res.subreddit}`,
+                        posts: res.posts.slice(0, singleLimit),
+                        source: res.sourceName
+                    }
+                };
+            }
             return {
                 type: 'reddit',
                 data: {
-                    subreddit: `r/${finalSub}`,
-                    posts: posts.slice(0, 5),
-                    source: sourceName
+                    error: `Could not retrieve live discussions for "r/${uniqueSubs[0]}". Please verify the community name or try again shortly.`
                 }
             };
         }
 
+        // Multi-subreddit simultaneous fetch & balancing
+        const perSubTarget = parsedLimit ? Math.max(Math.ceil(parsedLimit / uniqueSubs.length), 3) : 10;
+        const fetchPromises = uniqueSubs.map(sub => this._fetchSingleSubreddit(sub, perSubTarget));
+        const settled = await Promise.allSettled(fetchPromises);
+
+        const subResults = [];
+        settled.forEach((outcome) => {
+            if (outcome.status === 'fulfilled' && outcome.value.posts.length > 0) {
+                subResults.push(outcome.value);
+            }
+        });
+
+        if (subResults.length === 0) {
+            return {
+                type: 'reddit',
+                data: {
+                    error: `Could not retrieve live discussions for communities: ${uniqueSubs.map(s => 'r/' + s).join(', ')}.`
+                }
+            };
+        }
+
+        // Round-robin interleave to ensure even distribution across all communities
+        const interleaved = [];
+        const maxLen = Math.max(...subResults.map(r => r.posts.length));
+        for (let i = 0; i < maxLen; i++) {
+            for (const r of subResults) {
+                if (i < r.posts.length) {
+                    interleaved.push(r.posts[i]);
+                }
+            }
+        }
+
+        // Apply balanced limit
+        const finalCount = parsedLimit || Math.min(interleaved.length, uniqueSubs.length * 5, 25);
+        const finalPosts = interleaved.slice(0, finalCount);
+
+        const sources = [...new Set(subResults.map(r => r.sourceName))];
+        const primarySource = sources.length === 1 ? sources[0] : 'Community Discussions';
+        const displaySubs = subResults.map(r => `r/${r.subreddit}`).join(' + ');
+
         return {
             type: 'reddit',
             data: {
-                error: `Could not retrieve live discussions for "r/${finalSub}". Please verify the community name or try again shortly.`
+                subreddit: displaySubs,
+                posts: finalPosts,
+                source: primarySource,
+                subreddits: subResults.map(r => `r/${r.subreddit}`)
             }
         };
     }

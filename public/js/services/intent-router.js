@@ -96,9 +96,22 @@ export function detectLocalWidgetIntent(text) {
     return { tool: 'get_crypto_price', args: { coin: crypto.replace(/\bcrypto\b/gi, '').trim() || 'bitcoin' }, label: 'Fetched live crypto price.' };
   }
 
-  const subreddit = pickMatch([/^(?:show me\s+)?(?:reddit|subreddit)\s+(?:posts|news|threads|discussions)?\s*(?:from|for|in)?\s*\/?r\/?([a-z0-9_]+)$/i, /^r\/([a-z0-9_]+)$/i]);
+  const subreddit = pickMatch([
+    /^(?:show me\s+)?(?:reddit|subreddit)\s+(?:posts|news|threads|discussions)?\s*(?:from|for|in)\s+([a-z0-9_ ,+&/-]+)$/i,
+    /^(?:show me\s+)?(?:reddit|subreddit)\s+(?:posts|news|threads|discussions)\s+(?:from|for|in)?\s*([a-z0-9_ ,+&/-]+)$/i,
+    /^r\/([a-z0-9_+,-]+)$/i
+  ]);
   if (subreddit) {
-    return { tool: 'get_reddit_posts', args: { subreddit: subreddit || 'news' }, label: 'Fetched live discussions.' };
+    let subStr = subreddit.trim();
+    let limitVal = null;
+    const limitMatch = subStr.match(/(?:--limit|-n|\blimit:)\s*(\d+)/i);
+    if (limitMatch) {
+      limitVal = parseInt(limitMatch[1], 10);
+      subStr = subStr.replace(limitMatch[0], '').trim();
+    }
+    const payload = { subreddit: subStr || 'news' };
+    if (limitVal) payload.limit = limitVal;
+    return { tool: 'get_reddit_posts', args: payload, label: 'Fetched live discussions.' };
   }
 
   const imageMatch = trimmed.match(/^(?:show me|find|search|get|give me)\s+(?:an?\s+|one\s+|(\d+)\s+)?(?:images?|photos?|pictures?)\s+(?:of|for)\s+(.+)$/i)
@@ -250,7 +263,15 @@ export function resolveSlashCommand(prompt) {
     argsPayload = { word: arg || 'intelligence' };
   } else if (command === 'reddit') {
     toolToCall = 'get_reddit_posts';
-    argsPayload = { subreddit: arg || 'news' };
+    let subStr = (arg || 'news').trim();
+    let limitVal = null;
+    const limitMatch = subStr.match(/(?:--limit|-n|\blimit:)\s*(\d+)/i);
+    if (limitMatch) {
+      limitVal = parseInt(limitMatch[1], 10);
+      subStr = subStr.replace(limitMatch[0], '').trim();
+    }
+    argsPayload = { subreddit: subStr || 'news' };
+    if (limitVal) argsPayload.limit = limitVal;
   } else if (command === 'weather') {
     toolToCall = 'get_weather';
     argsPayload = { city: arg || 'London' };

@@ -19,7 +19,7 @@ const LEGACY_TOOLS = {
   generate_image: (args = {}) => widgetService.generateImage(args.prompt, args.aspect_ratio),
   get_news_headlines: (args = {}) => widgetService.getNewsHeadlines(args.topic),
   get_space_news: (args = {}) => widgetService.getSpaceNews(args.topic),
-  get_reddit_posts: (args = {}) => widgetService.getRedditPosts(args.subreddit),
+  get_reddit_posts: (args = {}) => widgetService.getRedditPosts(args.subreddit, args.limit),
   define_word: (args = {}) => widgetService.defineWord(args.word),
   convert_currency: (args = {}) => widgetService.convertCurrency(args.amount, args.from, args.to),
   solve_math: (args = {}) => widgetService.solveMath(args.expression, args.operation),

@@ -158,11 +158,12 @@ const ATLAS_TOOLS = [
     type: 'function',
     function: {
       name: 'get_reddit_posts',
-      description: 'Get trending or hot posts from a specific Reddit community (subreddit).',
+      description: 'Get trending or hot posts from one or more Reddit communities (subreddits). Supports multiple subreddits separated by commas or plus signs (e.g. "java, bitcoin, news, python") with balanced post distribution.',
       parameters: {
         type: 'object',
         properties: {
-          subreddit: { type: 'string', description: 'Subreddit name without r/, e.g. "technology", "news"' }
+          subreddit: { type: 'string', description: 'One or more subreddit names, e.g. "python", "technology, news", or "java+bitcoin"' },
+          limit: { type: 'number', description: 'Total number of posts to retrieve (evenly distributed across subreddits). Default is 5-10.' }
         },
         required: ['subreddit']
       }

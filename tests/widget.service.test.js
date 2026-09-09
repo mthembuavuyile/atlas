@@ -100,4 +100,33 @@ describe('Widget Service Deterministic Capabilities', () => {
       }
     }
   });
+
+  test('getRedditPosts handles multi-subreddit queries with balanced distribution', async () => {
+    const res = await widgetService.getRedditPosts('java, bitcoin, news, python', 8);
+    if (res.error || res.data?.error) {
+      assert.ok(typeof (res.error || res.data?.error) === 'string');
+    } else {
+      assert.strictEqual(res.type, 'reddit');
+      assert.ok(Array.isArray(res.data.posts));
+      assert.ok(res.data.posts.length > 0);
+      assert.ok(res.data.subreddit.includes('+') || res.data.subreddit.includes('r/'));
+      assert.ok(Array.isArray(res.data.subreddits));
+      assert.ok(res.data.subreddits.length >= 2, 'Should detect multiple subreddits');
+      const postSubreddits = new Set(res.data.posts.map(p => (p.subreddit || '').toLowerCase()));
+      assert.ok(postSubreddits.size >= 2, 'Posts should be distributed across multiple subreddits');
+    }
+  });
+
+  test('getRedditPosts parses plus-separated subreddits seamlessly', async () => {
+    const res = await widgetService.getRedditPosts('bitcoin+news', 4);
+    if (res.error || res.data?.error) {
+      assert.ok(typeof (res.error || res.data?.error) === 'string');
+    } else {
+      assert.strictEqual(res.type, 'reddit');
+      assert.ok(Array.isArray(res.data.posts));
+      assert.ok(Array.isArray(res.data.subreddits));
+      assert.strictEqual(res.data.subreddits.length, 2);
+    }
+  });
 });
+
