@@ -391,6 +391,10 @@ export async function runLocalWidget(toolToCall, argsPayload, statusText, contex
   }
   const widgetResult = await res.json();
 
+  if (!widgetResult || typeof widgetResult.type !== 'string') {
+    throw new Error(widgetResult?.error || 'Widget service returned an invalid response.');
+  }
+
   accumulatedWidgets.push(widgetResult);
 
   const renderer = (typeof renderWidget === 'function' ? renderWidget : window.atlasRenderWidget);

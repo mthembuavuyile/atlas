@@ -87,6 +87,43 @@ describe('Widget Service Deterministic Capabilities', () => {
     assert.strictEqual(result.error, 'A Reddit search query is required.');
   });
 
+  test('searchReddit falls back when the global Reddit endpoint fails', async () => {
+    const originalFetch = global.fetch;
+    const requestedUrls = [];
+    global.fetch = async (url) => {
+      requestedUrls.push(url);
+      if (url.includes('www.reddit.com/search.json')) {
+        throw new Error('Reddit search endpoint unavailable');
+      }
+      return {
+        ok: true,
+        json: async () => ({
+          data: [{
+            title: 'Crypto discussion',
+            permalink: '/r/crypto/comments/example/crypto_discussion',
+            score: 42,
+            num_comments: 7,
+            author: 'atlas_user',
+            subreddit: 'crypto',
+            created_utc: 1700000000
+          }]
+        })
+      };
+    };
+
+    try {
+      const result = await widgetService.searchReddit('crypto-fallback-test');
+      assert.strictEqual(result.type, 'reddit');
+      assert.strictEqual(result.data.query, 'crypto-fallback-test');
+      assert.strictEqual(result.data.posts.length, 1);
+      assert.strictEqual(result.data.posts[0].subreddit, 'r/crypto');
+      assert.ok(requestedUrls.some(url => url.includes('www.reddit.com/search.json')));
+      assert.ok(requestedUrls.some(url => url.includes('arctic-shift.photon-reddit.com')));
+    } finally {
+      global.fetch = originalFetch;
+    }
+  });
+
   test('searchImages respects custom limit parameter (limit=1 and limit=4)', async () => {
     const resSingle = await widgetService.searchImages('quantum', 1);
     assert.strictEqual(resSingle.type, 'image');

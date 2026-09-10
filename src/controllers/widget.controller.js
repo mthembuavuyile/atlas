@@ -10,6 +10,9 @@ class WidgetController {
             }
 
             const result = await capabilityRegistry.execute(tool, args);
+            if (result?.error) {
+                return res.status(502).json(result);
+            }
             return res.json(result);
         } catch (error) {
             console.error(`[Widget Controller Error] ${error.message}`);

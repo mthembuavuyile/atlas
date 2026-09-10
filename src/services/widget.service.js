@@ -985,6 +985,49 @@ class WidgetService {
         const cached = cache.get(cacheKey);
         if (cached) return cached;
 
+        const normalizePost = (post, source = 'Reddit Search') => {
+            if (!post?.title || post.title.startsWith('[ Removed') || post.title.startsWith('[ Deleted') || post.author === '[deleted]') {
+                return null;
+            }
+
+            const permalink = post.permalink
+                ? (post.permalink.startsWith('http') ? post.permalink : `https://www.reddit.com${post.permalink}`)
+                : (post.url || 'https://www.reddit.com');
+
+            return {
+                title: post.title,
+                url: permalink,
+                ups: post.ups || post.score || 0,
+                comments: post.num_comments || 0,
+                author: post.author ? `u/${post.author.replace(/^u\//, '')}` : 'u/reddit_user',
+                subreddit: post.subreddit_name_prefixed || (post.subreddit ? `r/${post.subreddit}` : 'r/unknown'),
+                source,
+                created_at: post.created_utc ? new Date(post.created_utc * 1000).toLocaleDateString() : 'Recent',
+                image: post.thumbnail?.startsWith('http') ? post.thumbnail : null,
+                video: post.media?.reddit_video?.fallback_url || post.secure_media?.reddit_video?.fallback_url || null
+            };
+        };
+
+        const parsePosts = (payload, source) => {
+            const items = Array.isArray(payload?.data?.children)
+                ? payload.data.children.map(child => child?.data)
+                : Array.isArray(payload?.data) ? payload.data : [];
+            return items.map(post => normalizePost(post, source)).filter(Boolean).slice(0, parsedLimit);
+        };
+
+        const buildResult = (posts, source) => ({
+            type: 'reddit',
+            data: {
+                query: cleanQuery,
+                subreddit: cleanSubreddit ? `r/${cleanSubreddit}` : 'All Reddit',
+                posts,
+                source,
+                sort: cleanSort,
+                time: cleanTime
+            }
+        });
+
+        let primaryResponse = null;
         try {
             const params = new URLSearchParams({
                 q: cleanQuery,
@@ -998,41 +1041,38 @@ class WidgetService {
             const endpoint = cleanSubreddit
                 ? `https://www.reddit.com/r/${encodeURIComponent(cleanSubreddit)}/search.json?${params.toString()}`
                 : `https://www.reddit.com/search.json?${params.toString()}`;
-            const response = await fetchWithTimeout(endpoint, {
+            primaryResponse = await fetchWithTimeout(endpoint, {
                 headers: { 'User-Agent': 'web:atlasapp:v1.2.0 (by /u/atlas_agent)' },
                 timeoutMs: 5000
             }, 5000);
 
-            if (!response.ok) return { error: `Reddit search is temporarily unavailable (${response.status}).` };
-
-            const payload = await response.json();
-            const posts = (payload.data?.children || []).map(({ data: post }) => {
-                if (!post?.title || post.author === '[deleted]') return null;
-                return {
-                    title: post.title,
-                    url: `https://www.reddit.com${post.permalink}`,
-                    ups: post.ups || post.score || 0,
-                    comments: post.num_comments || 0,
-                    author: post.author ? `u/${post.author}` : 'u/reddit_user',
-                    subreddit: post.subreddit_name_prefixed || 'r/unknown',
-                    source: 'Reddit Search',
-                    created_at: post.created_utc ? new Date(post.created_utc * 1000).toLocaleDateString() : 'Recent',
-                    image: post.thumbnail?.startsWith('http') ? post.thumbnail : null,
-                    video: null
-                };
-            }).filter(Boolean);
-
-            const result = {
-                type: 'reddit',
-                data: {
-                    query: cleanQuery,
-                    subreddit: cleanSubreddit ? `r/${cleanSubreddit}` : 'All Reddit',
-                    posts,
-                    source: 'Reddit Search',
-                    sort: cleanSort,
-                    time: cleanTime
+            if (primaryResponse.ok) {
+                const posts = parsePosts(await primaryResponse.json(), 'Reddit Search');
+                if (posts.length > 0) {
+                    const result = buildResult(posts, 'Reddit Search');
+                    cache.set(cacheKey, result, 300);
+                    return result;
                 }
-            };
+            }
+        } catch (error) {}
+
+        try {
+            const fallbackParams = new URLSearchParams({
+                query: cleanQuery,
+                limit: String(Math.max(parsedLimit, 15))
+            });
+            if (cleanSubreddit) fallbackParams.set('subreddit', cleanSubreddit);
+            const fallbackResponse = await fetchWithTimeout(`https://arctic-shift.photon-reddit.com/api/posts/search?${fallbackParams.toString()}`, {
+                timeoutMs: 5000
+            }, 5000);
+            if (!fallbackResponse.ok) {
+                return { error: `Reddit search is temporarily unavailable (${fallbackResponse.status}).` };
+            }
+
+            const posts = parsePosts(await fallbackResponse.json(), 'Reddit Search');
+            if (posts.length === 0) return { error: 'No Reddit results found for that query.' };
+
+            const result = buildResult(posts, 'Reddit Search');
             cache.set(cacheKey, result, 300);
             return result;
         } catch (error) {
