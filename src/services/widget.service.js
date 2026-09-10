@@ -851,6 +851,127 @@ class WidgetService {
         return result;
     }
 
+    // Helper: Extract rich media (images, animated GIFs, videos) from Reddit JSON structures
+    _extractRedditMedia(p) {
+        if (!p) return { image: null, video: null, isGif: false };
+        let image = null;
+        let video = null;
+        let isGif = false;
+
+        // 1. Direct animated GIF or static image link
+        if (p.url && /\.(gif|gifv)(\?.*)?$/i.test(p.url)) {
+            image = p.url.replace(/\.gifv$/i, '.gif');
+            isGif = true;
+        } else if (p.url && /\.(jpe?g|png|webp)(\?.*)?$/i.test(p.url)) {
+            image = p.url;
+        } else if (p.url && (p.url.includes('i.redd.it') || p.url.includes('i.imgur.com') || p.url.includes('media.giphy.com'))) {
+            image = p.url;
+            if (p.url.endsWith('.gif')) isGif = true;
+        }
+
+        // 2. Animated GIF preview variants
+        if (!image && p.preview?.images?.[0]?.variants?.gif?.source?.url) {
+            image = p.preview.images[0].variants.gif.source.url.replace(/&amp;/g, '&');
+            isGif = true;
+        }
+
+        // 3. Reddit multi-image gallery metadata (media_metadata)
+        if (!image && p.media_metadata && typeof p.media_metadata === 'object') {
+            const keys = Object.keys(p.media_metadata);
+            if (keys.length > 0) {
+                const meta = p.media_metadata[keys[0]];
+                if (meta?.s?.u) {
+                    image = meta.s.u.replace(/&amp;/g, '&');
+                } else if (meta?.s?.gif) {
+                    image = meta.s.gif.replace(/&amp;/g, '&');
+                    isGif = true;
+                } else if (Array.isArray(meta?.p) && meta.p.length > 0) {
+                    image = meta.p[meta.p.length - 1].u?.replace(/&amp;/g, '&');
+                }
+            }
+        }
+
+        // 4. Reddit Preview Images (high resolution source)
+        if (!image && p.preview?.images?.[0]?.source?.url) {
+            image = p.preview.images[0].source.url.replace(/&amp;/g, '&');
+        }
+
+        // 5. Valid thumbnail URL fallback (excluding Reddit keywords like 'default', 'self', 'nsfw', 'spoiler', 'image')
+        if (!image && p.thumbnail && p.thumbnail.startsWith('http')) {
+            image = p.thumbnail.replace(/&amp;/g, '&');
+        }
+
+        // 6. Video extraction
+        if (p.media?.reddit_video?.fallback_url) {
+            video = p.media.reddit_video.fallback_url.replace(/&amp;/g, '&');
+        } else if (p.secure_media?.reddit_video?.fallback_url) {
+            video = p.secure_media.reddit_video.fallback_url.replace(/&amp;/g, '&');
+        } else if (p.preview?.reddit_video_preview?.fallback_url) {
+            video = p.preview.reddit_video_preview.fallback_url.replace(/&amp;/g, '&');
+        } else if (p.url && /\.(mp4|webm)(\?.*)?$/i.test(p.url)) {
+            video = p.url;
+        }
+
+        // If video exists and no image yet, capture video poster from preview resolutions
+        if (video && !image && p.preview?.images?.[0]?.resolutions?.length) {
+            const resolutions = p.preview.images[0].resolutions;
+            image = resolutions[resolutions.length - 1].url?.replace(/&amp;/g, '&');
+        }
+
+        return { image, video, isGif };
+    }
+
+    // Helper: Extract rich media from Reddit RSS Atom XML entry
+    _extractRssMedia(entryXml) {
+        if (!entryXml) return { image: null, video: null, isGif: false };
+        let image = null;
+        let video = null;
+        let isGif = false;
+
+        // 1. Check <media:thumbnail url="..." />
+        const thumbMatch = entryXml.match(/<media:thumbnail[^>]+url="([^"]+)"/i);
+        if (thumbMatch) {
+            image = thumbMatch[1].replace(/&amp;/g, '&');
+        }
+
+        // 2. Inspect HTML inside <content>
+        const contentMatch = entryXml.match(/<content[^>]*>([\s\S]*?)<\/content>/i);
+        if (contentMatch) {
+            const content = contentMatch[1]
+                .replace(/&lt;/g, '<')
+                .replace(/&gt;/g, '>')
+                .replace(/&quot;/g, '"')
+                .replace(/&#39;/g, "'")
+                .replace(/&amp;/g, '&');
+
+            // Direct media link in <a href="...">[link]</a>
+            const linkMatch = content.match(/<a[^>]+href="([^"]+)"[^>]*>\[link\]<\/a>/i);
+            if (linkMatch) {
+                const href = linkMatch[1];
+                if (/\.(gif|gifv)(\?.*)?$/i.test(href)) {
+                    image = href.replace(/\.gifv$/i, '.gif');
+                    isGif = true;
+                } else if (/\.(jpe?g|png|webp)(\?.*)?$/i.test(href) || href.includes('i.redd.it') || href.includes('i.imgur.com')) {
+                    image = href;
+                } else if (/\.(mp4|webm)(\?.*)?$/i.test(href)) {
+                    video = href;
+                } else if (href.includes('v.redd.it')) {
+                    video = href;
+                }
+            }
+
+            // Fallback: check <img src="..."> in content
+            if (!image) {
+                const imgMatch = content.match(/<img[^>]+src="([^"]+)"/i);
+                if (imgMatch && imgMatch[1].startsWith('http')) {
+                    image = imgMatch[1].replace(/&amp;/g, '&');
+                }
+            }
+        }
+
+        return { image, video, isGif };
+    }
+
     // Helper: Fetch discussions from a single community with multi-tier fallbacks
     async _fetchSingleSubreddit(sub, limit = 10) {
         const cleanSub = (sub || 'news').toString().trim().replace(/^\/?r\//i, '').replace(/^[#@]/, '').replace(/\/+$/, '').trim();
@@ -872,26 +993,8 @@ class WidgetService {
                         if (!p.title || p.title.startsWith('[ Removed') || p.title.startsWith('[ Deleted') || p.author === '[deleted]' || p.title.trim().length < 4) {
                             continue;
                         }
-                        let imageUrl = null;
-                        if (p.preview?.images?.[0]?.source?.url) {
-                            imageUrl = p.preview.images[0].source.url.replace(/&amp;/g, '&');
-                        } else if (p.thumbnail && p.thumbnail.startsWith('http')) {
-                            imageUrl = p.thumbnail;
-                        } else if (p.url && /\.(jpeg|jpg|png|webp|gif)(\?.*)?$/i.test(p.url)) {
-                            imageUrl = p.url;
-                        }
 
-                        let videoUrl = null;
-                        if (p.media?.reddit_video?.fallback_url) {
-                            videoUrl = p.media.reddit_video.fallback_url.replace(/&amp;/g, '&');
-                        } else if (p.secure_media?.reddit_video?.fallback_url) {
-                            videoUrl = p.secure_media.reddit_video.fallback_url.replace(/&amp;/g, '&');
-                        } else if (p.preview?.reddit_video_preview?.fallback_url) {
-                            videoUrl = p.preview.reddit_video_preview.fallback_url.replace(/&amp;/g, '&');
-                        } else if (p.url && /\.(mp4|webm)(\?.*)?$/i.test(p.url)) {
-                            videoUrl = p.url;
-                        }
-
+                        const media = this._extractRedditMedia(p);
                         const permalink = p.permalink 
                             ? (p.permalink.startsWith('http') ? p.permalink : `https://www.reddit.com${p.permalink}`)
                             : (p.url || `https://www.reddit.com/r/${finalSub}`);
@@ -905,8 +1008,9 @@ class WidgetService {
                             subreddit: p.subreddit_name_prefixed || `r/${finalSub}`,
                             source: 'Reddit',
                             created_at: p.created_utc ? new Date(p.created_utc * 1000).toLocaleDateString() : 'Recent',
-                            image: imageUrl,
-                            video: videoUrl
+                            image: media.image,
+                            video: media.video,
+                            is_gif: media.isGif
                         });
                         if (posts.length >= limit) break;
                     }
@@ -949,6 +1053,8 @@ class WidgetService {
 
                         if (!url || author === 'AutoModerator') continue;
 
+                        const media = this._extractRssMedia(entry);
+
                         posts.push({
                             title,
                             url,
@@ -958,8 +1064,9 @@ class WidgetService {
                             subreddit: categoryLabel.startsWith('r/') ? categoryLabel : `r/${finalSub}`,
                             source: 'Reddit',
                             created_at: published ? new Date(published).toLocaleDateString() : 'Recent',
-                            image: null,
-                            video: null
+                            image: media.image,
+                            video: media.video,
+                            is_gif: media.isGif
                         });
                     }
                     if (posts.length > 0) sourceName = 'Reddit RSS';
@@ -980,22 +1087,8 @@ class WidgetService {
                         for (const child of data.data.children) {
                             const postData = child.data;
                             if (!postData.title || postData.title.startsWith('[ Removed') || postData.author === '[deleted]') continue;
-                            let imageUrl = null;
-                            if (postData.preview?.images?.[0]?.source?.url) {
-                                imageUrl = postData.preview.images[0].source.url.replace(/&amp;/g, '&');
-                            } else if (postData.thumbnail && postData.thumbnail.startsWith('http')) {
-                                imageUrl = postData.thumbnail;
-                            }
-                            let videoUrl = null;
-                            if (postData.media?.reddit_video?.fallback_url) {
-                                videoUrl = postData.media.reddit_video.fallback_url.replace(/&amp;/g, '&');
-                            } else if (postData.secure_media?.reddit_video?.fallback_url) {
-                                videoUrl = postData.secure_media.reddit_video.fallback_url.replace(/&amp;/g, '&');
-                            } else if (postData.preview?.reddit_video_preview?.fallback_url) {
-                                videoUrl = postData.preview.reddit_video_preview.fallback_url.replace(/&amp;/g, '&');
-                            } else if (postData.url && /\.(mp4|webm)(\?.*)?$/i.test(postData.url)) {
-                                videoUrl = postData.url;
-                            }
+
+                            const media = this._extractRedditMedia(postData);
 
                             posts.push({
                                 title: postData.title,
@@ -1006,8 +1099,9 @@ class WidgetService {
                                 subreddit: postData.subreddit_name_prefixed || `r/${finalSub}`,
                                 source: 'Reddit',
                                 created_at: new Date(postData.created_utc * 1000).toLocaleDateString(),
-                                image: imageUrl,
-                                video: videoUrl
+                                image: media.image,
+                                video: media.video,
+                                is_gif: media.isGif
                             });
                             if (posts.length >= limit) break;
                         }
@@ -1047,6 +1141,8 @@ class WidgetService {
                 ? (post.permalink.startsWith('http') ? post.permalink : `https://www.reddit.com${post.permalink}`)
                 : (post.url || 'https://www.reddit.com');
 
+            const media = this._extractRedditMedia(post);
+
             return {
                 title: post.title,
                 url: permalink,
@@ -1056,8 +1152,9 @@ class WidgetService {
                 subreddit: post.subreddit_name_prefixed || (post.subreddit ? `r/${post.subreddit}` : 'r/unknown'),
                 source,
                 created_at: post.created_utc ? new Date(post.created_utc * 1000).toLocaleDateString() : 'Recent',
-                image: post.thumbnail?.startsWith('http') ? post.thumbnail : null,
-                video: post.media?.reddit_video?.fallback_url || post.secure_media?.reddit_video?.fallback_url || null
+                image: media.image,
+                video: media.video,
+                is_gif: media.isGif
             };
         };
 
@@ -1080,7 +1177,57 @@ class WidgetService {
             }
         });
 
-        // Tier 1: PullPush API (Pushshift successor — works for general Reddit search)
+        // Tier 1: Direct Reddit Search JSON API (checked first; often fast-fails with 403 server-side)
+        try {
+            const params = new URLSearchParams({
+                q: cleanQuery,
+                sort: cleanSort,
+                t: cleanTime,
+                limit: String(parsedLimit),
+                raw_json: '1'
+            });
+            if (cleanSubreddit) params.set('restrict_sr', 'on');
+
+            const endpoint = cleanSubreddit
+                ? `https://www.reddit.com/r/${encodeURIComponent(cleanSubreddit)}/search.json?${params.toString()}`
+                : `https://www.reddit.com/search.json?${params.toString()}`;
+            const primaryResponse = await fetchWithTimeout(endpoint, {
+                headers: { 'User-Agent': 'web:atlasapp:v1.2.0 (by /u/atlas_agent)' },
+                timeoutMs: 3000
+            }, 3000);
+
+            if (primaryResponse.ok) {
+                const posts = parsePosts(await primaryResponse.json(), 'Reddit Search');
+                if (posts.length > 0) {
+                    const result = buildResult(posts, 'Reddit Search');
+                    cache.set(cacheKey, result, 300);
+                    return result;
+                }
+            }
+        } catch (e) {}
+
+        // Tier 2: Arctic Shift / Photon fallback
+        try {
+            const fallbackParams = new URLSearchParams({
+                query: cleanQuery,
+                limit: String(Math.max(parsedLimit, 15))
+            });
+            if (cleanSubreddit) fallbackParams.set('subreddit', cleanSubreddit);
+            const fallbackResponse = await fetchWithTimeout(`https://arctic-shift.photon-reddit.com/api/posts/search?${fallbackParams.toString()}`, {
+                timeoutMs: 3500
+            }, 3500);
+
+            if (fallbackResponse.ok) {
+                const posts = parsePosts(await fallbackResponse.json(), 'Reddit Search');
+                if (posts.length > 0) {
+                    const result = buildResult(posts, 'Reddit Search');
+                    cache.set(cacheKey, result, 300);
+                    return result;
+                }
+            }
+        } catch (e) {}
+
+        // Tier 3: PullPush API fallback (handles cross-Reddit keyword searches)
         try {
             const ppParams = new URLSearchParams({
                 q: cleanQuery,
@@ -1099,8 +1246,8 @@ class WidgetService {
             }
 
             const ppRes = await fetchWithTimeout(`https://api.pullpush.io/reddit/search/submission/?${ppParams.toString()}`, {
-                timeoutMs: 5000
-            }, 5000);
+                timeoutMs: 4000
+            }, 4000);
 
             if (ppRes.ok) {
                 const posts = parsePosts(await ppRes.json(), 'Reddit Search');
@@ -1112,36 +1259,7 @@ class WidgetService {
             }
         } catch (e) {}
 
-        // Tier 2: Arctic Shift / Photon (only works when subreddit is specified)
-        if (cleanSubreddit) {
-            try {
-                const asParams = new URLSearchParams({
-                    subreddit: cleanSubreddit,
-                    limit: String(Math.max(parsedLimit, 15))
-                });
-                const asRes = await fetchWithTimeout(`https://arctic-shift.photon-reddit.com/api/posts/search?${asParams.toString()}`, {
-                    timeoutMs: 5000
-                }, 5000);
-
-                if (asRes.ok) {
-                    // Filter posts client-side by query keywords for relevance
-                    const payload = await asRes.json();
-                    const allPosts = parsePosts(payload, 'Reddit Search');
-                    const queryWords = cleanQuery.toLowerCase().split(/\s+/).filter(w => w.length > 2);
-                    const filtered = queryWords.length > 0
-                        ? allPosts.filter(p => queryWords.some(w => p.title.toLowerCase().includes(w)))
-                        : allPosts;
-                    const finalPosts = filtered.length > 0 ? filtered.slice(0, parsedLimit) : allPosts.slice(0, parsedLimit);
-                    if (finalPosts.length > 0) {
-                        const result = buildResult(finalPosts, 'Reddit Search');
-                        cache.set(cacheKey, result, 300);
-                        return result;
-                    }
-                }
-            } catch (e) {}
-        }
-
-        // Tier 3: Reddit Search RSS (Atom XML — reliably not blocked)
+        // Tier 4: Reddit Search RSS (Atom XML — reliably unblocked)
         try {
             const rssParams = new URLSearchParams({
                 q: cleanQuery,
@@ -1157,8 +1275,8 @@ class WidgetService {
                     'User-Agent': 'Mozilla/5.0 (compatible; AtlasReasoningStudio/1.0; +https://vylex.co.za)',
                     'Accept': 'application/atom+xml, application/xml, text/xml'
                 },
-                timeoutMs: 5000
-            }, 5000);
+                timeoutMs: 4000
+            }, 4000);
 
             if (rssRes.ok) {
                 const xml = await rssRes.text();
@@ -1186,6 +1304,8 @@ class WidgetService {
 
                     if (!url || author === 'AutoModerator') continue;
 
+                    const media = this._extractRssMedia(entry);
+
                     rssPosts.push({
                         title,
                         url,
@@ -1195,42 +1315,14 @@ class WidgetService {
                         subreddit: categoryLabel.startsWith('r/') ? categoryLabel : (cleanSubreddit ? `r/${cleanSubreddit}` : 'r/search'),
                         source: 'Reddit Search',
                         created_at: published ? new Date(published).toLocaleDateString() : 'Recent',
-                        image: null,
-                        video: null
+                        image: media.image,
+                        video: media.video,
+                        is_gif: media.isGif
                     });
                 }
 
                 if (rssPosts.length > 0) {
                     const result = buildResult(rssPosts, 'Reddit Search');
-                    cache.set(cacheKey, result, 300);
-                    return result;
-                }
-            }
-        } catch (e) {}
-
-        // Tier 4: Reddit direct JSON search (often blocked by 403, kept as last resort)
-        try {
-            const params = new URLSearchParams({
-                q: cleanQuery,
-                sort: cleanSort,
-                t: cleanTime,
-                limit: String(parsedLimit),
-                raw_json: '1'
-            });
-            if (cleanSubreddit) params.set('restrict_sr', 'on');
-
-            const endpoint = cleanSubreddit
-                ? `https://www.reddit.com/r/${encodeURIComponent(cleanSubreddit)}/search.json?${params.toString()}`
-                : `https://www.reddit.com/search.json?${params.toString()}`;
-            const primaryResponse = await fetchWithTimeout(endpoint, {
-                headers: { 'User-Agent': 'web:atlasapp:v1.2.0 (by /u/atlas_agent)' },
-                timeoutMs: 5000
-            }, 5000);
-
-            if (primaryResponse.ok) {
-                const posts = parsePosts(await primaryResponse.json(), 'Reddit Search');
-                if (posts.length > 0) {
-                    const result = buildResult(posts, 'Reddit Search');
                     cache.set(cacheKey, result, 300);
                     return result;
                 }

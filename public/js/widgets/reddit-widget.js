@@ -8,7 +8,7 @@ export function renderRedditWidget(data) {
     }
 
     // Build unified gallery of all posts that contain images for Next/Prev lightbox navigation
-    const imagePosts = (data.posts || []).filter(p => !!p.image && !p.video);
+    const imagePosts = (data.posts || []).filter(p => !!p.image);
     const galleryItems = imagePosts.map((p, idx) => ({
         src: p.image,
         thumb: p.image,
@@ -44,13 +44,18 @@ export function renderRedditWidget(data) {
                     ${post.video ? `
                         <div class="discussion-video-container">
                             <video class="discussion-video" controls playsinline preload="metadata" poster="${escapeHtml(post.image || '')}">
-                                <source src="${escapeHtml(post.video)}" type="video/mp4">
+                                <source src="${escapeHtml(post.video)}" type="video/mp4" onerror="const c = this.closest('.discussion-video-container'); if (c) { c.style.display='none'; const fb = c.nextElementSibling; if (fb) fb.style.display='block'; }">
                                 Your browser does not support inline video playback.
                             </video>
                         </div>
+                        ${post.image ? `
+                            <div class="discussion-thumbnail-container discussion-video-fallback" style="display: none;" title="Click to inspect (${galleryIndex + 1} of ${imagePosts.length})">
+                                <img src="${escapeHtml(post.image)}" alt="${escapeHtml(post.title)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentElement.style.display='none'" onclick="if(window.atlasOpenLightboxGallery && window['${galleryId}']) { window.atlasOpenLightboxGallery(window['${galleryId}'], ${galleryIndex}); } else if(window.atlasOpenLightbox) { window.atlasOpenLightbox('${escapeHtml(post.image)}', '${escapeHtml(post.title)}'); } event.preventDefault(); event.stopPropagation();" style="cursor: zoom-in;" />
+                            </div>
+                        ` : ''}
                     ` : (post.image ? `
                         <div class="discussion-thumbnail-container" title="Click to inspect (${galleryIndex + 1} of ${imagePosts.length}) - Use ← → arrows to navigate">
-                            <img src="${escapeHtml(post.image)}" alt="${escapeHtml(post.title)}" loading="lazy" onerror="this.parentElement.style.display='none'" onclick="if(window.atlasOpenLightboxGallery && window['${galleryId}']) { window.atlasOpenLightboxGallery(window['${galleryId}'], ${galleryIndex}); } else if(window.atlasOpenLightbox) { window.atlasOpenLightbox('${escapeHtml(post.image)}', '${escapeHtml(post.title)}'); } event.preventDefault(); event.stopPropagation();" style="cursor: zoom-in;" />
+                            <img src="${escapeHtml(post.image)}" alt="${escapeHtml(post.title)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.parentElement.style.display='none'" onclick="if(window.atlasOpenLightboxGallery && window['${galleryId}']) { window.atlasOpenLightboxGallery(window['${galleryId}'], ${galleryIndex}); } else if(window.atlasOpenLightbox) { window.atlasOpenLightbox('${escapeHtml(post.image)}', '${escapeHtml(post.title)}'); } event.preventDefault(); event.stopPropagation();" style="cursor: zoom-in;" />
                             ${imagePosts.length > 1 ? `<span class="discussion-gallery-counter">${galleryIndex + 1} / ${imagePosts.length}</span>` : ''}
                         </div>
                     ` : '')}
