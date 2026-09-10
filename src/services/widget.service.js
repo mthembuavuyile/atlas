@@ -851,98 +851,210 @@ class WidgetService {
         return result;
     }
 
+    // Helper: Clean Reddit media URL and bypass preview.redd.it 403 hotlinking block
+    _cleanRedditMediaUrl(rawUrl) {
+        if (!rawUrl || typeof rawUrl !== 'string') return null;
+        let url = rawUrl.trim()
+            .replace(/&amp;/g, '&')
+            .replace(/&amp;/g, '&'); // Clean potential double-encoded entities
+
+        // Rewrite preview.redd.it URLs to unblocked direct i.redd.it
+        if (url.includes('preview.redd.it/')) {
+            const match = url.match(/https?:\/\/preview\.redd\.it\/([^?#]+)/i);
+            if (match && match[1]) {
+                return `https://i.redd.it/${match[1]}`;
+            }
+        }
+        return url;
+    }
+
     // Helper: Extract rich media (images, animated GIFs, videos) from Reddit JSON structures
     _extractRedditMedia(p) {
-        if (!p) return { image: null, video: null, isGif: false };
+        if (!p) return { image: null, video: null, isGif: false, isVideo: false, videoSources: [] };
+
+        // Support crosspost parents if top-level post lacks rich media
+        const cp = Array.isArray(p.crosspost_parent_list) && p.crosspost_parent_list.length > 0
+            ? p.crosspost_parent_list[0]
+            : null;
+
         let image = null;
         let video = null;
         let isGif = false;
+        let isVideo = false;
+        const videoSources = [];
+
+        // Check if explicitly flagged as video
+        if (p.is_video || cp?.is_video || p.post_hint === 'hosted:video' || cp?.post_hint === 'hosted:video') {
+            isVideo = true;
+        }
 
         // 1. Direct animated GIF or static image link
-        if (p.url && /\.(gif|gifv)(\?.*)?$/i.test(p.url)) {
-            image = p.url.replace(/\.gifv$/i, '.gif');
+        const targetUrl = p.url || cp?.url || '';
+        if (targetUrl && /\.(gif|gifv)(\?.*)?$/i.test(targetUrl)) {
+            image = targetUrl.replace(/\.gifv$/i, '.gif');
             isGif = true;
-        } else if (p.url && /\.(jpe?g|png|webp)(\?.*)?$/i.test(p.url)) {
-            image = p.url;
-        } else if (p.url && (p.url.includes('i.redd.it') || p.url.includes('i.imgur.com') || p.url.includes('media.giphy.com'))) {
-            image = p.url;
-            if (p.url.endsWith('.gif')) isGif = true;
+        } else if (targetUrl && /\.(jpe?g|png|webp)(\?.*)?$/i.test(targetUrl)) {
+            image = targetUrl;
+        } else if (targetUrl && (targetUrl.includes('i.redd.it') || targetUrl.includes('i.imgur.com') || targetUrl.includes('media.giphy.com'))) {
+            image = targetUrl;
+            if (targetUrl.endsWith('.gif')) isGif = true;
         }
 
         // 2. Animated GIF preview variants
-        if (!image && p.preview?.images?.[0]?.variants?.gif?.source?.url) {
-            image = p.preview.images[0].variants.gif.source.url.replace(/&amp;/g, '&');
+        const gifVariant = p.preview?.images?.[0]?.variants?.gif?.source?.url 
+            || cp?.preview?.images?.[0]?.variants?.gif?.source?.url;
+        if (!image && gifVariant) {
+            image = this._cleanRedditMediaUrl(gifVariant);
             isGif = true;
         }
 
-        // 3. Reddit multi-image gallery metadata (media_metadata)
-        if (!image && p.media_metadata && typeof p.media_metadata === 'object') {
-            const keys = Object.keys(p.media_metadata);
+        // 3. MP4 variant from preview (GIFs or animated clips converted to MP4)
+        const mp4Variant = p.preview?.images?.[0]?.variants?.mp4?.source?.url
+            || cp?.preview?.images?.[0]?.variants?.mp4?.source?.url;
+        if (mp4Variant) {
+            const cleanMp4 = this._cleanRedditMediaUrl(mp4Variant);
+            video = cleanMp4;
+            videoSources.push(cleanMp4);
+            isVideo = true;
+        }
+
+        // 4. Reddit multi-image gallery metadata (media_metadata)
+        const mediaMeta = p.media_metadata || cp?.media_metadata;
+        if (!image && mediaMeta && typeof mediaMeta === 'object') {
+            const keys = Object.keys(mediaMeta);
             if (keys.length > 0) {
-                const meta = p.media_metadata[keys[0]];
+                const meta = mediaMeta[keys[0]];
                 if (meta?.s?.u) {
-                    image = meta.s.u.replace(/&amp;/g, '&');
+                    image = this._cleanRedditMediaUrl(meta.s.u);
                 } else if (meta?.s?.gif) {
-                    image = meta.s.gif.replace(/&amp;/g, '&');
+                    image = this._cleanRedditMediaUrl(meta.s.gif);
                     isGif = true;
                 } else if (Array.isArray(meta?.p) && meta.p.length > 0) {
-                    image = meta.p[meta.p.length - 1].u?.replace(/&amp;/g, '&');
+                    image = this._cleanRedditMediaUrl(meta.p[meta.p.length - 1].u);
+                } else if (meta?.id) {
+                    const ext = meta.m ? meta.m.replace('image/', '') : 'jpg';
+                    image = `https://i.redd.it/${meta.id}.${ext}`;
                 }
             }
         }
 
-        // 4. Reddit Preview Images (high resolution source)
-        if (!image && p.preview?.images?.[0]?.source?.url) {
-            image = p.preview.images[0].source.url.replace(/&amp;/g, '&');
+        // 5. Reddit Preview Images (high resolution source)
+        const previewSrc = p.preview?.images?.[0]?.source?.url 
+            || cp?.preview?.images?.[0]?.source?.url;
+        if (!image && previewSrc) {
+            image = this._cleanRedditMediaUrl(previewSrc);
         }
 
-        // 5. Valid thumbnail URL fallback (excluding Reddit keywords like 'default', 'self', 'nsfw', 'spoiler', 'image')
-        if (!image && p.thumbnail && p.thumbnail.startsWith('http')) {
-            image = p.thumbnail.replace(/&amp;/g, '&');
+        // 6. Valid thumbnail URL fallback
+        const thumb = p.thumbnail || cp?.thumbnail;
+        if (!image && thumb && thumb.startsWith('http') && !['default', 'self', 'nsfw', 'spoiler', 'image'].includes(thumb.toLowerCase())) {
+            image = this._cleanRedditMediaUrl(thumb);
         }
 
-        // 6. Video extraction
-        if (p.media?.reddit_video?.fallback_url) {
-            video = p.media.reddit_video.fallback_url.replace(/&amp;/g, '&');
-        } else if (p.secure_media?.reddit_video?.fallback_url) {
-            video = p.secure_media.reddit_video.fallback_url.replace(/&amp;/g, '&');
-        } else if (p.preview?.reddit_video_preview?.fallback_url) {
-            video = p.preview.reddit_video_preview.fallback_url.replace(/&amp;/g, '&');
-        } else if (p.url && /\.(mp4|webm)(\?.*)?$/i.test(p.url)) {
-            video = p.url;
+        // 7. Video extraction from media / secure_media / preview
+        const redditVideo = p.media?.reddit_video 
+            || cp?.media?.reddit_video 
+            || p.secure_media?.reddit_video 
+            || cp?.secure_media?.reddit_video 
+            || p.preview?.reddit_video_preview 
+            || cp?.preview?.reddit_video_preview;
+
+        if (redditVideo) {
+            isVideo = true;
+            if (redditVideo.fallback_url) {
+                const cleanFallback = this._cleanRedditMediaUrl(redditVideo.fallback_url);
+                video = cleanFallback;
+                videoSources.push(cleanFallback);
+            }
+            if (redditVideo.hls_url) {
+                videoSources.push(this._cleanRedditMediaUrl(redditVideo.hls_url));
+            }
+            if (redditVideo.scrubber_media_url) {
+                videoSources.push(this._cleanRedditMediaUrl(redditVideo.scrubber_media_url));
+            }
         }
 
-        // If video exists and no image yet, capture video poster from preview resolutions
-        if (video && !image && p.preview?.images?.[0]?.resolutions?.length) {
-            const resolutions = p.preview.images[0].resolutions;
-            image = resolutions[resolutions.length - 1].url?.replace(/&amp;/g, '&');
+        // 8. Video check from URL (v.redd.it, direct mp4/webm, external video platforms)
+        if (targetUrl) {
+            if (/\.(mp4|webm)(\?.*)?$/i.test(targetUrl)) {
+                video = targetUrl;
+                videoSources.unshift(targetUrl);
+                isVideo = true;
+            } else if (/v\.redd\.it\/([a-zA-Z0-9_-]+)/i.test(targetUrl)) {
+                isVideo = true;
+                const vMatch = targetUrl.match(/v\.redd\.it\/([a-zA-Z0-9_-]+)/i);
+                if (vMatch && vMatch[1]) {
+                    const vId = vMatch[1];
+                    const candidates = [
+                        `https://v.redd.it/${vId}/HLSPlaylist.m3u8`,
+                        `https://v.redd.it/${vId}/DASH_720.mp4?source=fallback`,
+                        `https://v.redd.it/${vId}/DASH_480.mp4?source=fallback`,
+                        `https://v.redd.it/${vId}/DASH_360.mp4?source=fallback`,
+                        `https://v.redd.it/${vId}/DASH_270.mp4?source=fallback`,
+                        `https://v.redd.it/${vId}/DASH_96.mp4?source=fallback`
+                    ];
+                    for (const c of candidates) {
+                        if (!videoSources.includes(c)) videoSources.push(c);
+                    }
+                    if (!video) {
+                        video = `https://v.redd.it/${vId}/DASH_480.mp4?source=fallback`;
+                    }
+                }
+            } else if (/(youtube\.com|youtu\.be|redgifs\.com|streamable\.com|gfycat\.com)/i.test(targetUrl)) {
+                isVideo = true;
+                if (!video) video = targetUrl;
+            }
         }
 
-        return { image, video, isGif };
+        // 9. If video exists and no image yet, capture video poster from preview resolutions
+        if (isVideo && !image) {
+            const resolutions = p.preview?.images?.[0]?.resolutions || cp?.preview?.images?.[0]?.resolutions;
+            if (Array.isArray(resolutions) && resolutions.length > 0) {
+                image = this._cleanRedditMediaUrl(resolutions[resolutions.length - 1].url);
+            }
+            if (!image && thumb && thumb.startsWith('http')) {
+                image = this._cleanRedditMediaUrl(thumb);
+            }
+        }
+
+        if (image) {
+            image = this._cleanRedditMediaUrl(image);
+        }
+
+        return {
+            image,
+            video,
+            isGif,
+            isVideo: isVideo || Boolean(video),
+            videoSources: Array.from(new Set(videoSources.filter(Boolean)))
+        };
     }
 
     // Helper: Extract rich media from Reddit RSS Atom XML entry
     _extractRssMedia(entryXml) {
-        if (!entryXml) return { image: null, video: null, isGif: false };
+        if (!entryXml) return { image: null, video: null, isGif: false, isVideo: false, videoSources: [] };
         let image = null;
         let video = null;
         let isGif = false;
+        let isVideo = false;
+        const videoSources = [];
 
         // 1. Check <media:thumbnail url="..." />
         const thumbMatch = entryXml.match(/<media:thumbnail[^>]+url="([^"]+)"/i);
         if (thumbMatch) {
-            image = thumbMatch[1].replace(/&amp;/g, '&');
+            image = this._cleanRedditMediaUrl(thumbMatch[1]);
         }
 
         // 2. Inspect HTML inside <content>
         const contentMatch = entryXml.match(/<content[^>]*>([\s\S]*?)<\/content>/i);
         if (contentMatch) {
-            const content = contentMatch[1]
+            let content = contentMatch[1]
                 .replace(/&lt;/g, '<')
                 .replace(/&gt;/g, '>')
                 .replace(/&quot;/g, '"')
                 .replace(/&#39;/g, "'")
-                .replace(/&amp;/g, '&');
+                .replace(/&amp;/g, '&')
+                .replace(/&amp;/g, '&'); // Second pass for double-encoded entities
 
             // Direct media link in <a href="...">[link]</a>
             const linkMatch = content.match(/<a[^>]+href="([^"]+)"[^>]*>\[link\]<\/a>/i);
@@ -955,7 +1067,28 @@ class WidgetService {
                     image = href;
                 } else if (/\.(mp4|webm)(\?.*)?$/i.test(href)) {
                     video = href;
+                    videoSources.push(href);
+                    isVideo = true;
                 } else if (href.includes('v.redd.it')) {
+                    isVideo = true;
+                    const vMatch = href.match(/v\.redd\.it\/([a-zA-Z0-9_-]+)/i);
+                    if (vMatch && vMatch[1]) {
+                        const vId = vMatch[1];
+                        const candidates = [
+                            `https://v.redd.it/${vId}/HLSPlaylist.m3u8`,
+                            `https://v.redd.it/${vId}/DASH_720.mp4?source=fallback`,
+                            `https://v.redd.it/${vId}/DASH_480.mp4?source=fallback`,
+                            `https://v.redd.it/${vId}/DASH_360.mp4?source=fallback`,
+                            `https://v.redd.it/${vId}/DASH_270.mp4?source=fallback`,
+                            `https://v.redd.it/${vId}/DASH_96.mp4?source=fallback`
+                        ];
+                        for (const c of candidates) {
+                            if (!videoSources.includes(c)) videoSources.push(c);
+                        }
+                        video = `https://v.redd.it/${vId}/DASH_480.mp4?source=fallback`;
+                    }
+                } else if (/(youtube\.com|youtu\.be|redgifs\.com|streamable\.com|gfycat\.com)/i.test(href)) {
+                    isVideo = true;
                     video = href;
                 }
             }
@@ -964,12 +1097,22 @@ class WidgetService {
             if (!image) {
                 const imgMatch = content.match(/<img[^>]+src="([^"]+)"/i);
                 if (imgMatch && imgMatch[1].startsWith('http')) {
-                    image = imgMatch[1].replace(/&amp;/g, '&');
+                    image = this._cleanRedditMediaUrl(imgMatch[1]);
                 }
             }
         }
 
-        return { image, video, isGif };
+        if (image) {
+            image = this._cleanRedditMediaUrl(image);
+        }
+
+        return {
+            image,
+            video,
+            isGif,
+            isVideo: isVideo || Boolean(video),
+            videoSources: Array.from(new Set(videoSources.filter(Boolean)))
+        };
     }
 
     // Helper: Fetch discussions from a single community with multi-tier fallbacks
@@ -1010,6 +1153,8 @@ class WidgetService {
                             created_at: p.created_utc ? new Date(p.created_utc * 1000).toLocaleDateString() : 'Recent',
                             image: media.image,
                             video: media.video,
+                            video_sources: media.videoSources || [],
+                            is_video: media.isVideo || Boolean(media.video),
                             is_gif: media.isGif
                         });
                         if (posts.length >= limit) break;
@@ -1066,6 +1211,8 @@ class WidgetService {
                             created_at: published ? new Date(published).toLocaleDateString() : 'Recent',
                             image: media.image,
                             video: media.video,
+                            video_sources: media.videoSources || [],
+                            is_video: media.isVideo || Boolean(media.video),
                             is_gif: media.isGif
                         });
                     }
@@ -1101,6 +1248,8 @@ class WidgetService {
                                 created_at: new Date(postData.created_utc * 1000).toLocaleDateString(),
                                 image: media.image,
                                 video: media.video,
+                                video_sources: media.videoSources || [],
+                                is_video: media.isVideo || Boolean(media.video),
                                 is_gif: media.isGif
                             });
                             if (posts.length >= limit) break;
@@ -1154,6 +1303,8 @@ class WidgetService {
                 created_at: post.created_utc ? new Date(post.created_utc * 1000).toLocaleDateString() : 'Recent',
                 image: media.image,
                 video: media.video,
+                video_sources: media.videoSources || [],
+                is_video: media.isVideo || Boolean(media.video),
                 is_gif: media.isGif
             };
         };
@@ -1317,6 +1468,8 @@ class WidgetService {
                         created_at: published ? new Date(published).toLocaleDateString() : 'Recent',
                         image: media.image,
                         video: media.video,
+                        video_sources: media.videoSources || [],
+                        is_video: media.isVideo || Boolean(media.video),
                         is_gif: media.isGif
                     });
                 }

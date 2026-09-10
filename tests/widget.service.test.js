@@ -179,5 +179,116 @@ describe('Widget Service Deterministic Capabilities', () => {
       assert.strictEqual(res.data.subreddits.length, 2);
     }
   });
+
+  test('_cleanRedditMediaUrl unblocks preview.redd.it and cleans ampersand entities', () => {
+    const previewUrl = 'https://preview.redd.it/example123.jpg?width=320&amp;crop=smart&amp;auto=webp&amp;s=abc';
+    const cleaned = widgetService._cleanRedditMediaUrl(previewUrl);
+    assert.strictEqual(cleaned, 'https://i.redd.it/example123.jpg');
+
+    const doubleEncoded = 'https://i.redd.it/test.png?foo=1&amp;amp;bar=2';
+    assert.strictEqual(widgetService._cleanRedditMediaUrl(doubleEncoded), 'https://i.redd.it/test.png?foo=1&bar=2');
+  });
+
+  test('_extractRedditMedia correctly resolves v.redd.it candidate streams and poster', () => {
+    const postData = {
+      title: 'Amazing game clip',
+      url: 'https://v.redd.it/sampleclip123',
+      is_video: true,
+      preview: {
+        images: [{
+          source: { url: 'https://preview.redd.it/clipthumb.jpg?width=1080' },
+          resolutions: [{ url: 'https://preview.redd.it/clipthumb.jpg?width=640' }]
+        }]
+      }
+    };
+    const media = widgetService._extractRedditMedia(postData);
+    assert.strictEqual(media.isVideo, true);
+    assert.ok(media.video.includes('sampleclip123'));
+    assert.ok(media.video.includes('DASH_480.mp4'));
+    assert.strictEqual(media.image, 'https://i.redd.it/clipthumb.jpg');
+    assert.ok(Array.isArray(media.videoSources));
+    assert.ok(media.videoSources.some(s => s.includes('HLSPlaylist.m3u8')));
+    assert.ok(media.videoSources.some(s => s.includes('DASH_720.mp4')));
+  });
+
+  test('_extractRedditMedia extracts media from crosspost parent when top level is empty', () => {
+    const crosspost = {
+      title: 'Crossposted video',
+      url: 'https://www.reddit.com/r/funny/comments/xyz123',
+      is_video: false,
+      crosspost_parent_list: [{
+        title: 'Original clip',
+        url: 'https://v.redd.it/parentclip999',
+        is_video: true,
+        media: {
+          reddit_video: {
+            fallback_url: 'https://v.redd.it/parentclip999/DASH_720.mp4?source=fallback'
+          }
+        }
+      }]
+    };
+    const media = widgetService._extractRedditMedia(crosspost);
+    assert.strictEqual(media.isVideo, true);
+    assert.ok(media.video.includes('parentclip999'));
+    assert.ok(media.videoSources.length > 0);
+  });
+
+  test('renderRedditWidget renders persistent media containers and playable video sources without collapsing', async () => {
+    const { renderRedditWidget } = await import('../public/js/widgets/reddit-widget.js');
+
+    const mockData = {
+      subreddit: 'r/funny',
+      posts: [
+        {
+          title: "DC isn't infinitely powerful",
+          url: 'https://www.reddit.com/r/funny/comments/post1',
+          ups: 420,
+          comments: 69,
+          author: 'u/tester',
+          subreddit: 'r/funny',
+          created_at: '2026-09-10',
+          image: 'https://i.redd.it/post1.jpg',
+          video: 'https://v.redd.it/post1/DASH_480.mp4?source=fallback',
+          video_sources: [
+            'https://v.redd.it/post1/HLSPlaylist.m3u8',
+            'https://v.redd.it/post1/DASH_720.mp4?source=fallback',
+            'https://v.redd.it/post1/DASH_480.mp4?source=fallback'
+          ],
+          is_video: true,
+          is_gif: false
+        },
+        {
+          title: "Funny static image",
+          url: 'https://www.reddit.com/r/funny/comments/post2',
+          ups: 100,
+          comments: 10,
+          author: 'u/tester2',
+          subreddit: 'r/funny',
+          created_at: '2026-09-10',
+          image: 'https://i.redd.it/post2.jpg',
+          video: null,
+          video_sources: [],
+          is_video: false,
+          is_gif: false
+        }
+      ]
+    };
+
+    const html = renderRedditWidget(mockData);
+
+    // Must NEVER include the destructive c.style.display='none' that caused videos to vanish
+    assert.strictEqual(html.includes("c.style.display='none'"), false);
+    // Must include the persistent video container
+    assert.ok(html.includes('discussion-video-container'));
+    // Must include multiple candidate video sources
+    assert.ok(html.includes('DASH_720.mp4'));
+    assert.ok(html.includes('HLSPlaylist.m3u8'));
+    // Must include the non-destructive fallback bar
+    assert.ok(html.includes('discussion-video-fallback-bar'));
+    // Must include the image thumbnail container
+    assert.ok(html.includes('discussion-thumbnail-container'));
+    // Must not collapse into plain text
+    assert.ok(html.includes('discussion-media-fallback-card'));
+  });
 });
 
