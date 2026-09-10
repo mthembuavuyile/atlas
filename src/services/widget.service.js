@@ -963,65 +963,6 @@ class WidgetService {
             } catch (e) {}
         }
 
-        // Tier 3: Lemmy Federated Fallback
-        if (posts.length === 0) {
-            try {
-                const lemmyRes = await fetchWithTimeout(`https://lemmy.world/api/v3/post/list?community_name=${encodeURIComponent(finalSub)}&limit=${Math.max(limit, 10)}`, { timeoutMs: 2500 }, 2500);
-                if (lemmyRes.ok) {
-                    const lemmyData = await lemmyRes.json();
-                    if (lemmyData.posts?.length) {
-                        sourceName = 'Lemmy Discussions';
-                        for (const item of lemmyData.posts) {
-                            const post = item.post;
-                            if (!post?.name) continue;
-                            posts.push({
-                                title: post.name,
-                                url: post.ap_id || post.url || `https://lemmy.world/c/${finalSub}`,
-                                ups: item.counts?.score || item.counts?.upvotes || 0,
-                                comments: item.counts?.comments || 0,
-                                author: item.creator?.name ? `u/${item.creator.name}` : 'community',
-                                subreddit: `c/${item.community?.name || finalSub}`,
-                                source: 'Lemmy',
-                                created_at: post.published ? new Date(post.published).toLocaleDateString() : 'Recent',
-                                image: post.thumbnail_url || null,
-                                video: null
-                            });
-                            if (posts.length >= limit) break;
-                        }
-                    }
-                }
-            } catch (e) {}
-        }
-
-        // Tier 4: Hacker News Discussions Fallback
-        if (posts.length === 0) {
-            try {
-                const hnRes = await fetchWithTimeout(`https://hn.algolia.com/api/v1/search?query=${encodeURIComponent(finalSub)}&tags=story&hitsPerPage=${Math.max(limit, 10)}`, { timeoutMs: 2500 }, 2500);
-                if (hnRes.ok) {
-                    const hnData = await hnRes.json();
-                    if (hnData.hits?.length) {
-                        sourceName = 'Hacker News';
-                        for (const item of hnData.hits) {
-                            if (!item.title) continue;
-                            posts.push({
-                                title: item.title,
-                                url: item.url || `https://news.ycombinator.com/item?id=${item.objectID}`,
-                                ups: item.points || 0,
-                                comments: item.num_comments || 0,
-                                author: item.author || 'hn_user',
-                                subreddit: 'Hacker News',
-                                source: 'Hacker News',
-                                created_at: item.created_at ? new Date(item.created_at).toLocaleDateString() : 'Recent',
-                                image: null,
-                                video: null
-                            });
-                            if (posts.length >= limit) break;
-                        }
-                    }
-                }
-            } catch (e) {}
-        }
-
         const result = { posts, sourceName, subreddit: finalSub };
         if (posts.length > 0) {
             cache.set(cacheKey, result, 300);
@@ -1029,7 +970,77 @@ class WidgetService {
         return result;
     }
 
-    // 6. Reddit & Community Discussions (Supports single or multi-subreddit queries)
+    // 6. Reddit-wide relevance search across public posts
+    async searchReddit(query, limit = 10, sort = 'relevance', time = 'all', subreddit = '') {
+        const cleanQuery = (query || '').toString().trim();
+        if (!cleanQuery) return { error: 'A Reddit search query is required.' };
+
+        const parsedLimit = typeof limit === 'number' && limit > 0 ? Math.min(Math.floor(limit), 25) : 10;
+        const allowedSorts = new Set(['relevance', 'hot', 'top', 'new', 'comments']);
+        const allowedTimes = new Set(['hour', 'day', 'week', 'month', 'year', 'all']);
+        const cleanSort = allowedSorts.has(sort) ? sort : 'relevance';
+        const cleanTime = allowedTimes.has(time) ? time : 'all';
+        const cleanSubreddit = (subreddit || '').toString().trim().replace(/^\/?r\//i, '').replace(/[^a-zA-Z0-9_]/g, '');
+        const cacheKey = `reddit-search:${cleanQuery.toLowerCase()}:${parsedLimit}:${cleanSort}:${cleanTime}:${cleanSubreddit.toLowerCase()}`;
+        const cached = cache.get(cacheKey);
+        if (cached) return cached;
+
+        try {
+            const params = new URLSearchParams({
+                q: cleanQuery,
+                sort: cleanSort,
+                t: cleanTime,
+                limit: String(parsedLimit),
+                raw_json: '1'
+            });
+            if (cleanSubreddit) params.set('restrict_sr', 'on');
+
+            const endpoint = cleanSubreddit
+                ? `https://www.reddit.com/r/${encodeURIComponent(cleanSubreddit)}/search.json?${params.toString()}`
+                : `https://www.reddit.com/search.json?${params.toString()}`;
+            const response = await fetchWithTimeout(endpoint, {
+                headers: { 'User-Agent': 'web:atlasapp:v1.2.0 (by /u/atlas_agent)' },
+                timeoutMs: 5000
+            }, 5000);
+
+            if (!response.ok) return { error: `Reddit search is temporarily unavailable (${response.status}).` };
+
+            const payload = await response.json();
+            const posts = (payload.data?.children || []).map(({ data: post }) => {
+                if (!post?.title || post.author === '[deleted]') return null;
+                return {
+                    title: post.title,
+                    url: `https://www.reddit.com${post.permalink}`,
+                    ups: post.ups || post.score || 0,
+                    comments: post.num_comments || 0,
+                    author: post.author ? `u/${post.author}` : 'u/reddit_user',
+                    subreddit: post.subreddit_name_prefixed || 'r/unknown',
+                    source: 'Reddit Search',
+                    created_at: post.created_utc ? new Date(post.created_utc * 1000).toLocaleDateString() : 'Recent',
+                    image: post.thumbnail?.startsWith('http') ? post.thumbnail : null,
+                    video: null
+                };
+            }).filter(Boolean);
+
+            const result = {
+                type: 'reddit',
+                data: {
+                    query: cleanQuery,
+                    subreddit: cleanSubreddit ? `r/${cleanSubreddit}` : 'All Reddit',
+                    posts,
+                    source: 'Reddit Search',
+                    sort: cleanSort,
+                    time: cleanTime
+                }
+            };
+            cache.set(cacheKey, result, 300);
+            return result;
+        } catch (error) {
+            return { error: 'Reddit search is unavailable right now. Please try again shortly.' };
+        }
+    }
+
+    // 7. Reddit & Community Discussions (Supports single or multi-subreddit queries)
     async getRedditPosts(subreddit, limit = null) {
         const rawInput = (subreddit || 'news').toString().trim();
         // Split by commas, plus signs, or ' and '

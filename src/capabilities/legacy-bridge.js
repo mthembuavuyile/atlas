@@ -20,6 +20,7 @@ const LEGACY_TOOLS = {
   get_news_headlines: (args = {}) => widgetService.getNewsHeadlines(args.topic),
   get_space_news: (args = {}) => widgetService.getSpaceNews(args.topic),
   get_reddit_posts: (args = {}) => widgetService.getRedditPosts(args.subreddit, args.limit),
+  search_reddit: (args = {}) => widgetService.searchReddit(args.query, args.limit, args.sort, args.time, args.subreddit),
   define_word: (args = {}) => widgetService.defineWord(args.word),
   convert_currency: (args = {}) => widgetService.convertCurrency(args.amount, args.from, args.to),
   solve_math: (args = {}) => widgetService.solveMath(args.expression, args.operation),

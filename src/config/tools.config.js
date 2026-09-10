@@ -157,6 +157,24 @@ const ATLAS_TOOLS = [
   {
     type: 'function',
     function: {
+      name: 'search_reddit',
+      description: 'Search public Reddit posts across all communities using a natural-language query. Use this for topic or sentence searches; use get_reddit_posts when the user names specific communities.',
+      parameters: {
+        type: 'object',
+        properties: {
+          query: { type: 'string', description: 'Natural-language topic or phrase to search for, e.g. "best Linux laptop for software development"' },
+          sort: { type: 'string', enum: ['relevance', 'hot', 'top', 'new', 'comments'], description: 'Result ordering. Defaults to relevance.' },
+          time: { type: 'string', enum: ['hour', 'day', 'week', 'month', 'year', 'all'], description: 'Time range for the search. Defaults to all.' },
+          subreddit: { type: 'string', description: 'Optional community filter, e.g. "technology".' },
+          limit: { type: 'number', description: 'Number of results to return, from 1 to 25. Defaults to 10.' }
+        },
+        required: ['query']
+      }
+    }
+  },
+  {
+    type: 'function',
+    function: {
       name: 'get_reddit_posts',
       description: 'Get trending or hot posts from one or more Reddit communities (subreddits). Supports multiple subreddits separated by commas or plus signs (e.g. "java, bitcoin, news, python") with balanced post distribution.',
       parameters: {

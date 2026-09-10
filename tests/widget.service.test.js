@@ -2,6 +2,7 @@ const { test, describe } = require('node:test');
 const assert = require('node:assert');
 const widgetService = require('../src/services/widget.service');
 const chatController = require('../src/controllers/chat.controller');
+const { ATLAS_TOOLS } = require('../src/config/tools.config');
 
 describe('Widget Service Deterministic Capabilities', () => {
   test('convertUnits correctly converts length (km to miles)', async () => {
@@ -58,6 +59,7 @@ describe('Widget Service Deterministic Capabilities', () => {
       'get_news_headlines',
       'get_space_news',
       'get_reddit_posts',
+      'search_reddit',
       'define_word',
       'convert_currency',
       'solve_math',
@@ -71,6 +73,18 @@ describe('Widget Service Deterministic Capabilities', () => {
     for (const tool of requiredTools) {
       assert.strictEqual(typeof dispatcher[tool], 'function', `Tool "${tool}" must be a function in TOOL_DISPATCHER`);
     }
+  });
+
+  test('search_reddit is exposed as a natural-language query tool', () => {
+    const redditTool = ATLAS_TOOLS.find(tool => tool.function.name === 'search_reddit');
+    assert.ok(redditTool, 'search_reddit must be included in the model tool schema');
+    assert.ok(redditTool.function.parameters.required.includes('query'));
+    assert.strictEqual(typeof chatController.TOOL_DISPATCHER.search_reddit, 'function');
+  });
+
+  test('searchReddit validates empty queries without a network request', async () => {
+    const result = await widgetService.searchReddit('');
+    assert.strictEqual(result.error, 'A Reddit search query is required.');
   });
 
   test('searchImages respects custom limit parameter (limit=1 and limit=4)', async () => {

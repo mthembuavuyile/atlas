@@ -22,7 +22,7 @@ export function detectLocalWidgetIntent(text) {
   }
 
   // If the prompt is a long, multi-sentence prompt, do not hijack with single-intent widgets
-  if (trimmed.length > 100 && !/^(what'?s the weather|convert\s+\d+|what is the time)/i.test(trimmed)) {
+  if (trimmed.length > 100 && !/^(what'?s the weather|convert\s+\d+|what is the time)/i.test(trimmed) && !/\b(?:search|find|look up)\s+(?:on\s+)?reddit\b/i.test(trimmed)) {
     return null;
   }
 
@@ -91,6 +91,17 @@ export function detectLocalWidgetIntent(text) {
     return { tool: 'get_weather', args: { city: weather }, label: 'Fetched live weather.' };
   }
 
+
+  const redditSearch = trimmed.match(/^(?:search|find|look up)\s+(?:on\s+)?reddit\s+(?:for|about|on)?\s*(.+)$/i)
+    || trimmed.match(/^what\s+does\s+reddit\s+say\s+about\s+(.+)$/i)
+    || trimmed.match(/^reddit\s+search\s*:\s*(.+)$/i);
+  if (redditSearch?.[1]) {
+    return {
+      tool: 'search_reddit',
+      args: { query: stripTrailing(redditSearch[1]) },
+      label: 'Searched Reddit discussions.'
+    };
+  }
   const crypto = pickMatch([/^(?:what'?s the\s+)?(?:price of|price for|crypto price of)\s+([a-z0-9 ,&+.-]+)\??$/i, /^([a-z0-9 ,&+.-]+)\s+(?:price|crypto price|price right now)\??$/i]);
   if (crypto && /\b(bitcoin|btc|ethereum|eth|solana|sol|xrp|doge|cardano|ada|crypto)\b/i.test(crypto)) {
     return { tool: 'get_crypto_price', args: { coin: crypto.replace(/\bcrypto\b/gi, '').trim() || 'bitcoin' }, label: 'Fetched live crypto price.' };
@@ -262,7 +273,6 @@ export function resolveSlashCommand(prompt) {
     toolToCall = 'define_word';
     argsPayload = { word: arg || 'intelligence' };
   } else if (command === 'reddit') {
-    toolToCall = 'get_reddit_posts';
     let subStr = (arg || 'news').trim();
     let limitVal = null;
     const limitMatch = subStr.match(/(?:--limit|-n|\blimit:)\s*(\d+)/i);
@@ -270,7 +280,14 @@ export function resolveSlashCommand(prompt) {
       limitVal = parseInt(limitMatch[1], 10);
       subStr = subStr.replace(limitMatch[0], '').trim();
     }
-    argsPayload = { subreddit: subStr || 'news' };
+    const searchMatch = subStr.match(/^(?:search|find|query)\s+(.+)$/i);
+    if (searchMatch) {
+      toolToCall = 'search_reddit';
+      argsPayload = { query: searchMatch[1].trim() };
+    } else {
+      toolToCall = 'get_reddit_posts';
+      argsPayload = { subreddit: subStr || 'news' };
+    }
     if (limitVal) argsPayload.limit = limitVal;
   } else if (command === 'weather') {
     toolToCall = 'get_weather';
