@@ -283,6 +283,15 @@ function initComposerListeners() {
 function init() {
   configureMarked();
   applyTheme(state.theme);
+
+  // Wire theme selector buttons
+  dom.themeBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const theme = btn.getAttribute('data-theme-val');
+      if (theme) applyTheme(theme);
+    });
+  });
+
   renderHistoryTree();
   initInvestigationModes();
   renderModelOptions();
