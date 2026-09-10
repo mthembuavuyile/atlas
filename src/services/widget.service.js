@@ -914,7 +914,60 @@ class WidgetService {
             }
         } catch (e) {}
 
-        // Tier 2: Direct Reddit API with custom User-Agent
+        // Tier 2: Reddit RSS Feed (Atom XML — reliably not blocked)
+        if (posts.length === 0) {
+            try {
+                const rssRes = await fetchWithTimeout(`https://www.reddit.com/r/${encodeURIComponent(finalSub)}/hot.rss?limit=${Math.max(limit, 15)}`, {
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (compatible; AtlasReasoningStudio/1.0; +https://vylex.co.za)',
+                        'Accept': 'application/atom+xml, application/xml, text/xml'
+                    },
+                    timeoutMs: 4000
+                }, 4000);
+                if (rssRes.ok) {
+                    const xml = await rssRes.text();
+                    const entryRegex = /<entry>([\s\S]*?)<\/entry>/gi;
+                    let entryMatch;
+                    while ((entryMatch = entryRegex.exec(xml)) !== null && posts.length < limit) {
+                        const entry = entryMatch[1];
+                        const readTag = (tag) => {
+                            const m = entry.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`, 'i'));
+                            return m ? m[1].replace(/<!\[CDATA\[/, '').replace(/\]\]>$/, '').trim() : '';
+                        };
+                        const readAttr = (tag, attr) => {
+                            const m = entry.match(new RegExp(`<${tag}[^>]*${attr}="([^"]*)"`, 'i'));
+                            return m ? m[1] : '';
+                        };
+
+                        const title = searchService.cleanHtmlEntities(readTag('title'));
+                        if (!title || title.length < 4) continue;
+
+                        const author = readTag('name').replace(/^\/?u\//, '');
+                        const url = readAttr('link', 'href') || '';
+                        const published = readTag('published') || readTag('updated') || '';
+                        const categoryLabel = readAttr('category', 'label') || `r/${finalSub}`;
+
+                        if (!url || author === 'AutoModerator') continue;
+
+                        posts.push({
+                            title,
+                            url,
+                            ups: 0,
+                            comments: 0,
+                            author: author ? `u/${author}` : 'u/reddit_user',
+                            subreddit: categoryLabel.startsWith('r/') ? categoryLabel : `r/${finalSub}`,
+                            source: 'Reddit',
+                            created_at: published ? new Date(published).toLocaleDateString() : 'Recent',
+                            image: null,
+                            video: null
+                        });
+                    }
+                    if (posts.length > 0) sourceName = 'Reddit RSS';
+                }
+            } catch (e) {}
+        }
+
+        // Tier 3: Direct Reddit JSON API (often blocked by 403, kept as last resort)
         if (posts.length === 0) {
             try {
                 const redditRes = await fetchWithTimeout(`https://www.reddit.com/r/${encodeURIComponent(finalSub)}/hot.json?limit=${Math.max(limit, 10)}&raw_json=1`, {
@@ -1027,7 +1080,135 @@ class WidgetService {
             }
         });
 
-        let primaryResponse = null;
+        // Tier 1: PullPush API (Pushshift successor — works for general Reddit search)
+        try {
+            const ppParams = new URLSearchParams({
+                q: cleanQuery,
+                size: String(Math.max(parsedLimit, 15))
+            });
+            if (cleanSubreddit) ppParams.set('subreddit', cleanSubreddit);
+            if (cleanSort === 'top' || cleanSort === 'relevance') {
+                ppParams.set('sort', 'score');
+                ppParams.set('sort_type', 'desc');
+            } else if (cleanSort === 'new') {
+                ppParams.set('sort', 'created_utc');
+                ppParams.set('sort_type', 'desc');
+            } else if (cleanSort === 'comments') {
+                ppParams.set('sort', 'num_comments');
+                ppParams.set('sort_type', 'desc');
+            }
+
+            const ppRes = await fetchWithTimeout(`https://api.pullpush.io/reddit/search/submission/?${ppParams.toString()}`, {
+                timeoutMs: 5000
+            }, 5000);
+
+            if (ppRes.ok) {
+                const posts = parsePosts(await ppRes.json(), 'Reddit Search');
+                if (posts.length > 0) {
+                    const result = buildResult(posts, 'Reddit Search');
+                    cache.set(cacheKey, result, 300);
+                    return result;
+                }
+            }
+        } catch (e) {}
+
+        // Tier 2: Arctic Shift / Photon (only works when subreddit is specified)
+        if (cleanSubreddit) {
+            try {
+                const asParams = new URLSearchParams({
+                    subreddit: cleanSubreddit,
+                    limit: String(Math.max(parsedLimit, 15))
+                });
+                const asRes = await fetchWithTimeout(`https://arctic-shift.photon-reddit.com/api/posts/search?${asParams.toString()}`, {
+                    timeoutMs: 5000
+                }, 5000);
+
+                if (asRes.ok) {
+                    // Filter posts client-side by query keywords for relevance
+                    const payload = await asRes.json();
+                    const allPosts = parsePosts(payload, 'Reddit Search');
+                    const queryWords = cleanQuery.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+                    const filtered = queryWords.length > 0
+                        ? allPosts.filter(p => queryWords.some(w => p.title.toLowerCase().includes(w)))
+                        : allPosts;
+                    const finalPosts = filtered.length > 0 ? filtered.slice(0, parsedLimit) : allPosts.slice(0, parsedLimit);
+                    if (finalPosts.length > 0) {
+                        const result = buildResult(finalPosts, 'Reddit Search');
+                        cache.set(cacheKey, result, 300);
+                        return result;
+                    }
+                }
+            } catch (e) {}
+        }
+
+        // Tier 3: Reddit Search RSS (Atom XML — reliably not blocked)
+        try {
+            const rssParams = new URLSearchParams({
+                q: cleanQuery,
+                sort: cleanSort,
+                t: cleanTime,
+                limit: String(parsedLimit)
+            });
+            const rssEndpoint = cleanSubreddit
+                ? `https://www.reddit.com/r/${encodeURIComponent(cleanSubreddit)}/search.rss?${rssParams.toString()}&restrict_sr=on`
+                : `https://www.reddit.com/search.rss?${rssParams.toString()}`;
+            const rssRes = await fetchWithTimeout(rssEndpoint, {
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (compatible; AtlasReasoningStudio/1.0; +https://vylex.co.za)',
+                    'Accept': 'application/atom+xml, application/xml, text/xml'
+                },
+                timeoutMs: 5000
+            }, 5000);
+
+            if (rssRes.ok) {
+                const xml = await rssRes.text();
+                const rssPosts = [];
+                const entryRegex = /<entry>([\s\S]*?)<\/entry>/gi;
+                let entryMatch;
+                while ((entryMatch = entryRegex.exec(xml)) !== null && rssPosts.length < parsedLimit) {
+                    const entry = entryMatch[1];
+                    const readTag = (tag) => {
+                        const m = entry.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`, 'i'));
+                        return m ? m[1].replace(/<!\[CDATA\[/, '').replace(/\]\]>$/, '').trim() : '';
+                    };
+                    const readAttr = (tag, attr) => {
+                        const m = entry.match(new RegExp(`<${tag}[^>]*${attr}="([^"]*)"`, 'i'));
+                        return m ? m[1] : '';
+                    };
+
+                    const title = searchService.cleanHtmlEntities(readTag('title'));
+                    if (!title || title.length < 4) continue;
+
+                    const author = readTag('name').replace(/^\/?u\//, '');
+                    const url = readAttr('link', 'href') || '';
+                    const published = readTag('published') || readTag('updated') || '';
+                    const categoryLabel = readAttr('category', 'label') || '';
+
+                    if (!url || author === 'AutoModerator') continue;
+
+                    rssPosts.push({
+                        title,
+                        url,
+                        ups: 0,
+                        comments: 0,
+                        author: author ? `u/${author}` : 'u/reddit_user',
+                        subreddit: categoryLabel.startsWith('r/') ? categoryLabel : (cleanSubreddit ? `r/${cleanSubreddit}` : 'r/search'),
+                        source: 'Reddit Search',
+                        created_at: published ? new Date(published).toLocaleDateString() : 'Recent',
+                        image: null,
+                        video: null
+                    });
+                }
+
+                if (rssPosts.length > 0) {
+                    const result = buildResult(rssPosts, 'Reddit Search');
+                    cache.set(cacheKey, result, 300);
+                    return result;
+                }
+            }
+        } catch (e) {}
+
+        // Tier 4: Reddit direct JSON search (often blocked by 403, kept as last resort)
         try {
             const params = new URLSearchParams({
                 q: cleanQuery,
@@ -1041,7 +1222,7 @@ class WidgetService {
             const endpoint = cleanSubreddit
                 ? `https://www.reddit.com/r/${encodeURIComponent(cleanSubreddit)}/search.json?${params.toString()}`
                 : `https://www.reddit.com/search.json?${params.toString()}`;
-            primaryResponse = await fetchWithTimeout(endpoint, {
+            const primaryResponse = await fetchWithTimeout(endpoint, {
                 headers: { 'User-Agent': 'web:atlasapp:v1.2.0 (by /u/atlas_agent)' },
                 timeoutMs: 5000
             }, 5000);
@@ -1054,30 +1235,9 @@ class WidgetService {
                     return result;
                 }
             }
-        } catch (error) {}
+        } catch (e) {}
 
-        try {
-            const fallbackParams = new URLSearchParams({
-                query: cleanQuery,
-                limit: String(Math.max(parsedLimit, 15))
-            });
-            if (cleanSubreddit) fallbackParams.set('subreddit', cleanSubreddit);
-            const fallbackResponse = await fetchWithTimeout(`https://arctic-shift.photon-reddit.com/api/posts/search?${fallbackParams.toString()}`, {
-                timeoutMs: 5000
-            }, 5000);
-            if (!fallbackResponse.ok) {
-                return { error: `Reddit search is temporarily unavailable (${fallbackResponse.status}).` };
-            }
-
-            const posts = parsePosts(await fallbackResponse.json(), 'Reddit Search');
-            if (posts.length === 0) return { error: 'No Reddit results found for that query.' };
-
-            const result = buildResult(posts, 'Reddit Search');
-            cache.set(cacheKey, result, 300);
-            return result;
-        } catch (error) {
-            return { error: 'Reddit search is unavailable right now. Please try again shortly.' };
-        }
+        return { error: 'No Reddit results found for that query. Please try different keywords or check back later.' };
     }
 
     // 7. Reddit & Community Discussions (Supports single or multi-subreddit queries)
