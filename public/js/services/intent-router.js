@@ -392,7 +392,21 @@ export async function runLocalWidget(toolToCall, argsPayload, statusText, contex
   const widgetResult = await res.json();
 
   if (!widgetResult || typeof widgetResult.type !== 'string') {
-    throw new Error(widgetResult?.error || 'Widget service returned an invalid response.');
+    if (widgetResult?.error) {
+      const formattedNotice = `<div class="atlas-widget-notice" style="padding: 10px 14px; margin: 6px 0; border-radius: 8px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-light); font-size: 13.5px; color: var(--text-muted);">${parseMarkdownSafely(widgetResult.error, false)}</div>`;
+      bubble.innerHTML = formattedNotice;
+      session.messages.push({
+        role: 'assistant',
+        content: widgetResult.error,
+        widgets: []
+      });
+      session.updatedAt = new Date().toISOString();
+      saveSessions();
+      updateSessionMetrics();
+      scrollToBottom(true);
+      return;
+    }
+    throw new Error('Widget service returned an invalid response.');
   }
 
   accumulatedWidgets.push(widgetResult);

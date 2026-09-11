@@ -1357,60 +1357,101 @@ class WidgetService {
             }
         } catch (e) {}
 
-        // Tier 2: Arctic Shift / Photon fallback
+        // Tier 2: Community Hubs + Photon Reddit Resolver
         try {
-            const fallbackParams = new URLSearchParams({
-                query: cleanQuery,
-                limit: String(Math.max(parsedLimit, 15))
-            });
-            if (cleanSubreddit) fallbackParams.set('subreddit', cleanSubreddit);
-            const fallbackResponse = await fetchWithTimeout(`https://arctic-shift.photon-reddit.com/api/posts/search?${fallbackParams.toString()}`, {
-                timeoutMs: 3500
-            }, 3500);
+            const candidateSubs = [];
+            if (cleanSubreddit) {
+                candidateSubs.push(cleanSubreddit);
+            } else {
+                const qLower = cleanQuery.toLowerCase();
+                const singleCandidate = qLower.replace(/[^a-z0-9_]/g, '');
+                if (!qLower.includes(' ') && singleCandidate.length >= 3 && singleCandidate.length <= 21) {
+                    candidateSubs.push(singleCandidate);
+                }
 
-            if (fallbackResponse.ok) {
-                const posts = parsePosts(await fallbackResponse.json(), 'Reddit Search');
-                if (posts.length > 0) {
-                    const result = buildResult(posts, 'Reddit Search');
+                const topicRules = [
+                    { regex: /\b(ai|artificial intelligence|llm|gpt|chatgpt|openai|machine learning|deep learning|neural|claude|gemini)\b/i, subs: ['artificial', 'ChatGPT', 'MachineLearning', 'technology'] },
+                    { regex: /\b(crypto|bitcoin|btc|ethereum|eth|blockchain|solana|coin|nft|web3)\b/i, subs: ['crypto', 'bitcoin', 'cryptocurrency'] },
+                    { regex: /\b(tech|technology|software|apple|google|microsoft|phone|gadget|computer|hardware)\b/i, subs: ['technology', 'gadgets'] },
+                    { regex: /\b(code|coding|dev|programming|python|javascript|rust|react|node|golang|css|html)\b/i, subs: ['programming', 'webdev', 'learnprogramming'] },
+                    { regex: /\b(game|gaming|gamer|ps5|xbox|nintendo|steam|pcgaming|gta|fortnite)\b/i, subs: ['gaming', 'games', 'pcgaming'] },
+                    { regex: /\b(science|physics|space|nasa|astronomy|biology|chemistry|quantum)\b/i, subs: ['science', 'space', 'physics'] },
+                    { regex: /\b(stock|stocks|market|investing|finance|business|money|economy|wallstreet)\b/i, subs: ['stocks', 'investing', 'business'] },
+                    { regex: /\b(movie|movies|film|cinema|tv|show|netflix|series|actor)\b/i, subs: ['movies', 'television'] },
+                    { regex: /\b(car|cars|automotive|vehicle|ev|tesla|toyota|bmw|engine)\b/i, subs: ['cars', 'technology'] },
+                    { regex: /\b(news|politics|world|war|government|breaking)\b/i, subs: ['news', 'worldnews'] }
+                ];
+
+                for (const rule of topicRules) {
+                    if (rule.regex.test(qLower)) {
+                        candidateSubs.push(...rule.subs);
+                    }
+                }
+
+                if (candidateSubs.length === 0) {
+                    candidateSubs.push('popular', 'news', 'technology', 'worldnews');
+                }
+            }
+
+            const uniqueSubs = [...new Set(candidateSubs)].slice(0, 4);
+            const perSubLimit = Math.max(Math.ceil(parsedLimit * 1.5), 15);
+            const queryTokens = cleanQuery.toLowerCase().split(/\s+/).filter(w => w.length >= 2);
+
+            const photonPromises = uniqueSubs.map(async (sub) => {
+                try {
+                    const photonUrl = `https://arctic-shift.photon-reddit.com/api/posts/search?subreddit=${encodeURIComponent(sub)}&limit=${perSubLimit}`;
+                    const res = await fetchWithTimeout(photonUrl, { timeoutMs: 3500 }, 3500);
+                    if (!res.ok) return [];
+                    const json = await res.json();
+                    return Array.isArray(json?.data) ? json.data : [];
+                } catch {
+                    return [];
+                }
+            });
+
+            const settledPhoton = await Promise.allSettled(photonPromises);
+            let rawCandidatePosts = [];
+            settledPhoton.forEach(outcome => {
+                if (outcome.status === 'fulfilled' && Array.isArray(outcome.value)) {
+                    rawCandidatePosts.push(...outcome.value);
+                }
+            });
+
+            if (rawCandidatePosts.length > 0) {
+                // Score and rank posts by query relevance with deduplication
+                const seenUrls = new Set();
+                const scoredPosts = rawCandidatePosts
+                    .map(post => {
+                        const normalized = normalizePost(post, 'Reddit');
+                        if (!normalized) return null;
+                        if (seenUrls.has(normalized.url)) return null;
+                        seenUrls.add(normalized.url);
+
+                        const title = (post.title || '').toLowerCase();
+                        const text = (post.selftext || '').toLowerCase();
+                        let score = 0;
+                        for (const token of queryTokens) {
+                            if (token.length < 3) continue;
+                            if (title.includes(token)) score += 10;
+                            if (text.includes(token)) score += 2;
+                        }
+                        score += Math.min((post.score || post.ups || 0) / 100, 5);
+                        return { post: normalized, score };
+                    })
+                    .filter(Boolean);
+
+                scoredPosts.sort((a, b) => b.score - a.score);
+
+                const finalPosts = scoredPosts.slice(0, parsedLimit).map(s => s.post);
+                if (finalPosts.length > 0) {
+                    const result = buildResult(finalPosts, 'Reddit');
                     cache.set(cacheKey, result, 300);
                     return result;
                 }
             }
         } catch (e) {}
 
-        // Tier 3: PullPush API fallback (handles cross-Reddit keyword searches)
-        try {
-            const ppParams = new URLSearchParams({
-                q: cleanQuery,
-                size: String(Math.max(parsedLimit, 15))
-            });
-            if (cleanSubreddit) ppParams.set('subreddit', cleanSubreddit);
-            if (cleanSort === 'top' || cleanSort === 'relevance') {
-                ppParams.set('sort', 'score');
-                ppParams.set('sort_type', 'desc');
-            } else if (cleanSort === 'new') {
-                ppParams.set('sort', 'created_utc');
-                ppParams.set('sort_type', 'desc');
-            } else if (cleanSort === 'comments') {
-                ppParams.set('sort', 'num_comments');
-                ppParams.set('sort_type', 'desc');
-            }
-
-            const ppRes = await fetchWithTimeout(`https://api.pullpush.io/reddit/search/submission/?${ppParams.toString()}`, {
-                timeoutMs: 4000
-            }, 4000);
-
-            if (ppRes.ok) {
-                const posts = parsePosts(await ppRes.json(), 'Reddit Search');
-                if (posts.length > 0) {
-                    const result = buildResult(posts, 'Reddit Search');
-                    cache.set(cacheKey, result, 300);
-                    return result;
-                }
-            }
-        } catch (e) {}
-
-        // Tier 4: Reddit Search RSS (Atom XML — reliably unblocked)
+        // Tier 3: Direct Reddit Search RSS (Atom XML fallback)
         try {
             const rssParams = new URLSearchParams({
                 q: cleanQuery,
@@ -1482,7 +1523,15 @@ class WidgetService {
             }
         } catch (e) {}
 
-        return { error: 'No Reddit results found for that query. Please try different keywords or check back later.' };
+        return {
+            type: 'reddit',
+            data: {
+                query: cleanQuery,
+                subreddit: cleanSubreddit ? `r/${cleanSubreddit}` : 'All Reddit',
+                posts: [],
+                error: `No Reddit discussions found matching "${cleanQuery}". Please try different search terms or check back later.`
+            }
+        };
     }
 
     // 7. Reddit & Community Discussions (Supports single or multi-subreddit queries)

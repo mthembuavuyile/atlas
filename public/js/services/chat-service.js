@@ -26,7 +26,7 @@ export function buildProjectContext() {
 }
 
 export function formatUserFriendlyError(err, statusCode = null) {
-  if (typeof navigator !== 'undefined' && !navigator.onLine) {
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
     return {
       title: 'Connection Offline',
       desc: 'You appear to be offline. Please check your network connection.',
@@ -151,13 +151,23 @@ export function formatUserFriendlyError(err, statusCode = null) {
   }
 
   const isGeneric = !raw || lower.includes('request failed') || lower.includes('object object');
+  const isApiKeyError = effectiveStatus === 401 ||
+    /\b(api[-_ ]?key|openrouter[-_ ]?key|invalid[-_ ]?key|missing[-_ ]?key)\b/i.test(raw) ||
+    /\bapi key\b/i.test(raw);
+
+  const defaultAction = isApiKeyError
+    ? 'Please check or configure your API key in Settings.'
+    : (effectiveStatus === 429
+        ? 'Service is busy. Please try again in a few moments.'
+        : 'Please try again shortly or refine your prompt.');
+
   return {
-    title: 'Service Notice',
+    title: isApiKeyError ? 'API Key Notice' : 'Service Notice',
     desc: isGeneric ? 'Something went wrong while processing your request.' : raw,
-    action: 'Please try again shortly or configure a custom key in Settings.',
+    action: defaultAction,
     type: 'error',
     canRetry: true,
-    openSettings: effectiveStatus === 429 || effectiveStatus === 401 || lower.includes('key')
+    openSettings: isApiKeyError
   };
 }
 

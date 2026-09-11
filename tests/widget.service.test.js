@@ -292,5 +292,38 @@ describe('Widget Service Deterministic Capabilities', () => {
     // Must not collapse into plain text
     assert.ok(html.includes('discussion-media-fallback-card'));
   });
+
+  test('searchReddit returns structured type: reddit with friendly notice when no posts match', async () => {
+    const originalFetch = global.fetch;
+    global.fetch = async () => ({
+      ok: true,
+      json: async () => ({ data: [] }),
+      text: async () => '<feed></feed>'
+    });
+
+    try {
+      const result = await widgetService.searchReddit('extremely-rare-unmatched-query-xyz123');
+      assert.strictEqual(result.type, 'reddit');
+      assert.ok(Array.isArray(result.data.posts));
+      assert.strictEqual(result.data.posts.length, 0);
+      assert.ok(typeof result.data.error === 'string');
+      assert.ok(result.data.error.includes('search terms'));
+      assert.strictEqual(result.data.error.includes('keywords'), false);
+    } finally {
+      global.fetch = originalFetch;
+    }
+  });
+
+  test('formatUserFriendlyError prevents false-positive API key settings buttons on words like keywords', async () => {
+    const { formatUserFriendlyError } = await import('../public/js/services/chat-service.js');
+    const redditNotice = formatUserFriendlyError(new Error('No Reddit results found for that query. Please try different keywords or check back later.'));
+    assert.strictEqual(redditNotice.openSettings, false, 'Should not show settings button for query notice');
+    assert.strictEqual(redditNotice.title, 'Service Notice');
+    assert.strictEqual(redditNotice.action.includes('custom key in Settings'), false);
+
+    const realKeyError = formatUserFriendlyError(new Error('Invalid OpenRouter API key provided'));
+    assert.strictEqual(realKeyError.openSettings, true, 'Should show settings button for genuine API key error');
+    assert.strictEqual(realKeyError.title, 'API Key Notice');
+  });
 });
 
