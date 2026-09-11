@@ -266,6 +266,22 @@ class ChatController {
                 widgetResult = executedToolCallsInTurn.get(toolSignature);
                 isRedundant = true;
               } else {
+                // Guard: Disallow accidental image generation if user was asking for code/calculators/software
+                if (toolName === 'generate_image' || toolName === 'search_images') {
+                  const lastUserMsg = (messages.filter(m => m.role === 'user').pop()?.content || '').toLowerCase();
+                  const isCodePrompt = /\b(html|css|javascript|calculator|code|script|python|component|webpage|build a|write a program|stopwatch|timer)\b/i.test(lastUserMsg);
+                  const isExplicitImagePrompt = /\b(image|picture|photo|illustration|drawing|wallpaper|generate an image|draw a|photo of)\b/i.test(lastUserMsg);
+                  if (isCodePrompt && !isExplicitImagePrompt) {
+                    widgetResult = {
+                      type: 'skipped',
+                      data: null,
+                      error: 'Tool skipped: The user requested code/software, not an image.'
+                    };
+                    executedToolCallsInTurn.set(toolSignature, widgetResult);
+                    continue;
+                  }
+                }
+
                 const handler = TOOL_DISPATCHER[toolName];
                 if (typeof handler === 'function') {
                   try {

@@ -330,6 +330,39 @@ export function parseMarkdownSafely(raw, isStreaming = false) {
   return html;
 }
 
+export function detectCodeFilename(pre, codeText, language) {
+  const firstLine = (codeText || '').trim().split('\n')[0] || '';
+  const commentMatch = firstLine.match(/^(?:\/\/|\/\*|<!--|#)\s*(?:File:\s*)?([a-zA-Z0-9_.-]+\.[a-zA-Z0-9]+)/i);
+  if (commentMatch) return commentMatch[1];
+
+  let el = pre?.previousElementSibling;
+  let attempts = 0;
+  while (el && attempts < 4) {
+    const text = el.textContent || '';
+    const fileMatch = text.match(/([a-zA-Z0-9_.-]+\.(?:html|css|js|ts|jsx|tsx|py|json|md|sql|sh))/i);
+    if (fileMatch) return fileMatch[1];
+    el = el.previousElementSibling;
+    attempts++;
+  }
+
+  let parentPrev = pre?.parentElement?.previousElementSibling;
+  let parentAttempts = 0;
+  while (parentPrev && parentAttempts < 3) {
+    const text = parentPrev.textContent || '';
+    const fileMatch = text.match(/([a-zA-Z0-9_.-]+\.(?:html|css|js|ts|jsx|tsx|py|json|md|sql|sh))/i);
+    if (fileMatch) return fileMatch[1];
+    parentPrev = parentPrev.previousElementSibling;
+    parentAttempts++;
+  }
+
+  const lang = (language || '').toLowerCase();
+  if (lang === 'html') return 'index.html';
+  if (lang === 'css') return 'style.css';
+  if (lang === 'javascript' || lang === 'js') return 'script.js';
+  if (lang === 'python' || lang === 'py') return 'main.py';
+  return `snippet.${lang || 'txt'}`;
+}
+
 export function enhanceCodeBlocks(container, onOpenCanvas = null) {
   if (!container) return;
   const preBlocks = container.querySelectorAll('pre');
@@ -346,6 +379,8 @@ export function enhanceCodeBlocks(container, onOpenCanvas = null) {
       if (match) language = match[1];
     }
 
+    const filename = detectCodeFilename(pre, codeText, language);
+
     const wrapper = document.createElement('div');
     wrapper.className = 'code-block-container';
 
@@ -355,11 +390,11 @@ export function enhanceCodeBlocks(container, onOpenCanvas = null) {
     const header = document.createElement('div');
     header.className = 'code-block-header';
     header.innerHTML = `
-      <span>${language.toUpperCase()} ${isLongCode ? `(${linesCount} lines)` : ''}</span>
+      <span class="code-block-filename" title="${escapeHtml(filename)}">${escapeHtml(filename)} ${isLongCode ? `(${linesCount} lines)` : ''}</span>
       <span class="code-block-actions">
         ${isLongCode ? '<button class="code-header-tool-btn fold-code-btn" type="button">Collapse</button>' : ''}
         <button class="copy-code-btn" type="button">Copy</button>
-        <button class="open-canvas-btn" type="button" title="Open in Canvas" aria-label="Open code in Canvas">${ICONS.canvas || 'Canvas'}</button>
+        <button class="open-canvas-btn" type="button" title="Open ${escapeHtml(filename)} in Canvas" aria-label="Open code in Canvas">${ICONS.canvas || 'Canvas'}</button>
       </span>
     `;
 
@@ -386,11 +421,30 @@ export function enhanceCodeBlocks(container, onOpenCanvas = null) {
     });
 
     header.querySelector('.open-canvas-btn')?.addEventListener('click', () => {
+      // Also register all companion code blocks in this response or active chat to the shelf
+      const searchScope = container?.closest?.('.chat-messages') || container?.closest?.('#chatMessages') || container;
+      if (searchScope) {
+        const allPres = searchScope.querySelectorAll('pre');
+        allPres.forEach(otherPre => {
+          const oCode = otherPre.querySelector('code');
+          const oText = oCode ? oCode.innerText : otherPre.innerText;
+          let oLang = 'code';
+          if (oCode && oCode.className) {
+            const m = oCode.className.match(/language-(\w+)/);
+            if (m) oLang = m[1];
+          }
+          const oFile = detectCodeFilename(otherPre, oText, oLang);
+          document.dispatchEvent(new CustomEvent('atlas:register-artifact', {
+            detail: { title: oFile, codeText: oText, language: oLang }
+          }));
+        });
+      }
+
       if (typeof onOpenCanvas === 'function') {
-        onOpenCanvas(codeText, language);
+        onOpenCanvas(codeText, language, filename);
       } else {
         document.dispatchEvent(new CustomEvent('atlas:open-canvas', {
-          detail: { codeText, language }
+          detail: { codeText, language, title: filename }
         }));
       }
     });

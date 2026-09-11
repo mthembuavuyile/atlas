@@ -191,6 +191,72 @@ export function switchCanvasTab(tabKey) {
   if (dom.canvasAgentPane) dom.canvasAgentPane.classList.toggle('active', tabKey === 'agent');
 }
 
+export function buildLivePreviewHtml(activeArtifact, artifacts = []) {
+  if (!activeArtifact && (!artifacts || artifacts.length === 0)) return '';
+
+  // 1. Identify primary HTML file (either active or from shelf)
+  let htmlArt = null;
+  if (activeArtifact && (activeArtifact.language === 'html' || activeArtifact.codeText?.includes('<!DOCTYPE') || activeArtifact.codeText?.includes('<html'))) {
+    htmlArt = activeArtifact;
+  } else {
+    htmlArt = artifacts.find(a => a.language === 'html' || a.title?.endsWith('.html') || a.codeText?.includes('<!DOCTYPE') || a.codeText?.includes('<html'));
+  }
+
+  if (!htmlArt || !htmlArt.codeText) {
+    return activeArtifact?.codeText || '';
+  }
+
+  let bundled = htmlArt.codeText;
+
+  // 2. Inline all CSS artifacts from the shelf (e.g. style.css)
+  const cssArtifacts = artifacts.filter(a => a.language === 'css' || (a.title && a.title.endsWith('.css')));
+  cssArtifacts.forEach(cssArt => {
+    const filename = (cssArt.title || 'style.css').replace(/^.*[/\\]/, '');
+    const escaped = filename.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const linkRegex = new RegExp(`<link[^>]+href=["'](?:\\.\\/)?${escaped}["'][^>]*>`, 'gi');
+    if (linkRegex.test(bundled)) {
+      bundled = bundled.replace(linkRegex, `<style data-source="${filename}">\n/* Inlined from ${filename} */\n${cssArt.codeText}\n</style>`);
+    } else {
+      // Also match any un-inlined local relative stylesheet link (e.g. href="style.css" or href="./theme.css")
+      const genericRelCssRegex = /<link[^>]+href=["'](?!\/\/|https?:\/\/)(?:(?:\.\/)?[^'"]+\.css)["'][^>]*>/i;
+      if (genericRelCssRegex.test(bundled)) {
+        bundled = bundled.replace(genericRelCssRegex, `<style data-source="${filename}">\n/* Inlined from ${filename} */\n${cssArt.codeText}\n</style>`);
+      } else if (!bundled.includes(`data-source="${filename}"`)) {
+        if (bundled.includes('</head>')) {
+          bundled = bundled.replace(/<\/head>/i, `<style data-source="${filename}">\n/* Inlined from ${filename} */\n${cssArt.codeText}\n</style></head>`);
+        } else {
+          bundled = `<style data-source="${filename}">\n/* Inlined from ${filename} */\n${cssArt.codeText}\n</style>` + bundled;
+        }
+      }
+    }
+  });
+
+  // 3. Inline all JS artifacts from the shelf (e.g. script.js, timer.js, app.js)
+  const jsArtifacts = artifacts.filter(a => (a.language === 'javascript' || a.language === 'js' || (a.title && a.title.endsWith('.js'))) && a !== htmlArt);
+  jsArtifacts.forEach(jsArt => {
+    const filename = (jsArt.title || 'script.js').replace(/^.*[/\\]/, '');
+    const escaped = filename.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const scriptRegex = new RegExp(`<script[^>]+src=["'](?:\\.\\/)?${escaped}["'][^>]*>\\s*<\\/script>`, 'gi');
+    if (scriptRegex.test(bundled)) {
+      bundled = bundled.replace(scriptRegex, `<script data-source="${filename}">\n/* Inlined from ${filename} */\n${jsArt.codeText}\n</script>`);
+    } else {
+      // Also match any un-inlined local relative script tag (e.g. src="script.js" or src="./timer.js")
+      const genericRelJsRegex = /<script[^>]+src=["'](?!\/\/|https?:\/\/)(?:(?:\.\/)?[^'"]+\.js)["'][^>]*>\s*<\/script>/i;
+      if (genericRelJsRegex.test(bundled)) {
+        bundled = bundled.replace(genericRelJsRegex, `<script data-source="${filename}">\n/* Inlined from ${filename} */\n${jsArt.codeText}\n</script>`);
+      } else if (!bundled.includes(`data-source="${filename}"`)) {
+        if (bundled.includes('</body>')) {
+          bundled = bundled.replace(/<\/body>/i, `<script data-source="${filename}">\n/* Inlined from ${filename} */\n${jsArt.codeText}\n</script></body>`);
+        } else {
+          bundled += `\n<script data-source="${filename}">\n/* Inlined from ${filename} */\n${jsArt.codeText}\n</script>`;
+        }
+      }
+    }
+  });
+
+  return bundled;
+}
+
 function displayArtifact(art) {
   if (!art) return;
   state.activeArtifact = art;
@@ -218,8 +284,11 @@ function displayArtifact(art) {
     renderMathSafely(dom.canvasMarkdownContent);
   }
 
-  if (dom.canvasPreviewFrame && (art.language === 'html' || (art.codeText && (art.codeText.includes('<!DOCTYPE') || art.codeText.includes('<html'))))) {
-    dom.canvasPreviewFrame.srcdoc = art.codeText;
+  if (dom.canvasPreviewFrame) {
+    const previewHtml = buildLivePreviewHtml(art, state.artifacts);
+    if (previewHtml) {
+      dom.canvasPreviewFrame.srcdoc = previewHtml;
+    }
   }
 
   const isDiff = art.language === 'diff' || (art.codeText && (art.codeText.includes('--- a/') || art.codeText.includes('+++ b/') || (art.codeText.includes('@@') && (art.codeText.includes('+') || art.codeText.includes('-')))));
@@ -255,8 +324,8 @@ export function updateCanvasArtifact({ title, codeText, language, type }) {
   renderFileShelf();
 }
 
-export function openCodeInCanvas(codeText, language) {
-  const detectedTitle = `Snippet (${language})`;
+export function openCodeInCanvas(codeText, language, title = null) {
+  const detectedTitle = title || `Snippet (${language})`;
   updateCanvasArtifact({
     title: detectedTitle,
     codeText,
@@ -265,7 +334,7 @@ export function openCodeInCanvas(codeText, language) {
   });
   dom.artifactsCanvasPanel?.classList.add('open');
   dom.toggleCanvasBtn?.classList.add('active');
-  switchCanvasTab(language === 'html' ? 'preview' : 'code');
+  switchCanvasTab(language === 'html' || (title && title.endsWith('.html')) ? 'preview' : 'code');
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -549,6 +618,32 @@ export function initCanvas() {
   // Clear Terminal Feed
   dom.clearTerminalFeedBtn?.addEventListener('click', () => {
     clearAgentTerminal();
+  });
+
+  // Listen for artifacts detected during message parsing
+  document.addEventListener('atlas:register-artifact', (e) => {
+    const detail = e.detail;
+    if (detail && detail.codeText) {
+      if (!state.artifacts) state.artifacts = [];
+      const existingIdx = state.artifacts.findIndex(a => a.title === detail.title);
+      const newArtifact = {
+        id: existingIdx >= 0 ? state.artifacts[existingIdx].id : `art-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        title: detail.title || 'Artifact',
+        codeText: detail.codeText || '',
+        language: (detail.language || 'text').toLowerCase(),
+        type: 'Code'
+      };
+      if (existingIdx >= 0) {
+        state.artifacts[existingIdx] = newArtifact;
+      } else {
+        state.artifacts.push(newArtifact);
+      }
+      renderFileShelf();
+      // If Canvas is open and has live preview, refresh preview
+      if (dom.artifactsCanvasPanel?.classList.contains('open') && dom.canvasPreviewFrame && state.activeArtifact) {
+        dom.canvasPreviewFrame.srcdoc = buildLivePreviewHtml(state.activeArtifact, state.artifacts);
+      }
+    }
   });
 
   // Expose global controller for agents & extensions

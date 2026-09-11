@@ -117,7 +117,7 @@ const ATLAS_TOOLS = [
     type: 'function',
     function: {
       name: 'generate_image',
-      description: 'Generate a completely new, AI-generated image based on a prompt. Use this when the user asks to "create", "make", "draw", or "generate" an image.',
+      description: 'Generate an AI illustration or photo. ONLY use this when the user EXPLICITLY asks to "draw an image", "create a picture", "generate a photo", or "illustrate". NEVER invoke this tool when the user asks for code, programming, software, HTML, CSS, JavaScript, calculators, or web pages.',
       parameters: {
         type: 'object',
         properties: {

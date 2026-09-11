@@ -306,9 +306,26 @@ export function renderMessageItem(role, content = '', reasoning = '', shouldScro
       }
     });
 
+    const continueBtn = document.createElement('button');
+    continueBtn.className = 'action-btn continue-btn';
+    continueBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: middle;"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg><span>Continue</span>`;
+    continueBtn.title = 'Continue generation if cut off or incomplete';
+    continueBtn.addEventListener('click', () => {
+      if (state.isGenerating) return;
+      const composer = dom.messageInput || document.getElementById('chatInput');
+      if (composer) {
+        composer.value = 'Continue directly from where you left off. If you were inside a code block, format your code inside appropriate markdown code fences with the filename (e.g. ```css or ```javascript) so all code is cleanly formatted and complete.';
+        const form = document.getElementById('chatForm');
+        if (form) {
+          form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+        }
+      }
+    });
+
     actionsBar.appendChild(copyBtn);
     actionsBar.appendChild(speakBtn);
     actionsBar.appendChild(regenBtn);
+    actionsBar.appendChild(continueBtn);
     wrapper.appendChild(actionsBar);
   }
 
