@@ -1579,6 +1579,63 @@ a:hover {
   border-color: var(--border-active);
 }
 
+.code-block-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 8px;
+  background: rgba(255, 255, 255, 0.02);
+  border-top: 1px solid var(--border-subtle);
+  font-size: 0.7rem;
+  font-family: var(--font-mono);
+}
+
+.code-footer-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.code-footer-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.code-footer-btn {
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-size: 0.68rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.code-footer-btn:hover {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--border-focus, var(--vylex-amber));
+}
+
+.code-footer-btn.continue-code-btn {
+  color: var(--vylex-amber, #e5a93c);
+  border-color: rgba(229, 169, 60, 0.35);
+  background: rgba(229, 169, 60, 0.08);
+  font-weight: 500;
+}
+
+.code-footer-btn.continue-code-btn:hover {
+  background: rgba(229, 169, 60, 0.18);
+  border-color: var(--vylex-amber, #e5a93c);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
 pre {
   padding: 10px;
   overflow-x: auto;

@@ -460,6 +460,41 @@ export function enhanceCodeBlocks(container, onOpenCanvas = null) {
     wrapper.appendChild(header);
     wrapper.appendChild(pre);
 
+    // Bottom Action Bar: placed right at the bottom where reading/cutoff ends so user never has to scroll up!
+    const footer = document.createElement('div');
+    footer.className = 'code-block-footer';
+    footer.innerHTML = `
+      <div class="code-footer-left">
+        <button class="code-footer-btn continue-code-btn" type="button" title="Continue code from where it stopped">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: middle;"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+          <span>Continue Code</span>
+        </button>
+      </div>
+      <div class="code-footer-right">
+        <button class="code-footer-btn copy-code-footer-btn" type="button">Copy</button>
+        <button class="code-footer-btn canvas-code-footer-btn" type="button">${ICONS.canvas || 'Canvas'}</button>
+      </div>
+    `;
+
+    footer.querySelector('.continue-code-btn')?.addEventListener('click', async (e) => {
+      if (window.atlasContinueCodeInPlace) {
+        await window.atlasContinueCodeInPlace(e.currentTarget, pre);
+      }
+    });
+
+    footer.querySelector('.copy-code-footer-btn')?.addEventListener('click', (e) => {
+      navigator.clipboard.writeText(codeElem ? codeElem.innerText : pre.innerText).then(() => {
+        e.target.textContent = 'Copied';
+        setTimeout(() => { e.target.textContent = 'Copy'; }, 1500);
+      });
+    });
+
+    footer.querySelector('.canvas-code-footer-btn')?.addEventListener('click', () => {
+      header.querySelector('.open-canvas-btn')?.click();
+    });
+
+    wrapper.appendChild(footer);
+
     if (typeof window !== 'undefined' && window.hljs && codeElem && !codeElem.classList.contains('hljs')) {
       window.hljs.highlightElement(codeElem);
     }

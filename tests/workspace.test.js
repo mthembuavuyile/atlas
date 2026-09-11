@@ -108,4 +108,16 @@ describe('Living AI Workspace & Canvas Architecture', () => {
     assert.ok(session.messages[1].content.includes('.btn-secondary { color: black; }'), 'Must preserve continued CSS');
     assert.ok(session.messages[1].content.includes('script.js'), 'Must preserve subsequent script block');
   });
+
+  test('parser.js and style.css include bottom code-block-footer with continue button', () => {
+    const parserPath = path.join(__dirname, '..', 'public', 'js', 'markdown', 'parser.js');
+    const parserCode = fs.readFileSync(parserPath, 'utf8');
+    const cssPath = path.join(__dirname, '..', 'public', 'css', 'style.css');
+    const css = fs.readFileSync(cssPath, 'utf8');
+
+    assert.ok(parserCode.includes('code-block-footer'), 'parser.js must generate code-block-footer at bottom of code');
+    assert.ok(parserCode.includes('continue-code-btn'), 'parser.js footer must include continue-code-btn');
+    assert.ok(css.includes('.code-block-footer'), 'style.css must define .code-block-footer');
+    assert.ok(css.includes('.code-footer-btn.continue-code-btn'), 'style.css must style .code-footer-btn.continue-code-btn');
+  });
 });
