@@ -1929,6 +1929,40 @@
     border-color: var(--accent-primary, #fba919);
 }
 
+/* QR Code Style Toggle (Standard vs Branded) */
+.qr-style-toggle-group {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.12));
+    border-radius: 4px;
+    padding: 2px;
+    gap: 2px;
+}
+
+.qr-style-btn {
+    padding: 2px 8px;
+    font-size: 0.68rem;
+    font-weight: 500;
+    color: var(--text-muted, #94a3b8);
+    background: transparent;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.qr-style-btn:hover {
+    color: var(--text-main, #f8fafc);
+}
+
+.qr-style-btn.active {
+    background: var(--bg-surface, #0f172a);
+    color: var(--accent-primary, #fba919);
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
 @media (max-width: 520px) {
     .atlas-movie-collection-grid {
         grid-template-columns: 1fr;

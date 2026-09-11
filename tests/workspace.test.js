@@ -40,6 +40,15 @@ describe('Living AI Workspace & Canvas Architecture', () => {
     assert.ok(qrWidgetCode.includes('Send to Prompt'), 'QR widget must have Send to Prompt button');
   });
 
+  test('QR widget includes Standard and Branded toggle modes', () => {
+    const qrWidgetPath = path.join(__dirname, '..', 'public', 'js', 'widgets', 'qr-widget.js');
+    const qrWidgetCode = fs.readFileSync(qrWidgetPath, 'utf8');
+
+    assert.ok(qrWidgetCode.includes('data-style="standard"'), 'QR widget must support standard style');
+    assert.ok(qrWidgetCode.includes('data-style="branded"'), 'QR widget must support branded style');
+    assert.ok(qrWidgetCode.includes('qr-style-toggle-group'), 'QR widget must have style toggle group');
+  });
+
   test('public/js/ui/canvas.js exports required workspace orchestrators and handlers', () => {
     const canvasPath = path.join(__dirname, '..', 'public', 'js', 'ui', 'canvas.js');
     const canvasCode = fs.readFileSync(canvasPath, 'utf8');
