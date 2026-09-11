@@ -11,6 +11,7 @@
 import { state } from '../state/store.js';
 import { dom } from './dom.js';
 import { escapeHtml, parseMarkdownSafely, enhanceCodeBlocks, renderMathSafely } from '../markdown/parser.js';
+import { stitchCodeStrings } from './continuation-helper.js';
 
 let isEditingCode = false;
 let currentActiveDiff = '';
@@ -313,6 +314,10 @@ export function updateCanvasArtifact({ title, codeText, language, type }) {
   };
 
   if (existingIdx >= 0) {
+    const existing = state.artifacts[existingIdx];
+    if (existing.codeText && codeText && !codeText.includes(existing.codeText) && !existing.codeText.includes(codeText)) {
+      newArtifact.codeText = stitchCodeStrings(existing.codeText, codeText);
+    }
     state.artifacts[existingIdx] = newArtifact;
     state.activeArtifactIndex = existingIdx;
   } else {
@@ -634,6 +639,10 @@ export function initCanvas() {
         type: 'Code'
       };
       if (existingIdx >= 0) {
+        const existing = state.artifacts[existingIdx];
+        if (existing.codeText && detail.codeText && !detail.codeText.includes(existing.codeText) && !existing.codeText.includes(detail.codeText)) {
+          newArtifact.codeText = stitchCodeStrings(existing.codeText, detail.codeText);
+        }
         state.artifacts[existingIdx] = newArtifact;
       } else {
         state.artifacts.push(newArtifact);

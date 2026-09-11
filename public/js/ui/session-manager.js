@@ -31,6 +31,9 @@ export function getActiveSession() {
   return state.sessions.find(s => s.id === state.activeSessionId);
 }
 
+export { stitchCodeStrings, normalizeSessionContinuations } from './continuation-helper.js';
+import { normalizeSessionContinuations } from './continuation-helper.js';
+
 export function saveSessions() {
   const validSessions = state.sessions.filter(s => s && Array.isArray(s.messages) && s.messages.length > 0);
   localStorage.setItem('atlas_investigations', JSON.stringify(validSessions));
@@ -132,6 +135,10 @@ export function createNewSession() {
 export function loadSession(sessionId) {
   const session = state.sessions.find(s => s.id === sessionId);
   if (!session) return;
+
+  if (normalizeSessionContinuations(session)) {
+    saveSessions();
+  }
 
   state.activeSessionId = sessionId;
   if (session.mode && INVESTIGATION_MODES[session.mode]) {

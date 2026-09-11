@@ -393,6 +393,7 @@ export function enhanceCodeBlocks(container, onOpenCanvas = null) {
       <span class="code-block-filename" title="${escapeHtml(filename)}">${escapeHtml(filename)} ${isLongCode ? `(${linesCount} lines)` : ''}</span>
       <span class="code-block-actions">
         ${isLongCode ? '<button class="code-header-tool-btn fold-code-btn" type="button">Collapse</button>' : ''}
+        <button class="code-header-tool-btn continue-code-btn" type="button" title="Continue expanding this code in-place">Continue</button>
         <button class="copy-code-btn" type="button">Copy</button>
         <button class="open-canvas-btn" type="button" title="Open ${escapeHtml(filename)} in Canvas" aria-label="Open code in Canvas">${ICONS.canvas || 'Canvas'}</button>
       </span>
@@ -412,6 +413,12 @@ export function enhanceCodeBlocks(container, onOpenCanvas = null) {
         }
       });
     }
+
+    header.querySelector('.continue-code-btn')?.addEventListener('click', async (e) => {
+      if (window.atlasContinueCodeInPlace) {
+        await window.atlasContinueCodeInPlace(e.currentTarget, pre);
+      }
+    });
 
     header.querySelector('.copy-code-btn')?.addEventListener('click', (e) => {
       navigator.clipboard.writeText(codeText).then(() => {

@@ -7,9 +7,10 @@
 import { state } from '../state/store.js';
 import { dom } from '../ui/dom.js';
 import { API_BASE, ICONS } from '../config/constants.js';
-import { parseMarkdownSafely, enhanceCodeBlocks, enhanceMathBlocks, renderMathSafely, escapeHtml } from '../markdown/parser.js';
+import { parseMarkdownSafely, enhanceCodeBlocks, enhanceMathBlocks, renderMathSafely, escapeHtml, detectCodeFilename } from '../markdown/parser.js';
 import { openCodeInCanvas } from '../ui/canvas.js';
 import { getActiveSession, saveSessions, updateSessionMetrics, updateContextEstimator, fetchSessionTitle } from '../ui/session-manager.js';
+import { stitchCodeStrings } from '../ui/continuation-helper.js';
 import { renderMessageItem, startStatusAnimation, scrollToBottom, renderSessionMessages } from '../ui/message-renderer.js';
 import { detectLocalWidgetIntent, resolveSlashCommand, runLocalWidget, detectAutonomousNeed } from './intent-router.js';
 import { syncWebSearchUI } from '../ui/modals.js';
@@ -660,7 +661,163 @@ export function regenerateLastResponse() {
   executeChatTurn(session);
 }
 
+export async function continueCodeInPlace(triggerBtn, targetPre = null) {
+  if (state.isGenerating) return;
+
+  const msgDiv = triggerBtn?.closest?.('.chat-message') || (targetPre && targetPre.closest?.('.chat-message'));
+  const bubble = msgDiv?.querySelector?.('.message-bubble');
+  const session = getActiveSession();
+  if (!session || !Array.isArray(session.messages)) return;
+
+  // Identify the target message in session
+  const assistantMsgs = Array.from(dom.chatMessages?.querySelectorAll('.chat-message.assistant') || []);
+  const domIndex = assistantMsgs.indexOf(msgDiv);
+  const assistantIndices = [];
+  session.messages.forEach((m, idx) => {
+    if (m.role === 'assistant') assistantIndices.push(idx);
+  });
+  const msgIndex = (domIndex >= 0 && assistantIndices[domIndex] !== undefined)
+    ? assistantIndices[domIndex]
+    : (assistantIndices.length > 0 ? assistantIndices[assistantIndices.length - 1] : (session.messages.length - 1));
+  const targetAssistantMsg = session.messages[msgIndex];
+  if (!targetAssistantMsg) return;
+
+  const pre = targetPre || bubble?.querySelector('pre:last-of-type') || bubble?.querySelector('pre');
+  if (!pre) return;
+  const codeElem = pre.querySelector('code') || pre;
+  const originalCode = codeElem.innerText || pre.innerText || '';
+
+  let language = 'code';
+  if (codeElem.className) {
+    const m = codeElem.className.match(/language-(\w+)/);
+    if (m) language = m[1];
+  }
+  const filename = detectCodeFilename(pre, originalCode, language);
+
+  const origBtnHtml = triggerBtn ? triggerBtn.innerHTML : '';
+  if (triggerBtn) {
+    triggerBtn.disabled = true;
+    triggerBtn.innerHTML = `<span class="spin" style="display: inline-block; margin-right: 4px;">⟳</span><span>Expanding ${escapeHtml(filename)}...</span>`;
+  }
+
+  state.isGenerating = true;
+  state.abortController = new AbortController();
+
+  const wrapper = pre.closest('.code-block-container');
+  const headerFilename = wrapper?.querySelector('.code-block-filename');
+  const origHeaderText = headerFilename?.innerHTML || '';
+  if (headerFilename) {
+    headerFilename.innerHTML = `${escapeHtml(filename)} <span style="color: var(--vylex-amber); font-weight: 500;">(Expanding in-place...)</span>`;
+  }
+
+  try {
+    const continuationInstruction = `Continue the code for "${filename}" directly from the exact line where it stopped. Do not repeat previous code. Output ONLY the remaining lines to complete the file, cleanly formatted inside a \`\`\`${language} block.`;
+
+    const messagesToSend = [
+      ...session.messages.slice(0, msgIndex + 1),
+      { role: 'user', content: continuationInstruction }
+    ];
+
+    const response = await fetch(`${API_BASE}/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: state.currentModel,
+        messages: messagesToSend,
+        temperature: 0.2,
+        apiKey: state.apiKey || undefined
+      }),
+      signal: state.abortController.signal
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error ${response.status}`);
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder('utf-8');
+    let accumulatedContinuation = '';
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed || !trimmed.startsWith('data: ')) continue;
+        const dataStr = trimmed.slice(6);
+        if (dataStr === '[DONE]') continue;
+
+        try {
+          const parsed = JSON.parse(dataStr);
+          const delta = parsed.choices?.[0]?.delta?.content ?? parsed.choices?.[0]?.delta?.text ?? '';
+          if (delta) {
+            accumulatedContinuation += delta;
+            const previewStitched = stitchCodeStrings(originalCode, accumulatedContinuation);
+            codeElem.textContent = previewStitched;
+            const lineCount = previewStitched.split('\n').length;
+            if (headerFilename) {
+              headerFilename.innerHTML = `${escapeHtml(filename)} (${lineCount} lines) <span style="color: var(--vylex-amber); font-weight: 500;">(Expanding...)</span>`;
+            }
+          }
+        } catch (e) {}
+      }
+    }
+
+    const finalStitchedCode = stitchCodeStrings(originalCode, accumulatedContinuation);
+    codeElem.textContent = finalStitchedCode;
+    if (typeof window !== 'undefined' && window.hljs) {
+      window.hljs.highlightElement(codeElem);
+    }
+
+    const finalLines = finalStitchedCode.split('\n').length;
+    if (headerFilename) {
+      headerFilename.innerHTML = `${escapeHtml(filename)} (${finalLines} lines)`;
+    }
+
+    if (targetAssistantMsg.content && targetAssistantMsg.content.includes(originalCode.trim())) {
+      targetAssistantMsg.content = targetAssistantMsg.content.replace(originalCode.trim(), finalStitchedCode);
+    } else {
+      targetAssistantMsg.content = stitchCodeStrings(targetAssistantMsg.content, accumulatedContinuation);
+    }
+    session.updatedAt = new Date().toISOString();
+    saveSessions();
+    updateSessionMetrics();
+
+    document.dispatchEvent(new CustomEvent('atlas:register-artifact', {
+      detail: { title: filename, codeText: finalStitchedCode, language }
+    }));
+
+    if (triggerBtn) {
+      triggerBtn.innerHTML = `${ICONS.check || '✓'} Expanded`;
+      setTimeout(() => {
+        triggerBtn.style.display = 'none';
+      }, 2500);
+    }
+  } catch (err) {
+    if (err.name !== 'AbortError') {
+      console.error('In-place continuation error:', err);
+      if (triggerBtn) {
+        triggerBtn.disabled = false;
+        triggerBtn.innerHTML = origBtnHtml;
+      }
+      if (headerFilename) {
+        headerFilename.innerHTML = origHeaderText;
+      }
+    }
+  } finally {
+    state.isGenerating = false;
+    state.abortController = null;
+  }
+}
+
 export function initChatService() {
+  window.atlasContinueCodeInPlace = continueCodeInPlace;
   window.atlasRetryLast = async function () {
     if (state.isGenerating) return;
     const session = getActiveSession();

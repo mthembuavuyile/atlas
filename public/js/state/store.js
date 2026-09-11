@@ -4,6 +4,7 @@
  */
 
 import { FREE_MODELS, PERSONA_PRESETS } from '../config/constants.js';
+import { normalizeSessionContinuations } from '../ui/continuation-helper.js';
 
 export function loadInitialSessions() {
   if (typeof window === 'undefined' || !window.localStorage) return [];
@@ -11,7 +12,15 @@ export function loadInitialSessions() {
   try {
     const rawParsed = JSON.parse(savedInvestigations);
     if (Array.isArray(rawParsed)) {
-      return rawParsed.filter(s => s && Array.isArray(s.messages) && s.messages.length > 0);
+      const valid = rawParsed.filter(s => s && Array.isArray(s.messages) && s.messages.length > 0);
+      let anyModified = false;
+      valid.forEach(s => {
+        if (normalizeSessionContinuations(s)) anyModified = true;
+      });
+      if (anyModified) {
+        localStorage.setItem('atlas_investigations', JSON.stringify(valid));
+      }
+      return valid;
     }
   } catch (e) {
     return [];

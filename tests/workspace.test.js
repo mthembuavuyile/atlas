@@ -75,4 +75,37 @@ describe('Living AI Workspace & Canvas Architecture', () => {
     assert.ok(css.includes('.terminal-output'), 'CSS must define .terminal-output');
     assert.ok(css.includes('.atlas-transient-toast'), 'CSS must define .atlas-transient-toast');
   });
+
+  test('continuation-helper.js stitches overlapping code cleanly without duplicate selectors', async () => {
+    const { stitchCodeStrings } = await import('../public/js/ui/continuation-helper.js');
+
+    const baseCode = `.btn-primary {\n  color: white;\n}\n.btn-primary:hover {\n  background: blue;\n}`;
+    const continuation = `.btn-primary:hover {\n  background: blue;\n}\n.btn-secondary {\n  color: black;\n}`;
+
+    const stitched = stitchCodeStrings(baseCode, continuation);
+    assert.ok(stitched.includes('.btn-secondary'), 'Stitched code must contain continued selector');
+    const matches = stitched.match(/\.btn-primary:hover/g);
+    assert.strictEqual(matches.length, 1, 'Duplicate overlapping lines must be removed');
+  });
+
+  test('normalizeSessionContinuations merges split assistant messages in existing sessions', async () => {
+    const { normalizeSessionContinuations } = await import('../public/js/ui/continuation-helper.js');
+
+    const session = {
+      id: 'sess_1',
+      messages: [
+        { role: 'user', content: 'Create portfolio website' },
+        { role: 'assistant', content: 'Here is style.css:\n```css\nbody { margin: 0; }\n.btn-primary { color: white; }' },
+        { role: 'user', content: 'Continue directly from where you left off. Do not repeat previous text, continue the exact code or explanation.' },
+        { role: 'assistant', content: '.btn-secondary { color: black; }\n```\n### script.js\n```javascript\nconsole.log("ready");\n```' }
+      ]
+    };
+
+    const modified = normalizeSessionContinuations(session);
+    assert.strictEqual(modified, true, 'normalizeSessionContinuations must return true when merged');
+    assert.strictEqual(session.messages.length, 2, 'Must collapse 4 messages into 2 (original prompt + stitched assistant response)');
+    assert.ok(session.messages[1].content.includes('body { margin: 0; }'), 'Must preserve initial CSS');
+    assert.ok(session.messages[1].content.includes('.btn-secondary { color: black; }'), 'Must preserve continued CSS');
+    assert.ok(session.messages[1].content.includes('script.js'), 'Must preserve subsequent script block');
+  });
 });
