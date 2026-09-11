@@ -37,6 +37,8 @@ export const state = {
   isGenerating: false,
   abortController: null,
   activeArtifact: null,
+  artifacts: [],
+  activeArtifactIndex: 0,
   lastUserPrompt: '',
   isReadingResponse: false,
   activeSpeechButton: null,

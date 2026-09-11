@@ -837,6 +837,11 @@
         </div>
 
         <div class="canvas-header-actions">
+          <button id="canvasSendToPromptBtn" class="icon-btn" title="Send Code to Prompt" aria-label="Send Code to Prompt">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+          </button>
           <button id="copyCanvasContentBtn" class="icon-btn" title="Copy Artifact">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
@@ -858,6 +863,9 @@
           </button>
         </div>
       </div>
+
+      <!-- Canvas File Shelf (Multi-File Tabs) -->
+      <div class="canvas-file-shelf" id="canvasFileShelf" style="display: none;"></div>
 
       <!-- Canvas Navigation Tabs -->
       <div class="canvas-tabs">
@@ -906,10 +914,15 @@
           <div class="code-stats-bar">
             <span id="canvasLanguageBadge">JAVASCRIPT</span>
             <span id="canvasLineCount">0 lines • 0 bytes</span>
-            <button id="toggleLineNumbersBtn" class="code-header-tool-btn" type="button"
-              title="Toggle Line Numbers">Line #</button>
+            <div class="code-stats-actions">
+              <button id="toggleCodeEditBtn" class="code-header-tool-btn" type="button"
+                title="Toggle Edit Mode">Edit</button>
+              <button id="toggleLineNumbersBtn" class="code-header-tool-btn" type="button"
+                title="Toggle Line Numbers">Line #</button>
+            </div>
           </div>
           <pre class="canvas-pre"><code id="canvasCodeContent" class="hljs"></code></pre>
+          <textarea id="canvasCodeEditor" class="canvas-code-editor" spellcheck="false" style="display: none;" placeholder="Edit code artifact..."></textarea>
         </div>
 
         <div class="canvas-pane" id="canvasPreviewPane">
@@ -918,6 +931,17 @@
         </div>
 
         <div class="canvas-pane" id="canvasDiffPane">
+          <div class="diff-header-bar" id="diffHeaderBar" style="display: none;">
+            <span class="diff-header-title" id="diffTargetFileTitle">Unified Diff</span>
+            <button id="applyDiffToDiskBtn" class="diff-action-btn" type="button" title="Apply changes to local folder">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                <polyline points="7 3 7 8 15 8"></polyline>
+              </svg>
+              <span>Apply to Local Folder</span>
+            </button>
+          </div>
           <div class="diff-viewer-container" id="diffViewerContainer">
             <div class="diff-empty-notice">No diff active. Load a unified diff or ask Atlas to propose code edits to
               view line changes here.</div>
@@ -931,14 +955,20 @@
         <div class="canvas-pane" id="canvasAgentPane">
           <div class="agent-activity-container">
             <div class="agent-task-checklist" id="agentTaskChecklist">
-              <h4 class="agent-section-title">Execution Objectives</h4>
+              <div class="agent-section-header">
+                <h4 class="agent-section-title">Execution Objectives</h4>
+                <span class="agent-badge" id="agentTaskCountBadge">0 / 0</span>
+              </div>
               <ul class="task-list" id="agentTaskList">
                 <li class="task-item placeholder">Awaiting tasks...</li>
               </ul>
             </div>
 
             <div class="agent-terminal-feed" id="agentTerminalFeed">
-              <h4 class="agent-section-title">Execution Feed</h4>
+              <div class="agent-section-header">
+                <h4 class="agent-section-title">Execution Feed</h4>
+                <button class="code-header-tool-btn" id="clearTerminalFeedBtn" type="button" title="Clear Feed">Clear</button>
+              </div>
               <div class="terminal-output" id="terminalOutput">
                 <div class="terminal-line system">Atlas Engine Initialized.</div>
               </div>
