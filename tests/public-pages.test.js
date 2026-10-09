@@ -98,6 +98,8 @@ describe('Public Pages Architecture & Layout Standardization', () => {
       assert.ok(html.includes('id="siteMobileDrawer"'));
       assert.ok(html.includes('class="mobile-drawer-links"'));
       assert.ok(html.includes('class="site-footer"'));
+      assert.ok(html.includes('href="mailto:info@vylex.co.za"'), 'Should provide info@vylex.co.za contact link');
+      assert.ok(!html.includes('hello@vylex.co.za'), 'Should not contain deprecated hello@vylex.co.za');
     } finally {
       server.close();
     }
@@ -122,6 +124,8 @@ describe('Public Pages Architecture & Layout Standardization', () => {
       assert.ok(html.includes('id="siteMobileDrawer"'));
       assert.ok(html.includes('class="mobile-drawer-links"'));
       assert.ok(html.includes('class="site-footer"'));
+      assert.ok(html.includes('href="mailto:info@vylex.co.za"'), 'Should provide info@vylex.co.za contact link');
+      assert.ok(!html.includes('hello@vylex.co.za'), 'Should not contain deprecated hello@vylex.co.za');
     } finally {
       server.close();
     }
