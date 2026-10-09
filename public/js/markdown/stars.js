@@ -9,7 +9,7 @@ export function normalizeMarkdownStars(text) {
 
   // Protect code blocks and inline code so code syntax (like **kwargs or x ** 2) is untouched
   const codeBlocks = [];
-  let shielded = text.replace(/(```[\s\S]*?```|`[^`\n]+`)/g, (match) => {
+  let shielded = text.replace(/(````[\s\S]*?(?:````|$)|```{3,}[\s\S]*?(?:```{3,}|$)|~~~+[\s\S]*?(?:~~~+|$)|`[^`\n]+`)/g, (match) => {
     const ph = `@@ATLAS_STARS_CODE_${codeBlocks.length}@@`;
     codeBlocks.push({ placeholder: ph, content: match });
     return ph;

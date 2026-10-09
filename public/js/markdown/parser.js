@@ -115,7 +115,7 @@ export function extractMathTokens(raw) {
 
   // 1. Protect code blocks and inline code so math syntax inside code blocks is preserved as-is
   const codeBlocks = [];
-  let text = raw.replace(/(```[\s\S]*?```|`[^`\n]+`)/g, (match) => {
+  let text = raw.replace(/(````[\s\S]*?(?:````|$)|```{3,}[\s\S]*?(?:```{3,}|$)|~~~+[\s\S]*?(?:~~~+|$)|`[^`\n]+`)/g, (match) => {
     const ph = `@@ATLAS_CODE_SHIELD_${codeBlocks.length}@@`;
     codeBlocks.push({ placeholder: ph, content: match });
     return ph;
@@ -175,9 +175,9 @@ export function extractMathTokens(raw) {
     return `${prefix}${ph}`;
   });
 
-  // 7. Unshield code blocks
+  // 7. Unshield code blocks safely without regex replacement pitfalls
   for (const cb of codeBlocks) {
-    text = text.replace(cb.placeholder, cb.content);
+    text = text.split(cb.placeholder).join(cb.content);
   }
 
   return { text, tokens };
