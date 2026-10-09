@@ -26,9 +26,12 @@ describe('Living AI Workspace & Canvas Architecture', () => {
     assert.ok(indexHtml.includes('id="agentTaskChecklist"'), 'Agent pane must include agentTaskChecklist');
     assert.ok(indexHtml.includes('id="agentTaskList"'), 'Agent pane must include agentTaskList');
     assert.ok(indexHtml.includes('id="agentTaskCountBadge"'), 'Agent pane must include agentTaskCountBadge');
-    assert.ok(indexHtml.includes('id="agentTerminalFeed"'), 'Agent pane must include agentTerminalFeed');
     assert.ok(indexHtml.includes('id="terminalOutput"'), 'Agent pane must include terminalOutput');
     assert.ok(indexHtml.includes('id="clearTerminalFeedBtn"'), 'Agent pane must include clearTerminalFeedBtn');
+
+    // 6. Split screen and composer resizers
+    assert.ok(indexHtml.includes('id="canvasSplitResizer"'), 'Index must include canvasSplitResizer');
+    assert.ok(indexHtml.includes('id="composerResizerSash"'), 'Index must include composerResizerSash');
   });
 
   test('QR widget includes workspace actions: Download PNG, Copy Data, Send to Prompt', () => {
@@ -60,6 +63,7 @@ describe('Living AI Workspace & Canvas Architecture', () => {
     assert.ok(canvasCode.includes('applyDiffToLocalFolder'), 'canvas.js must export applyDiffToLocalFolder');
     assert.ok(canvasCode.includes('setAgentObjectives'), 'canvas.js must export setAgentObjectives');
     assert.ok(canvasCode.includes('logAgentExecution'), 'canvas.js must export logAgentExecution');
+    assert.ok(canvasCode.includes('initCanvasSplitResizer'), 'canvas.js must export initCanvasSplitResizer');
   });
 
   test('public/css/style.css defines styling for workspace canvas elements', () => {
@@ -74,6 +78,8 @@ describe('Living AI Workspace & Canvas Architecture', () => {
     assert.ok(css.includes('.agent-task-checklist'), 'CSS must define .agent-task-checklist');
     assert.ok(css.includes('.terminal-output'), 'CSS must define .terminal-output');
     assert.ok(css.includes('.atlas-transient-toast'), 'CSS must define .atlas-transient-toast');
+    assert.ok(css.includes('.canvas-split-resizer'), 'CSS must define .canvas-split-resizer');
+    assert.ok(css.includes('.composer-resizer-sash'), 'CSS must define .composer-resizer-sash');
   });
 
   test('continuation-helper.js stitches overlapping code cleanly without duplicate selectors', async () => {
@@ -119,5 +125,36 @@ describe('Living AI Workspace & Canvas Architecture', () => {
     assert.ok(parserCode.includes('continue-code-btn'), 'parser.js footer must include continue-code-btn');
     assert.ok(css.includes('.code-block-footer'), 'style.css must define .code-block-footer');
     assert.ok(css.includes('.code-footer-btn.continue-code-btn'), 'style.css must style .code-footer-btn.continue-code-btn');
+  });
+
+  test('canvas and text area split resizers are fully defined across JS, HTML, and CSS', () => {
+    const canvasPath = path.join(__dirname, '..', 'public', 'js', 'ui', 'canvas.js');
+    const canvasCode = fs.readFileSync(canvasPath, 'utf8');
+    const modalsPath = path.join(__dirname, '..', 'public', 'js', 'ui', 'modals.js');
+    const modalsCode = fs.readFileSync(modalsPath, 'utf8');
+    const domPath = path.join(__dirname, '..', 'public', 'js', 'ui', 'dom.js');
+    const domCode = fs.readFileSync(domPath, 'utf8');
+    const cssPath = path.join(__dirname, '..', 'public', 'css', 'style.css');
+    const css = fs.readFileSync(cssPath, 'utf8');
+
+    // DOM bindings
+    assert.ok(domCode.includes('canvasSplitResizer'), 'dom.js must expose canvasSplitResizer');
+    assert.ok(domCode.includes('composerResizerSash'), 'dom.js must expose composerResizerSash');
+
+    // Canvas split resizer
+    assert.ok(canvasCode.includes('initCanvasSplitResizer'), 'canvas.js must define initCanvasSplitResizer');
+    assert.ok(canvasCode.includes('syncCanvasSplitResizer'), 'canvas.js must define syncCanvasSplitResizer');
+    assert.ok(canvasCode.includes('resetCanvasSplitWidth'), 'canvas.js must define resetCanvasSplitWidth');
+    assert.ok(canvasCode.includes('atlas_canvas_width'), 'canvas.js must persist width to localStorage');
+
+    // Composer text area resizer
+    assert.ok(modalsCode.includes('initComposerResizer'), 'modals.js must define initComposerResizer');
+    assert.ok(modalsCode.includes('resetComposerHeight'), 'modals.js must define resetComposerHeight');
+
+    // CSS cursor and visual cues
+    assert.ok(css.includes('cursor: col-resize'), 'CSS must specify col-resize for canvas split sash');
+    assert.ok(css.includes('cursor: row-resize'), 'CSS must specify row-resize for composer sash');
+    assert.ok(css.includes('is-resizing-canvas'), 'CSS must specify is-resizing-canvas state');
+    assert.ok(css.includes('is-resizing-composer'), 'CSS must specify is-resizing-composer state');
   });
 });

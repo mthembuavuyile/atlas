@@ -635,6 +635,9 @@
       <div class="composer-outer-wrapper">
         <form class="composer-form" id="chatForm">
           <div class="composer-box" id="composerBox" style="position: relative;">
+            <!-- Composer Top Border Resizer Sash -->
+            <div class="composer-resizer-sash" id="composerResizerSash" role="separator" aria-orientation="horizontal" tabindex="0" title="Drag border to resize text area (Double-click to reset)" aria-label="Resize text area"></div>
+
             <!-- Slash Commands Popup -->
             <div id="slashCommandsPopup" class="slash-commands-popup" style="display: none;"></div>
 
@@ -819,6 +822,9 @@
         </form>
       </div>
     </main>
+
+    <!-- Split Screen Resizer Sash (Canvas <-> Text Area) -->
+    <div class="canvas-split-resizer" id="canvasSplitResizer" role="separator" aria-orientation="vertical" tabindex="0" title="Drag border to resize split screen (Double-click to reset)" aria-label="Resize split screen"></div>
 
     <!-- RIGHT SPLIT CANVAS / ARTIFACTS PANEL -->
     <aside class="artifacts-canvas-panel" id="artifactsCanvasPanel">

@@ -37,7 +37,9 @@ import {
   loadSavedSettings,
   autoResizeTextarea,
   openUnifiedSettings,
-  toggleShortcutsModal
+  toggleShortcutsModal,
+  initComposerResizer,
+  resetComposerHeight
 } from './ui/modals.js';
 import { initVoiceDictation } from './audio/voice.js';
 import {
@@ -209,6 +211,7 @@ async function handleChatSubmit(e) {
   updateSessionMetrics();
 
   dom.messageInput.value = '';
+  resetComposerHeight();
   autoResizeTextarea();
   updateContextEstimator();
 
@@ -216,6 +219,7 @@ async function handleChatSubmit(e) {
 }
 
 function initComposerListeners() {
+  initComposerResizer();
   dom.chatForm?.addEventListener('submit', handleChatSubmit);
   dom.newChatBtn?.addEventListener('click', () => createNewSession());
 

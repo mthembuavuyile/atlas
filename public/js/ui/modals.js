@@ -148,10 +148,96 @@ export function syncProjectContextUI() {
   }
 }
 
+let customComposerHeight = 0;
+let isDraggingComposer = false;
+let composerStartY = 0;
+let composerStartHeight = 0;
+
+export function resetComposerHeight() {
+  customComposerHeight = 0;
+  if (dom.messageInput) {
+    dom.messageInput.style.height = '';
+  }
+}
+
 export function autoResizeTextarea() {
   if (!dom.messageInput) return;
   dom.messageInput.style.height = 'auto';
-  dom.messageInput.style.height = Math.min(dom.messageInput.scrollHeight, 140) + 'px';
+  const naturalHeight = dom.messageInput.scrollHeight;
+  const targetHeight = customComposerHeight > 0
+    ? Math.max(customComposerHeight, Math.min(naturalHeight, 420))
+    : Math.min(naturalHeight, 140);
+  dom.messageInput.style.height = `${targetHeight}px`;
+}
+
+export function initComposerResizer() {
+  const sash = dom.composerResizerSash;
+  const textarea = dom.messageInput;
+  if (!sash || !textarea) return;
+
+  sash.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0) return;
+    isDraggingComposer = true;
+    sash.setPointerCapture(e.pointerId);
+    composerStartY = e.clientY;
+    composerStartHeight = textarea.offsetHeight;
+    sash.classList.add('dragging');
+    document.body.classList.add('is-resizing-composer');
+  });
+
+  sash.addEventListener('pointermove', (e) => {
+    if (!isDraggingComposer) return;
+    // Dragging UP increases height; dragging DOWN decreases height
+    const deltaY = composerStartY - e.clientY;
+    let newHeight = composerStartHeight + deltaY;
+    const minHeight = 38;
+    const maxHeight = Math.min(420, Math.floor(window.innerHeight * 0.5));
+    newHeight = Math.max(minHeight, Math.min(newHeight, maxHeight));
+    customComposerHeight = newHeight;
+    textarea.style.height = `${newHeight}px`;
+    sash.setAttribute('aria-valuenow', Math.round(newHeight));
+  });
+
+  const stopDraggingComposer = (e) => {
+    if (!isDraggingComposer) return;
+    isDraggingComposer = false;
+    sash.classList.remove('dragging');
+    document.body.classList.remove('is-resizing-composer');
+    try {
+      if (e && e.pointerId) sash.releasePointerCapture(e.pointerId);
+    } catch (_) {}
+  };
+
+  sash.addEventListener('pointerup', stopDraggingComposer);
+  sash.addEventListener('pointercancel', stopDraggingComposer);
+
+  sash.addEventListener('dblclick', () => {
+    resetComposerHeight();
+    autoResizeTextarea();
+  });
+
+  sash.addEventListener('keydown', (e) => {
+    const currentHeight = textarea.offsetHeight;
+    const step = e.shiftKey ? 40 : 15;
+    const minHeight = 38;
+    const maxHeight = Math.min(420, Math.floor(window.innerHeight * 0.5));
+
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      const newHeight = Math.min(maxHeight, currentHeight + step);
+      customComposerHeight = newHeight;
+      textarea.style.height = `${newHeight}px`;
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      const newHeight = Math.max(minHeight, currentHeight - step);
+      customComposerHeight = newHeight;
+      textarea.style.height = `${newHeight}px`;
+    } else if (e.key === 'Home' || e.key === 'Enter') {
+      e.preventDefault();
+      resetComposerHeight();
+      autoResizeTextarea();
+    }
+  });
 }
 
 export function exportConversation(format) {

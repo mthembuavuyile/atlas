@@ -517,10 +517,182 @@ export function clearAgentTerminal() {
 }
 
 // ─────────────────────────────────────────────────────────────
+// SPLIT SCREEN RESIZER (CANVAS <-> TEXT AREA)
+// ─────────────────────────────────────────────────────────────
+
+let isDraggingCanvasSplit = false;
+let canvasSplitStartX = 0;
+let canvasSplitStartWidth = 0;
+
+export function syncCanvasSplitResizer() {
+  if (!dom.canvasSplitResizer || !dom.artifactsCanvasPanel) return;
+  const isOpen = dom.artifactsCanvasPanel.classList.contains('open');
+  const isDesktop = window.innerWidth >= 768;
+  dom.canvasSplitResizer.classList.toggle('visible', isOpen && isDesktop);
+}
+
+export function resetCanvasSplitWidth() {
+  if (!dom.artifactsCanvasPanel) return;
+  dom.artifactsCanvasPanel.style.width = '';
+  try {
+    localStorage.removeItem('atlas_canvas_width');
+  } catch (_) {}
+}
+
+export function initCanvasSplitResizer() {
+  const resizer = dom.canvasSplitResizer;
+  const panel = dom.artifactsCanvasPanel;
+  if (!resizer || !panel) return;
+
+  // Restore saved width from localStorage if present
+  try {
+    const savedWidth = localStorage.getItem('atlas_canvas_width');
+    if (savedWidth && window.innerWidth >= 768) {
+      const parsed = parseInt(savedWidth, 10);
+      const windowWidth = document.documentElement.clientWidth;
+      const sidebarWidth = (dom.sidebar && !dom.sidebar.classList.contains('collapsed')) ? dom.sidebar.offsetWidth : 0;
+      const minWidth = 280;
+      const maxWidth = Math.max(minWidth, windowWidth - sidebarWidth - 320);
+      if (!isNaN(parsed) && parsed >= minWidth && parsed <= maxWidth) {
+        panel.style.width = `${parsed}px`;
+      }
+    }
+  } catch (_) {}
+
+  syncCanvasSplitResizer();
+
+  // Keep resizer visibility in sync when canvas class changes
+  if (typeof MutationObserver !== 'undefined') {
+    const observer = new MutationObserver(() => {
+      syncCanvasSplitResizer();
+    });
+    observer.observe(panel, { attributes: true, attributeFilter: ['class'] });
+  }
+
+  // Handle window resizing & bounds clamping
+  window.addEventListener('resize', () => {
+    syncCanvasSplitResizer();
+    if (window.innerWidth < 768) return;
+    if (panel.style.width) {
+      const currentWidth = panel.getBoundingClientRect().width;
+      const windowWidth = document.documentElement.clientWidth;
+      const sidebarWidth = (dom.sidebar && !dom.sidebar.classList.contains('collapsed')) ? dom.sidebar.offsetWidth : 0;
+      const minWidth = 280;
+      const maxWidth = Math.max(minWidth, windowWidth - sidebarWidth - 320);
+      if (currentWidth > maxWidth) {
+        panel.style.width = `${Math.round(maxWidth)}px`;
+      }
+    }
+  });
+
+  resizer.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0) return;
+    if (window.innerWidth < 768) return;
+
+    isDraggingCanvasSplit = true;
+    resizer.setPointerCapture(e.pointerId);
+    canvasSplitStartX = e.clientX;
+    canvasSplitStartWidth = panel.getBoundingClientRect().width;
+
+    // If canvas was expanded, revert expanded class so smooth manual dragging takes over
+    if (panel.classList.contains('expanded')) {
+      panel.classList.remove('expanded');
+      const expandIcon = dom.canvasExpandBtn?.querySelector('.canvas-expand-icon');
+      const collapseIcon = dom.canvasExpandBtn?.querySelector('.canvas-collapse-icon');
+      if (expandIcon && collapseIcon) {
+        expandIcon.style.display = 'block';
+        collapseIcon.style.display = 'none';
+      }
+      if (dom.canvasExpandBtn) {
+        dom.canvasExpandBtn.title = 'Expand Code Window';
+        dom.canvasExpandBtn.setAttribute('aria-label', 'Expand Code Window');
+      }
+    }
+
+    resizer.classList.add('dragging');
+    document.body.classList.add('is-resizing-canvas');
+  });
+
+  resizer.addEventListener('pointermove', (e) => {
+    if (!isDraggingCanvasSplit) return;
+
+    // Moving left increases canvas width (panel is on the right)
+    const deltaX = canvasSplitStartX - e.clientX;
+    let newWidth = canvasSplitStartWidth + deltaX;
+
+    const windowWidth = document.documentElement.clientWidth;
+    const sidebarWidth = (dom.sidebar && !dom.sidebar.classList.contains('collapsed')) ? dom.sidebar.offsetWidth : 0;
+    const minWidth = 280;
+    const minChatWidth = 320;
+    const maxWidth = Math.max(minWidth, windowWidth - sidebarWidth - minChatWidth);
+
+    newWidth = Math.max(minWidth, Math.min(newWidth, maxWidth));
+    panel.style.width = `${Math.round(newWidth)}px`;
+    resizer.setAttribute('aria-valuenow', Math.round(newWidth));
+  });
+
+  const stopDragging = (e) => {
+    if (!isDraggingCanvasSplit) return;
+    isDraggingCanvasSplit = false;
+    resizer.classList.remove('dragging');
+    document.body.classList.remove('is-resizing-canvas');
+
+    try {
+      if (e && e.pointerId) {
+        resizer.releasePointerCapture(e.pointerId);
+      }
+    } catch (_) {}
+
+    const finalWidth = panel.getBoundingClientRect().width;
+    if (finalWidth >= 280) {
+      try {
+        localStorage.setItem('atlas_canvas_width', Math.round(finalWidth));
+      } catch (_) {}
+    }
+  };
+
+  resizer.addEventListener('pointerup', stopDragging);
+  resizer.addEventListener('pointercancel', stopDragging);
+
+  // Double-click to reset split screen to default responsive width
+  resizer.addEventListener('dblclick', () => {
+    resetCanvasSplitWidth();
+  });
+
+  // Keyboard accessibility
+  resizer.addEventListener('keydown', (e) => {
+    if (window.innerWidth < 768) return;
+    const step = e.shiftKey ? 60 : 20;
+    const currentWidth = panel.getBoundingClientRect().width;
+    const windowWidth = document.documentElement.clientWidth;
+    const sidebarWidth = (dom.sidebar && !dom.sidebar.classList.contains('collapsed')) ? dom.sidebar.offsetWidth : 0;
+    const minWidth = 280;
+    const maxWidth = Math.max(minWidth, windowWidth - sidebarWidth - 320);
+
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      const newWidth = Math.min(maxWidth, currentWidth + step);
+      panel.style.width = `${Math.round(newWidth)}px`;
+      try { localStorage.setItem('atlas_canvas_width', Math.round(newWidth)); } catch (_) {}
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      const newWidth = Math.max(minWidth, currentWidth - step);
+      panel.style.width = `${Math.round(newWidth)}px`;
+      try { localStorage.setItem('atlas_canvas_width', Math.round(newWidth)); } catch (_) {}
+    } else if (e.key === 'Home' || e.key === 'Enter') {
+      e.preventDefault();
+      resetCanvasSplitWidth();
+    }
+  });
+}
+
+// ─────────────────────────────────────────────────────────────
 // INITIALIZATION & EVENT BINDINGS
 // ─────────────────────────────────────────────────────────────
 
 export function initCanvas() {
+  initCanvasSplitResizer();
+
   // Global custom event dispatched from markdown code blocks
   document.addEventListener('atlas:open-canvas', (e) => {
     if (e.detail) {
@@ -700,7 +872,8 @@ export function initCanvas() {
       openCode: openCodeInCanvas,
       updateArtifact: updateCanvasArtifact,
       switchTab: switchCanvasTab,
-      applyDiff: applyDiffToLocalFolder
+      applyDiff: applyDiffToLocalFolder,
+      resetSplitWidth: resetCanvasSplitWidth
     };
   }
 }

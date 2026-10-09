@@ -74,8 +74,10 @@ export const dom = {
   get projectContextBar() { return document.getElementById('projectContextBar'); },
   get projectContextLabel() { return document.getElementById('projectContextLabel'); },
   get clearProjectContextBtn() { return document.getElementById('clearProjectContextBtn'); },
+  get composerResizerSash() { return document.getElementById('composerResizerSash'); },
 
   // Canvas Panel
+  get canvasSplitResizer() { return document.getElementById('canvasSplitResizer'); },
   get artifactsCanvasPanel() { return document.getElementById('artifactsCanvasPanel'); },
   get closeCanvasBtn() { return document.getElementById('closeCanvasBtn'); },
   get canvasSendToPromptBtn() { return document.getElementById('canvasSendToPromptBtn'); },
