@@ -535,10 +535,43 @@ export function initCanvas() {
     dom.toggleCanvasBtn.classList.toggle('active', dom.artifactsCanvasPanel.classList.contains('open'));
   });
 
+  // Canvas Expand / Restore Full View Mode
+  dom.canvasExpandBtn?.addEventListener('click', () => {
+    if (!dom.artifactsCanvasPanel) return;
+    const isExpanded = dom.artifactsCanvasPanel.classList.toggle('expanded');
+    const expandIcon = dom.canvasExpandBtn.querySelector('.canvas-expand-icon');
+    const collapseIcon = dom.canvasExpandBtn.querySelector('.canvas-collapse-icon');
+    if (expandIcon && collapseIcon) {
+      expandIcon.style.display = isExpanded ? 'none' : 'block';
+      collapseIcon.style.display = isExpanded ? 'block' : 'none';
+    }
+    dom.canvasExpandBtn.title = isExpanded ? 'Restore Code Window (Default Width)' : 'Expand Code Window';
+    dom.canvasExpandBtn.setAttribute('aria-label', dom.canvasExpandBtn.title);
+  });
+
+  // Toggle Code Soft-Wrap
+  dom.toggleCodeWrapBtn?.addEventListener('click', () => {
+    if (!dom.canvasCodePane) return;
+    const isWrapped = dom.canvasCodePane.classList.toggle('wrap-lines');
+    dom.toggleCodeWrapBtn.classList.toggle('active', isWrapped);
+    dom.toggleCodeWrapBtn.textContent = isWrapped ? 'Unwrap' : 'Wrap';
+    dom.toggleCodeWrapBtn.title = isWrapped ? 'Disable Soft Wrap (Allow horizontal scroll)' : 'Toggle Soft Wrap (Fit code without horizontal scroll)';
+  });
+
   dom.closeCanvasBtn?.addEventListener('click', () => {
     if (!dom.artifactsCanvasPanel) return;
-    dom.artifactsCanvasPanel.classList.remove('open');
+    dom.artifactsCanvasPanel.classList.remove('open', 'expanded');
     dom.toggleCanvasBtn?.classList.remove('active');
+    const expandIcon = dom.canvasExpandBtn?.querySelector('.canvas-expand-icon');
+    const collapseIcon = dom.canvasExpandBtn?.querySelector('.canvas-collapse-icon');
+    if (expandIcon && collapseIcon) {
+      expandIcon.style.display = 'block';
+      collapseIcon.style.display = 'none';
+    }
+    if (dom.canvasExpandBtn) {
+      dom.canvasExpandBtn.title = 'Expand Code Window';
+      dom.canvasExpandBtn.setAttribute('aria-label', 'Expand Code Window');
+    }
   });
 
   // Tab Switching

@@ -6,7 +6,7 @@
 
 import { state } from '../state/store.js';
 import { API_BASE } from '../config/constants.js';
-import { parseMarkdownSafely } from '../markdown/parser.js';
+import { parseMarkdownSafely, enhanceCodeBlocks, renderMathSafely } from '../markdown/parser.js';
 import { saveSessions, updateSessionMetrics } from '../ui/session-manager.js';
 import { scrollToBottom } from '../ui/message-renderer.js';
 import { renderWidget, mountWidget } from '../widgets/widget-renderer.js';
@@ -436,6 +436,8 @@ export async function runLocalWidget(toolToCall, argsPayload, statusText, contex
   }
 
   bubble.innerHTML = parseMarkdownSafely(statusText, false);
+  enhanceCodeBlocks(bubble);
+  renderMathSafely(bubble);
 
   session.messages.push({
     role: 'assistant',

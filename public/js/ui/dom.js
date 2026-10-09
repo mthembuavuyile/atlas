@@ -101,6 +101,8 @@ export const dom = {
   get canvasMarkdownContent() { return document.getElementById('canvasMarkdownContent'); },
   get copyCanvasContentBtn() { return document.getElementById('copyCanvasContentBtn'); },
   get downloadCanvasBtn() { return document.getElementById('downloadCanvasBtn'); },
+  get canvasExpandBtn() { return document.getElementById('canvasExpandBtn'); },
+  get toggleCodeWrapBtn() { return document.getElementById('toggleCodeWrapBtn'); },
   get canvasAgentPane() { return document.getElementById('canvasAgentPane'); },
   get agentTaskList() { return document.getElementById('agentTaskList'); },
   get agentTaskCountBadge() { return document.getElementById('agentTaskCountBadge'); },

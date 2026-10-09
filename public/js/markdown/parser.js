@@ -281,13 +281,31 @@ export function renderMathSafely(container) {
 export function parseMarkdownSafely(raw, isStreaming = false) {
   if (!raw) return isStreaming ? '<span class="streaming-caret" aria-hidden="true"></span>' : '';
 
-  // 1. Extract and shield LaTeX mathematical & scientific formulas
-  const { text: shieldedText, tokens: mathTokens } = extractMathTokens(raw);
+  let cleanInput = raw;
 
-  // 2. Normalize markdown stars so loose spaces or escaped stars format cleanly
+  // 1. Ensure code fences start on a clean newline if attached to preceding text
+  cleanInput = cleanInput.replace(/([^\n])\s*(```|~~~)/g, '$1\n\n$2');
+
+  // 2. Ensure language identifier is separated from first code line by newline
+  cleanInput = cleanInput.replace(/(```+[a-zA-Z0-9_+-]*)[ \t]+([^\n\r]+)/g, '$1\n$2');
+
+  // 3. Auto-close unclosed code block fences (prevents unformatted code on cutoffs or during streaming)
+  const backtickFences = (cleanInput.match(/```+/g) || []).length;
+  if (backtickFences % 2 === 1) {
+    cleanInput += '\n```';
+  }
+  const tildeFences = (cleanInput.match(/~~~+/g) || []).length;
+  if (tildeFences % 2 === 1) {
+    cleanInput += '\n~~~';
+  }
+
+  // 4. Extract and shield LaTeX mathematical & scientific formulas
+  const { text: shieldedText, tokens: mathTokens } = extractMathTokens(cleanInput);
+
+  // 5. Normalize markdown stars so loose spaces or escaped stars format cleanly
   let normalizedText = normalizeMarkdownStars(shieldedText);
 
-  // 3. Auto-close unclosed bold on current line during streaming to avoid raw star flashes
+  // 6. Auto-close unclosed bold on current line during streaming to avoid raw star flashes
   if (isStreaming) {
     const lastLine = normalizedText.split('\n').pop() || '';
     const starMatches = lastLine.match(/\*\*/g);
@@ -296,12 +314,12 @@ export function parseMarkdownSafely(raw, isStreaming = false) {
     }
   }
 
-  // 4. Parse markdown with marked
+  // 7. Parse markdown with marked
   let html = (typeof window !== 'undefined' && window.marked)
     ? window.marked.parse(normalizedText)
     : escapeHtml(normalizedText);
 
-  // 5. Sanitize HTML
+  // 8. Sanitize HTML
   if (typeof window !== 'undefined' && window.DOMPurify) {
     html = window.DOMPurify.sanitize(html, {
       ADD_TAGS: ['kbd', 'mark', 'details', 'summary', 'svg', 'path', 'circle', 'line', 'polyline', 'polygon', 'rect', 'math', 'semantics', 'mrow', 'mo', 'mn', 'mi', 'annotation', 'mfrac', 'msup', 'msub', 'msubsup', 'msqrt', 'mroot', 'mtable', 'mtr', 'mtd', 'mtext'],
@@ -309,7 +327,7 @@ export function parseMarkdownSafely(raw, isStreaming = false) {
     });
   }
 
-  // 6. Substitute rendered KaTeX formulas back
+  // 9. Substitute rendered KaTeX formulas back
   for (const token of mathTokens) {
     const renderedMath = renderMathTokenToHtml(token);
     if (token.isBlock) {
@@ -363,18 +381,70 @@ export function detectCodeFilename(pre, codeText, language) {
   return `snippet.${lang || 'txt'}`;
 }
 
+export function copyCodeWithFallback(text, button, successLabel = 'Copied') {
+  const showFeedback = () => {
+    const originalText = button.textContent;
+    button.textContent = successLabel;
+    setTimeout(() => { button.textContent = originalText; }, 1500);
+  };
+
+  if (navigator?.clipboard?.writeText) {
+    navigator.clipboard.writeText(text).then(showFeedback).catch(() => {
+      fallbackExecCopy(text, showFeedback);
+    });
+  } else {
+    fallbackExecCopy(text, showFeedback);
+  }
+}
+
+function fallbackExecCopy(text, callback) {
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    callback();
+  } catch (err) {
+    console.warn('[Clipboard fallback error]', err);
+  }
+}
+
 export function enhanceCodeBlocks(container, onOpenCanvas = null) {
   if (!container) return;
+
+  // Convert any multiline <code> elements outside <pre> into proper <pre> blocks
+  const uncontainedCodes = container.querySelectorAll('code:not(pre code)');
+  uncontainedCodes.forEach(code => {
+    const text = code.innerText || code.textContent || '';
+    if (text.includes('\n') && text.trim().split('\n').length >= 2) {
+      const pre = document.createElement('pre');
+      code.parentNode?.insertBefore(pre, code);
+      pre.appendChild(code);
+    }
+  });
+
   const preBlocks = container.querySelectorAll('pre');
 
   preBlocks.forEach(pre => {
     if (pre.closest('.code-block-container')) return;
 
-    const codeElem = pre.querySelector('code');
-    const codeText = codeElem ? codeElem.innerText : pre.innerText;
+    let codeElem = pre.querySelector('code');
+    if (!codeElem) {
+      codeElem = document.createElement('code');
+      codeElem.textContent = pre.textContent || '';
+      pre.textContent = '';
+      pre.appendChild(codeElem);
+    }
+
+    const codeText = codeElem.innerText || codeElem.textContent || '';
     let language = 'code';
 
-    if (codeElem && codeElem.className) {
+    if (codeElem.className) {
       const match = codeElem.className.match(/language-(\w+)/);
       if (match) language = match[1];
     }
@@ -394,6 +464,8 @@ export function enhanceCodeBlocks(container, onOpenCanvas = null) {
       <span class="code-block-actions">
         ${isLongCode ? '<button class="code-header-tool-btn fold-code-btn" type="button">Collapse</button>' : ''}
         <button class="code-header-tool-btn continue-code-btn" type="button" title="Continue expanding this code in-place">Continue</button>
+        <button class="code-header-tool-btn wrap-code-btn" type="button" title="Toggle soft wrap (fit code without horizontal scroll)">Wrap</button>
+        <button class="code-header-tool-btn expand-code-btn" type="button" title="Expand code block width">Expand</button>
         <button class="copy-code-btn" type="button">Copy</button>
         <button class="open-canvas-btn" type="button" title="Open ${escapeHtml(filename)} in Canvas" aria-label="Open code in Canvas">${ICONS.canvas || 'Canvas'}</button>
       </span>
@@ -420,11 +492,26 @@ export function enhanceCodeBlocks(container, onOpenCanvas = null) {
       }
     });
 
+    header.querySelector('.wrap-code-btn')?.addEventListener('click', (e) => {
+      const isWrapped = wrapper.classList.toggle('wrapped');
+      e.target.textContent = isWrapped ? 'Unwrap' : 'Wrap';
+      e.target.classList.toggle('active', isWrapped);
+      e.target.title = isWrapped ? 'Disable soft wrap (allow horizontal scroll)' : 'Toggle soft wrap (fit code without horizontal scroll)';
+    });
+
+    header.querySelector('.expand-code-btn')?.addEventListener('click', (e) => {
+      const isExpanded = wrapper.classList.toggle('expanded');
+      const parentRow = wrapper.closest('.message-row');
+      if (parentRow) {
+        parentRow.classList.toggle('expanded-row', isExpanded);
+      }
+      e.target.textContent = isExpanded ? 'Compress' : 'Expand';
+      e.target.classList.toggle('active', isExpanded);
+      e.target.title = isExpanded ? 'Restore default column width' : 'Expand code block width';
+    });
+
     header.querySelector('.copy-code-btn')?.addEventListener('click', (e) => {
-      navigator.clipboard.writeText(codeText).then(() => {
-        e.target.textContent = 'Copied';
-        setTimeout(() => { e.target.textContent = 'Copy'; }, 1500);
-      });
+      copyCodeWithFallback(codeText, e.target);
     });
 
     header.querySelector('.open-canvas-btn')?.addEventListener('click', () => {
@@ -483,10 +570,7 @@ export function enhanceCodeBlocks(container, onOpenCanvas = null) {
     });
 
     footer.querySelector('.copy-code-footer-btn')?.addEventListener('click', (e) => {
-      navigator.clipboard.writeText(codeElem ? codeElem.innerText : pre.innerText).then(() => {
-        e.target.textContent = 'Copied';
-        setTimeout(() => { e.target.textContent = 'Copy'; }, 1500);
-      });
+      copyCodeWithFallback(codeElem ? codeElem.innerText : pre.innerText, e.target);
     });
 
     footer.querySelector('.canvas-code-footer-btn')?.addEventListener('click', () => {
@@ -496,7 +580,17 @@ export function enhanceCodeBlocks(container, onOpenCanvas = null) {
     wrapper.appendChild(footer);
 
     if (typeof window !== 'undefined' && window.hljs && codeElem && !codeElem.classList.contains('hljs')) {
-      window.hljs.highlightElement(codeElem);
+      try {
+        window.hljs.highlightElement(codeElem);
+      } catch (hlErr) {
+        try {
+          const autoRes = window.hljs.highlightAuto(codeText);
+          codeElem.innerHTML = autoRes.value;
+          codeElem.classList.add('hljs');
+        } catch (e) {
+          // Keep plain text safely
+        }
+      }
     }
   });
 }

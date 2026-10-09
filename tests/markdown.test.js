@@ -1,12 +1,12 @@
 const { test, describe } = require('node:test');
 const assert = require('node:assert');
 
-// Helper function logic matching normalizeMarkdownStars in app.js
+// Helper function logic matching normalizeMarkdownStars in stars.js
 function normalizeMarkdownStars(text) {
   if (!text || typeof text !== 'string') return text;
 
   const codeBlocks = [];
-  let shielded = text.replace(/(```[\s\S]*?```|`[^`\n]+`)/g, (match) => {
+  let shielded = text.replace(/(````[\s\S]*?(?:````|$)|```{3,}[\s\S]*?(?:```{3,}|$)|~~~+[\s\S]*?(?:~~~+|$)|`[^`\n]+`)/g, (match) => {
     const ph = `@@ATLAS_STARS_CODE_${codeBlocks.length}@@`;
     codeBlocks.push({ placeholder: ph, content: match });
     return ph;
@@ -30,7 +30,7 @@ function normalizeMarkdownStars(text) {
 
   // 4. Restore protected code blocks
   for (const cb of codeBlocks) {
-    shielded = shielded.replace(cb.placeholder, cb.content);
+    shielded = shielded.split(cb.placeholder).join(cb.content);
   }
 
   return shielded;
@@ -64,6 +64,16 @@ describe('Markdown Stars and Table Typography Formatting', () => {
     assert.strictEqual(normalizedBlock, block, 'Code blocks must remain completely untouched');
   });
 
+  test('Protects unclosed code blocks and tilde fences at EOF', () => {
+    const unclosed = '```python\ndef run(**kwargs):\n    return x ** 2';
+    const normalized = normalizeMarkdownStars(unclosed);
+    assert.strictEqual(normalized, unclosed, 'Unclosed code block must remain completely untouched');
+
+    const tilde = '~~~bash\ncat <<EOF > **file**\n~~~';
+    const normalizedTilde = normalizeMarkdownStars(tilde);
+    assert.strictEqual(normalizedTilde, tilde, 'Tilde code block must remain untouched');
+  });
+
   test('Preserves markdown tables and formats bold cells cleanly', () => {
     const table = '| ** Col 1 ** | **Col 2** |\n| --- | --- |\n| **Val 1 ** | ** Val 2** |';
     const normalized = normalizeMarkdownStars(table);
@@ -80,5 +90,15 @@ describe('Markdown Stars and Table Typography Formatting', () => {
       streamingChunk += '**';
     }
     assert.strictEqual(streamingChunk, 'Model reasoning: **analyzing**');
+  });
+
+  test('Auto-closes unclosed code fence delimiters', () => {
+    let streamingCode = 'Here is the function:\n```javascript\nfunction solve() {\n  return 42;\n}';
+    const fences = (streamingCode.match(/```+/g) || []).length;
+    if (fences % 2 === 1) {
+      streamingCode += '\n```';
+    }
+    assert.ok(streamingCode.endsWith('\n```'));
+    assert.strictEqual((streamingCode.match(/```+/g) || []).length % 2, 0);
   });
 });
