@@ -42,6 +42,7 @@ import {
   resetComposerHeight
 } from './ui/modals.js';
 import { initVoiceDictation } from './audio/voice.js';
+import { initSpeechPill, stopSpeakingResponse } from './audio/speech-pill.js';
 import {
   executeChatTurn,
   regenerateLastResponse,
@@ -142,6 +143,8 @@ async function handleChatSubmit(e) {
   const prompt = dom.messageInput.value.trim();
   if (!prompt || state.isGenerating) return;
 
+  stopSpeakingResponse();
+
   const cleanPrompt = prompt.toLowerCase().trim();
   if (cleanPrompt === '/retry' || /^(?:retry|try again|redo|retry search|retry this)$/i.test(cleanPrompt)) {
     dom.messageInput.value = '';
@@ -169,6 +172,7 @@ async function handleChatSubmit(e) {
     autoResizeTextarea();
     const session = getActiveSession();
     if (session && confirm('Clear all messages in this investigation?')) {
+      stopSpeakingResponse();
       session.messages = [];
       saveSessions();
       renderHistoryTree();
@@ -307,6 +311,7 @@ function init() {
   initModals();
   initComposerListeners();
   initVoiceDictation();
+  initSpeechPill();
   initChatService();
 
   updateContextEstimator();

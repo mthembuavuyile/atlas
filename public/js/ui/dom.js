@@ -76,6 +76,14 @@ export const dom = {
   get clearProjectContextBtn() { return document.getElementById('clearProjectContextBtn'); },
   get composerResizerSash() { return document.getElementById('composerResizerSash'); },
 
+  // Speech Response Floating Pill
+  get speechResponsePill() { return document.getElementById('speechResponsePill'); },
+  get speechPillPrimary() { return document.getElementById('speechPillPrimary'); },
+  get speechPillSecondary() { return document.getElementById('speechPillSecondary'); },
+  get speechPillFrequency() { return document.getElementById('speechPillFrequency'); },
+  get speechPillPauseBtn() { return document.getElementById('speechPillPauseBtn'); },
+  get speechPillStopBtn() { return document.getElementById('speechPillStopBtn'); },
+
   // Canvas Panel
   get canvasSplitResizer() { return document.getElementById('canvasSplitResizer'); },
   get artifactsCanvasPanel() { return document.getElementById('artifactsCanvasPanel'); },

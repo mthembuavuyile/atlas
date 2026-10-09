@@ -634,6 +634,55 @@
       <!-- INTEGRATED PROFESSIONAL COMPOSER (Zero AI Slop, No Floating Pill with Dot) -->
       <div class="composer-outer-wrapper">
         <form class="composer-form" id="chatForm">
+          <!-- Speech Response Floating Playback Pill (Active during voice readout) -->
+          <div class="speech-response-pill" id="speechResponsePill" role="region" aria-label="Speech response playback" aria-live="polite" hidden>
+            <div class="speech-pill-content">
+              <div class="speech-pill-badge">
+                <span class="speech-pill-icon" aria-hidden="true">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                    <path class="speech-wave-arc arc-1" d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                    <path class="speech-wave-arc arc-2" d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+                  </svg>
+                </span>
+                <div class="speech-pill-meta">
+                  <span class="speech-pill-title" id="speechPillPrimary">Speaking response</span>
+                  <span class="speech-pill-subtitle" id="speechPillSecondary">Atlas Voice</span>
+                </div>
+              </div>
+
+              <!-- Dynamic Frequency Equalizer Waves -->
+              <div class="speech-pill-frequency" id="speechPillFrequency" aria-hidden="true">
+                <span class="freq-bar bar-1"></span>
+                <span class="freq-bar bar-2"></span>
+                <span class="freq-bar bar-3"></span>
+                <span class="freq-bar bar-4"></span>
+                <span class="freq-bar bar-5"></span>
+                <span class="freq-bar bar-6"></span>
+                <span class="freq-bar bar-7"></span>
+                <span class="freq-bar bar-8"></span>
+                <span class="freq-bar bar-9"></span>
+              </div>
+
+              <div class="speech-pill-actions">
+                <button type="button" class="speech-pill-btn" id="speechPillPauseBtn" title="Pause speech" aria-label="Pause speech">
+                  <svg class="speech-pause-svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                    <rect x="6" y="4" width="4" height="16" rx="1"></rect>
+                    <rect x="14" y="4" width="4" height="16" rx="1"></rect>
+                  </svg>
+                  <svg class="speech-play-svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="display: none;">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                  </svg>
+                </button>
+                <button type="button" class="speech-pill-btn speech-stop-btn" id="speechPillStopBtn" title="Stop speech" aria-label="Stop speech">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                    <rect x="5" y="5" width="14" height="14" rx="2"></rect>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
           <div class="composer-box" id="composerBox" style="position: relative;">
             <!-- Composer Top Border Resizer Sash -->
             <div class="composer-resizer-sash" id="composerResizerSash" role="separator" aria-orientation="horizontal" tabindex="0" title="Drag border to resize text area (Double-click to reset)" aria-label="Resize text area"></div>

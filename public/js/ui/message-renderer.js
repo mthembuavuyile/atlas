@@ -11,6 +11,7 @@ import { parseMarkdownSafely, enhanceCodeBlocks, renderMathSafely, escapeHtml } 
 import { openCodeInCanvas } from './canvas.js';
 import { updateDynamicGreeting } from './theme.js';
 import { getActiveSession, saveSessions, updateSessionMetrics, updateContextEstimator } from './session-manager.js';
+import { startSpeakingResponse, stopSpeakingResponse } from '../audio/speech-pill.js';
 
 let regenerateCallback = null;
 let cachedWelcomeScreen = null;
@@ -239,60 +240,19 @@ export function renderMessageItem(role, content = '', reasoning = '', shouldScro
     speakBtn.innerHTML = ICONS.speaker || 'Speak';
     speakBtn.title = 'Speak response';
 
-    const setSpeechButtonState = (isSpeaking) => {
-      speakBtn.classList.toggle('is-speaking', isSpeaking);
-      speakBtn.title = isSpeaking ? 'Stop reading response' : 'Speak response';
-      speakBtn.innerHTML = isSpeaking ? (ICONS.stop || 'Stop') : (ICONS.speaker || 'Speak');
-    };
-
     speakBtn.addEventListener('click', () => {
       if (!('speechSynthesis' in window)) return;
 
       if (state.isReadingResponse && state.activeSpeechButton === speakBtn) {
-        window.speechSynthesis.cancel();
-        state.isReadingResponse = false;
-        state.activeSpeechButton = null;
-        setSpeechButtonState(false);
+        stopSpeakingResponse();
         return;
       }
 
-      if (state.activeSpeechButton && state.activeSpeechButton !== speakBtn) {
-        state.activeSpeechButton.innerHTML = ICONS.speaker || 'Speak';
-        state.activeSpeechButton.title = 'Speak response';
-        state.activeSpeechButton.classList.remove('is-speaking');
-      }
-
-      const voices = window.speechSynthesis.getVoices ? window.speechSynthesis.getVoices() : [];
-      const selectedVoice = voices.find(v => v.name === state.defaultVoiceName)
-        || voices.find(v => v.name.toLowerCase() === (state.defaultVoiceName || '').toLowerCase())
-        || voices.find(v => v.default)
-        || voices[0]
-        || null;
-
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(bubble.innerText);
-      if (selectedVoice) utterance.voice = selectedVoice;
-      utterance.rate = 1;
-      utterance.pitch = 1;
-      utterance.onend = () => {
-        if (state.activeSpeechButton === speakBtn) {
-          state.isReadingResponse = false;
-          state.activeSpeechButton = null;
-          setSpeechButtonState(false);
-        }
-      };
-      utterance.onerror = () => {
-        if (state.activeSpeechButton === speakBtn) {
-          state.isReadingResponse = false;
-          state.activeSpeechButton = null;
-          setSpeechButtonState(false);
-        }
-      };
-
-      state.isReadingResponse = true;
-      state.activeSpeechButton = speakBtn;
-      setSpeechButtonState(true);
-      window.speechSynthesis.speak(utterance);
+      startSpeakingResponse({
+        text: bubble.innerText,
+        sourceBtn: speakBtn,
+        voiceName: state.defaultVoiceName
+      });
     });
 
     const regenBtn = document.createElement('button');

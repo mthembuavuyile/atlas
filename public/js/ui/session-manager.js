@@ -9,6 +9,7 @@ import { dom } from './dom.js';
 import { ICONS, INVESTIGATION_MODES, API_BASE } from '../config/constants.js';
 import { escapeHtml } from '../markdown/parser.js';
 import { selectMode } from './theme.js';
+import { stopSpeakingResponse } from '../audio/speech-pill.js';
 
 let renderSessionMessagesCallback = null;
 
@@ -97,6 +98,7 @@ export function getSessionDateCategory(session) {
 }
 
 export function createNewSession() {
+  stopSpeakingResponse();
   const active = getActiveSession();
   if (active && (!active.messages || active.messages.length === 0)) {
     if (renderSessionMessagesCallback) renderSessionMessagesCallback(active);
@@ -133,6 +135,7 @@ export function createNewSession() {
 }
 
 export function loadSession(sessionId) {
+  stopSpeakingResponse();
   const session = state.sessions.find(s => s.id === sessionId);
   if (!session) return;
 
