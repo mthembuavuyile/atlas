@@ -337,8 +337,7 @@ export function openCodeInCanvas(codeText, language, title = null) {
     language,
     type: 'Code Snippet'
   });
-  dom.artifactsCanvasPanel?.classList.add('open');
-  dom.toggleCanvasBtn?.classList.add('active');
+  openCanvas();
   switchCanvasTab(language === 'html' || (title && title.endsWith('.html')) ? 'preview' : 'code');
 }
 
@@ -524,6 +523,55 @@ let isDraggingCanvasSplit = false;
 let canvasSplitStartX = 0;
 let canvasSplitStartWidth = 0;
 
+export function closeCanvas() {
+  if (!dom.artifactsCanvasPanel) return;
+  dom.artifactsCanvasPanel.classList.remove('open', 'expanded');
+  dom.toggleCanvasBtn?.classList.remove('active');
+  const expandIcon = dom.canvasExpandBtn?.querySelector('.canvas-expand-icon');
+  const collapseIcon = dom.canvasExpandBtn?.querySelector('.canvas-collapse-icon');
+  if (expandIcon && collapseIcon) {
+    expandIcon.style.display = 'block';
+    collapseIcon.style.display = 'none';
+  }
+  if (dom.canvasExpandBtn) {
+    dom.canvasExpandBtn.title = 'Expand Code Window';
+    dom.canvasExpandBtn.setAttribute('aria-label', 'Expand Code Window');
+  }
+  syncCanvasSplitResizer();
+}
+
+export function openCanvas() {
+  if (!dom.artifactsCanvasPanel) return;
+
+  // Restore saved width from localStorage if present and not currently set
+  try {
+    const savedWidth = localStorage.getItem('atlas_canvas_width');
+    if (savedWidth && window.innerWidth >= 768 && !dom.artifactsCanvasPanel.style.width) {
+      const parsed = parseInt(savedWidth, 10);
+      const windowWidth = document.documentElement.clientWidth;
+      const sidebarWidth = (dom.sidebar && !dom.sidebar.classList.contains('collapsed')) ? dom.sidebar.offsetWidth : 0;
+      const minWidth = 280;
+      const maxWidth = Math.max(minWidth, windowWidth - sidebarWidth - 320);
+      if (!isNaN(parsed) && parsed >= minWidth && parsed <= maxWidth) {
+        dom.artifactsCanvasPanel.style.width = `${parsed}px`;
+      }
+    }
+  } catch (_) {}
+
+  dom.artifactsCanvasPanel.classList.add('open');
+  dom.toggleCanvasBtn?.classList.add('active');
+  syncCanvasSplitResizer();
+}
+
+export function toggleCanvas() {
+  if (!dom.artifactsCanvasPanel) return;
+  if (dom.artifactsCanvasPanel.classList.contains('open')) {
+    closeCanvas();
+  } else {
+    openCanvas();
+  }
+}
+
 export function syncCanvasSplitResizer() {
   if (!dom.canvasSplitResizer || !dom.artifactsCanvasPanel) return;
   const isOpen = dom.artifactsCanvasPanel.classList.contains('open');
@@ -653,6 +701,9 @@ export function initCanvasSplitResizer() {
 
   resizer.addEventListener('pointerup', stopDragging);
   resizer.addEventListener('pointercancel', stopDragging);
+  window.addEventListener('pointerup', stopDragging);
+  window.addEventListener('pointercancel', stopDragging);
+  window.addEventListener('blur', stopDragging);
 
   // Double-click to reset split screen to default responsive width
   resizer.addEventListener('dblclick', () => {
@@ -702,9 +753,7 @@ export function initCanvas() {
 
   // Canvas Open / Close
   dom.toggleCanvasBtn?.addEventListener('click', () => {
-    if (!dom.artifactsCanvasPanel) return;
-    dom.artifactsCanvasPanel.classList.toggle('open');
-    dom.toggleCanvasBtn.classList.toggle('active', dom.artifactsCanvasPanel.classList.contains('open'));
+    toggleCanvas();
   });
 
   // Canvas Expand / Restore Full View Mode
@@ -731,18 +780,19 @@ export function initCanvas() {
   });
 
   dom.closeCanvasBtn?.addEventListener('click', () => {
-    if (!dom.artifactsCanvasPanel) return;
-    dom.artifactsCanvasPanel.classList.remove('open', 'expanded');
-    dom.toggleCanvasBtn?.classList.remove('active');
-    const expandIcon = dom.canvasExpandBtn?.querySelector('.canvas-expand-icon');
-    const collapseIcon = dom.canvasExpandBtn?.querySelector('.canvas-collapse-icon');
-    if (expandIcon && collapseIcon) {
-      expandIcon.style.display = 'block';
-      collapseIcon.style.display = 'none';
-    }
-    if (dom.canvasExpandBtn) {
-      dom.canvasExpandBtn.title = 'Expand Code Window';
-      dom.canvasExpandBtn.setAttribute('aria-label', 'Expand Code Window');
+    closeCanvas();
+  });
+
+  // Global Escape key listener to close Artifact Inspector
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      if (dom.artifactsCanvasPanel?.classList.contains('open')) {
+        const modalActive = document.querySelector('.qr-modal-container.active, .ocr-modal-container.active, .unified-settings-modal.show, .sidebar-backdrop.active');
+        if (modalActive) return;
+
+        e.preventDefault();
+        closeCanvas();
+      }
     }
   });
 
@@ -873,7 +923,10 @@ export function initCanvas() {
       updateArtifact: updateCanvasArtifact,
       switchTab: switchCanvasTab,
       applyDiff: applyDiffToLocalFolder,
-      resetSplitWidth: resetCanvasSplitWidth
+      resetSplitWidth: resetCanvasSplitWidth,
+      open: openCanvas,
+      close: closeCanvas,
+      toggle: toggleCanvas
     };
   }
 }

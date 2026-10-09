@@ -2417,6 +2417,16 @@ body.is-resizing-composer {
   .artifacts-canvas-panel {
     width: 100% !important;
   }
+  .artifacts-canvas-panel:not(.open) {
+    transform: translateX(100%) !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+  .artifacts-canvas-panel.open {
+    transform: translateX(0) !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+  }
   .canvas-split-resizer {
     display: none !important;
   }
@@ -2434,6 +2444,10 @@ body.is-resizing-composer {
   -webkit-user-select: none;
   touch-action: none;
   outline: none;
+}
+
+.canvas-split-resizer:not(.visible) {
+  display: none !important;
 }
 
 @media (min-width: 768px) {
@@ -2479,7 +2493,8 @@ body.is-resizing-canvas {
   cursor: col-resize !important;
 }
 
-body.is-resizing-canvas iframe {
+body.is-resizing-canvas iframe,
+body.is-resizing-composer iframe {
   pointer-events: none !important;
 }
 
@@ -2501,16 +2516,30 @@ body.is-resizing-canvas .artifacts-canvas-panel {
   z-index: 130;
 }
 
+.artifacts-canvas-panel:not(.open) {
+  pointer-events: none !important;
+}
+
 .artifacts-canvas-panel.open {
   transform: translateX(0);
 }
 
 .canvas-header {
+  position: relative;
+  z-index: 10;
   padding: 10px 12px;
   border-bottom: 1px solid var(--border-subtle);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-shrink: 0;
+}
+
+#closeCanvasBtn {
+  cursor: pointer;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 2;
 }
 
 .canvas-title-group {
@@ -3295,16 +3324,28 @@ body.is-resizing-canvas .artifacts-canvas-panel {
 
   .artifacts-canvas-panel {
     position: static;
-    transform: none;
+    transform: none !important;
     width: 0;
     height: 100%;
     border-left: none;
-    transition: width 0.2s ease;
+    transition: width 0.2s ease, visibility 0.2s ease;
+  }
+
+  .artifacts-canvas-panel:not(.open) {
+    width: 0 !important;
+    min-width: 0 !important;
+    max-width: 0 !important;
+    border-left: none !important;
+    overflow: hidden !important;
+    pointer-events: none !important;
+    visibility: hidden;
   }
 
   .artifacts-canvas-panel.open {
     width: clamp(460px, 38vw, 700px);
     border-left: 1px solid var(--border-subtle);
+    visibility: visible;
+    pointer-events: auto;
   }
 
   .preset-pills-grid {

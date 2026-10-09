@@ -157,4 +157,24 @@ describe('Living AI Workspace & Canvas Architecture', () => {
     assert.ok(css.includes('is-resizing-canvas'), 'CSS must specify is-resizing-canvas state');
     assert.ok(css.includes('is-resizing-composer'), 'CSS must specify is-resizing-composer state');
   });
+
+  test('artifact inspector panel can reliably close even after drag-resize custom width', () => {
+    const canvasPath = path.join(__dirname, '..', 'public', 'js', 'ui', 'canvas.js');
+    const canvasCode = fs.readFileSync(canvasPath, 'utf8');
+    const cssPath = path.join(__dirname, '..', 'public', 'css', 'style.css');
+    const css = fs.readFileSync(cssPath, 'utf8');
+
+    // JS exports and functions
+    assert.ok(canvasCode.includes('export function closeCanvas()'), 'canvas.js must export closeCanvas');
+    assert.ok(canvasCode.includes('export function openCanvas()'), 'canvas.js must export openCanvas');
+    assert.ok(canvasCode.includes('export function toggleCanvas()'), 'canvas.js must export toggleCanvas');
+    assert.ok(canvasCode.includes("e.key === 'Escape'"), 'canvas.js must handle Escape key to close canvas');
+
+    // CSS guarantees collapse even with inline style width
+    assert.ok(css.includes('.artifacts-canvas-panel:not(.open)'), 'style.css must specify .artifacts-canvas-panel:not(.open)');
+    assert.ok(css.includes('width: 0 !important'), 'style.css must enforce width: 0 !important when not open');
+    assert.ok(css.includes('pointer-events: none !important'), 'style.css must disable pointer events when closed');
+    assert.ok(css.includes('#closeCanvasBtn'), 'style.css must configure #closeCanvasBtn');
+  });
 });
+

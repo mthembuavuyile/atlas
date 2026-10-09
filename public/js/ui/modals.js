@@ -210,6 +210,9 @@ export function initComposerResizer() {
 
   sash.addEventListener('pointerup', stopDraggingComposer);
   sash.addEventListener('pointercancel', stopDraggingComposer);
+  window.addEventListener('pointerup', stopDraggingComposer);
+  window.addEventListener('pointercancel', stopDraggingComposer);
+  window.addEventListener('blur', stopDraggingComposer);
 
   sash.addEventListener('dblclick', () => {
     resetComposerHeight();
