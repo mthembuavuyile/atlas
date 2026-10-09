@@ -176,5 +176,26 @@ describe('Living AI Workspace & Canvas Architecture', () => {
     assert.ok(css.includes('pointer-events: none !important'), 'style.css must disable pointer events when closed');
     assert.ok(css.includes('#closeCanvasBtn'), 'style.css must configure #closeCanvasBtn');
   });
+
+  test('premium speech response pill includes frequency waves, audio controls, and responsive dock', () => {
+    assert.ok(indexHtml.includes('id="speechResponsePill"'), 'Index must include speechResponsePill');
+    assert.ok(indexHtml.includes('id="speechPillFrequency"'), 'Index must include speechPillFrequency');
+    assert.ok(indexHtml.includes('freq-bar bar-1'), 'Index must include animated frequency equalizer bars');
+    assert.ok(indexHtml.includes('id="speechPillPauseBtn"'), 'Index must include speechPillPauseBtn');
+    assert.ok(indexHtml.includes('id="speechPillStopBtn"'), 'Index must include speechPillStopBtn');
+
+    const speechPillPath = path.join(__dirname, '..', 'public', 'js', 'audio', 'speech-pill.js');
+    const speechPillCode = fs.readFileSync(speechPillPath, 'utf8');
+    assert.ok(speechPillCode.includes('export function startSpeakingResponse'), 'speech-pill.js must export startSpeakingResponse');
+    assert.ok(speechPillCode.includes('export function stopSpeakingResponse'), 'speech-pill.js must export stopSpeakingResponse');
+    assert.ok(speechPillCode.includes('export function pauseSpeakingResponse'), 'speech-pill.js must export pauseSpeakingResponse');
+    assert.ok(speechPillCode.includes('export function resumeSpeakingResponse'), 'speech-pill.js must export resumeSpeakingResponse');
+
+    const cssPath = path.join(__dirname, '..', 'public', 'css', 'style.css');
+    const css = fs.readFileSync(cssPath, 'utf8');
+    assert.ok(css.includes('.speech-response-pill'), 'style.css must specify .speech-response-pill');
+    assert.ok(css.includes('@keyframes freqWaveDance'), 'style.css must specify frequency wave animation');
+    assert.ok(css.includes('.speech-pill-frequency'), 'style.css must style speech-pill-frequency');
+  });
 });
 
