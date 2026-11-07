@@ -325,5 +325,96 @@ describe('Widget Service Deterministic Capabilities', () => {
     assert.strictEqual(realKeyError.openSettings, true, 'Should show settings button for genuine API key error');
     assert.strictEqual(realKeyError.title, 'API Key Notice');
   });
+
+  test('defineWord resolves definitions across multi-tier fallback when primary API fails or lacks slang', async () => {
+    const cache = require('../src/utils/cache');
+    const originalFetch = global.fetch;
+
+    // Simulate dictionaryapi.dev failing with 429/404 and Wiktionary succeeding
+    global.fetch = async (url) => {
+      const urlStr = String(url);
+      if (urlStr.includes('api.dictionaryapi.dev')) {
+        return { ok: false, status: 429 };
+      }
+      if (urlStr.includes('en.wiktionary.org/api/rest_v1/page/definition/goated')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            en: [
+              {
+                partOfSpeech: 'Adjective',
+                definitions: [
+                  {
+                    definition: 'Being or considered the <a href="/wiki/greatest">greatest</a> <a href="/wiki/of_all_time">of all time</a>; the best.',
+                    examples: ["This restaurant's fries are <b>goated</b>."]
+                  }
+                ]
+              }
+            ]
+          })
+        };
+      }
+      if (urlStr.includes('api.datamuse.com/words')) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ([
+            {
+              word: 'vindictive',
+              tags: ['adj', 'ipa_pron:vɪnˈdɪktɪv'],
+              defs: ['adj\tHaving a tendency to seek revenge when wronged, vengeful.']
+            }
+          ])
+        };
+      }
+      return { ok: false, status: 404 };
+    };
+
+    try {
+      cache.set('dict:goated', null, 0);
+      const slangRes = await widgetService.defineWord('goated');
+      assert.strictEqual(slangRes.type, 'dictionary');
+      assert.strictEqual(slangRes.data.entry.word, 'goated');
+      assert.ok(slangRes.data.entry.meanings[0].definitions[0].definition.includes('greatest of all time'));
+
+      cache.set('dict:vindictive', null, 0);
+      const wordnetRes = await widgetService.defineWord('vindictive');
+      assert.strictEqual(wordnetRes.type, 'dictionary');
+      assert.strictEqual(wordnetRes.data.entry.word, 'vindictive');
+      assert.ok(wordnetRes.data.entry.meanings[0].definitions[0].definition.includes('seek revenge'));
+    } finally {
+      global.fetch = originalFetch;
+    }
+  });
+
+  test('runLocalWidget with fallbackToAi returns false on widget error instead of throwing', async () => {
+    const { runLocalWidget } = await import('../public/js/services/intent-router.js');
+    const originalFetch = global.fetch;
+    global.fetch = async () => ({
+      ok: false,
+      status: 502,
+      json: async () => ({ error: 'No lexical entry found.' })
+    });
+
+    try {
+      const handled = await runLocalWidget(
+        'define_word',
+        { word: 'unknownwordxyz' },
+        'Fetched dictionary definition.',
+        {
+          session: { messages: [] },
+          bubble: { innerHTML: '' },
+          widgetsContainer: null,
+          statusAnimator: { stop: () => {} },
+          accumulatedWidgets: []
+        },
+        { fallbackToAi: true }
+      );
+      assert.strictEqual(handled, false, 'Should return false so chat-service can fall back to AI stream');
+    } finally {
+      global.fetch = originalFetch;
+    }
+  });
 });
 
