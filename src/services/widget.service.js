@@ -1116,10 +1116,15 @@ class WidgetService {
     }
 
     // Helper: Fetch discussions from a single community with multi-tier fallbacks
-    async _fetchSingleSubreddit(sub, limit = 10) {
+    // Pagination cursors: "b:<created_utc>" (Arctic Shift `before`) or "a:<fullname>" (Reddit RSS/JSON `after`).
+    // Each returned post carries a private `_cursor` pointing just past itself so callers can resume precisely.
+    async _fetchSingleSubreddit(sub, limit = 10, cursor = '') {
         const cleanSub = (sub || 'news').toString().trim().replace(/^\/?r\//i, '').replace(/^[#@]/, '').replace(/\/+$/, '').trim();
         const finalSub = cleanSub || 'news';
-        const cacheKey = `reddit:${finalSub.toLowerCase()}:${limit}`;
+        const cleanCursor = typeof cursor === 'string' && /^(b:\d+|a:t3_[a-z0-9]+)$/i.test(cursor) ? cursor : '';
+        const beforeTs = cleanCursor.startsWith('b:') ? cleanCursor.slice(2) : '';
+        const afterName = cleanCursor.startsWith('a:') ? cleanCursor.slice(2) : '';
+        const cacheKey = `reddit:${finalSub.toLowerCase()}:${limit}:${cleanCursor}`;
         const cached = cache.get(cacheKey);
         if (cached) return cached;
 
@@ -1127,8 +1132,9 @@ class WidgetService {
         let sourceName = 'Community Discussions';
 
         // Tier 1: Photon / Arctic Shift Reddit API
-        try {
-            const photonRes = await fetchWithTimeout(`https://arctic-shift.photon-reddit.com/api/posts/search?subreddit=${encodeURIComponent(finalSub)}&limit=${Math.max(limit, 15)}`, { timeoutMs: 3500 }, 3500);
+        if (!afterName) try {
+            const beforeParam = beforeTs ? `&before=${beforeTs}` : '';
+            const photonRes = await fetchWithTimeout(`https://arctic-shift.photon-reddit.com/api/posts/search?subreddit=${encodeURIComponent(finalSub)}&limit=${Math.max(limit, 15)}${beforeParam}`, { timeoutMs: 3500 }, 3500);
             if (photonRes.ok) {
                 const data = await photonRes.json();
                 if (Array.isArray(data.data) && data.data.length > 0) {
@@ -1155,7 +1161,8 @@ class WidgetService {
                             video: media.video,
                             video_sources: media.videoSources || [],
                             is_video: media.isVideo || Boolean(media.video),
-                            is_gif: media.isGif
+                            is_gif: media.isGif,
+                            _cursor: p.created_utc ? `b:${Math.floor(p.created_utc)}` : ''
                         });
                         if (posts.length >= limit) break;
                     }
@@ -1164,9 +1171,10 @@ class WidgetService {
         } catch (e) {}
 
         // Tier 2: Reddit RSS Feed (Atom XML — reliably not blocked)
-        if (posts.length === 0) {
+        if (posts.length === 0 && !beforeTs) {
             try {
-                const rssRes = await fetchWithTimeout(`https://www.reddit.com/r/${encodeURIComponent(finalSub)}/hot.rss?limit=${Math.max(limit, 15)}`, {
+                const afterParam = afterName ? `&after=${afterName}` : '';
+                const rssRes = await fetchWithTimeout(`https://www.reddit.com/r/${encodeURIComponent(finalSub)}/hot.rss?limit=${Math.max(limit, 15)}${afterParam}`, {
                     headers: {
                         'User-Agent': 'Mozilla/5.0 (compatible; AtlasReasoningStudio/1.0; +https://vylex.co.za)',
                         'Accept': 'application/atom+xml, application/xml, text/xml'
@@ -1199,6 +1207,7 @@ class WidgetService {
                         if (!url || author === 'AutoModerator') continue;
 
                         const media = this._extractRssMedia(entry);
+                        const entryId = readTag('id');
 
                         posts.push({
                             title,
@@ -1213,7 +1222,8 @@ class WidgetService {
                             video: media.video,
                             video_sources: media.videoSources || [],
                             is_video: media.isVideo || Boolean(media.video),
-                            is_gif: media.isGif
+                            is_gif: media.isGif,
+                            _cursor: /^t3_[a-z0-9]+$/i.test(entryId) ? `a:${entryId}` : ''
                         });
                     }
                     if (posts.length > 0) sourceName = 'Reddit RSS';
@@ -1222,9 +1232,10 @@ class WidgetService {
         }
 
         // Tier 3: Direct Reddit JSON API (often blocked by 403, kept as last resort)
-        if (posts.length === 0) {
+        if (posts.length === 0 && !beforeTs) {
             try {
-                const redditRes = await fetchWithTimeout(`https://www.reddit.com/r/${encodeURIComponent(finalSub)}/hot.json?limit=${Math.max(limit, 10)}&raw_json=1`, {
+                const afterParam = afterName ? `&after=${afterName}` : '';
+                const redditRes = await fetchWithTimeout(`https://www.reddit.com/r/${encodeURIComponent(finalSub)}/hot.json?limit=${Math.max(limit, 10)}&raw_json=1${afterParam}`, {
                     headers: { 'User-Agent': 'web:atlasapp:v1.2.0 (by /u/atlas_agent)' },
                     timeoutMs: 3000
                 }, 3000);
@@ -1250,7 +1261,8 @@ class WidgetService {
                                 video: media.video,
                                 video_sources: media.videoSources || [],
                                 is_video: media.isVideo || Boolean(media.video),
-                                is_gif: media.isGif
+                                is_gif: media.isGif,
+                                _cursor: postData.name ? `a:${postData.name}` : ''
                             });
                             if (posts.length >= limit) break;
                         }
@@ -1267,7 +1279,7 @@ class WidgetService {
     }
 
     // 6. Reddit-wide relevance search across public posts
-    async searchReddit(query, limit = 10, sort = 'relevance', time = 'all', subreddit = '') {
+    async searchReddit(query, limit = 10, sort = 'relevance', time = 'all', subreddit = '', after = null) {
         const cleanQuery = (query || '').toString().trim();
         if (!cleanQuery) return { error: 'A Reddit search query is required.' };
 
@@ -1277,9 +1289,28 @@ class WidgetService {
         const cleanSort = allowedSorts.has(sort) ? sort : 'relevance';
         const cleanTime = allowedTimes.has(time) ? time : 'all';
         const cleanSubreddit = (subreddit || '').toString().trim().replace(/^\/?r\//i, '').replace(/[^a-zA-Z0-9_]/g, '');
-        const cacheKey = `reddit-search:${cleanQuery.toLowerCase()}:${parsedLimit}:${cleanSort}:${cleanTime}:${cleanSubreddit.toLowerCase()}`;
+
+        // Resume state: { t: 1|2|3, after?: 't3_x', subs?: { sub: beforeTs } } — sticks to the tier that served page one
+        const resume = this._decodeRedditCursor(after);
+        const resumeTier = resume && [1, 2, 3].includes(resume.t) ? resume.t : 0;
+        const resumeAfter = resume && typeof resume.after === 'string' && /^t3_[a-z0-9]+$/i.test(resume.after) ? resume.after : '';
+        const resumeSubs = resume && resume.subs && typeof resume.subs === 'object' ? resume.subs : null;
+
+        const cacheKey = `reddit-search:${cleanQuery.toLowerCase()}:${parsedLimit}:${cleanSort}:${cleanTime}:${cleanSubreddit.toLowerCase()}:${after || ''}`;
         const cached = cache.get(cacheKey);
         if (cached) return cached;
+
+        const paginationFor = (next) => ({
+            tool: 'search_reddit',
+            args: {
+                query: cleanQuery,
+                limit: parsedLimit,
+                sort: cleanSort,
+                time: cleanTime,
+                ...(cleanSubreddit ? { subreddit: cleanSubreddit } : {})
+            },
+            after: next ? this._encodeRedditCursor(next) : null
+        });
 
         const normalizePost = (post, source = 'Reddit Search') => {
             if (!post?.title || post.title.startsWith('[ Removed') || post.title.startsWith('[ Deleted') || post.author === '[deleted]') {
@@ -1316,7 +1347,7 @@ class WidgetService {
             return items.map(post => normalizePost(post, source)).filter(Boolean).slice(0, parsedLimit);
         };
 
-        const buildResult = (posts, source) => ({
+        const buildResult = (posts, source, next = null) => ({
             type: 'reddit',
             data: {
                 query: cleanQuery,
@@ -1324,12 +1355,13 @@ class WidgetService {
                 posts,
                 source,
                 sort: cleanSort,
-                time: cleanTime
+                time: cleanTime,
+                pagination: paginationFor(next)
             }
         });
 
         // Tier 1: Direct Reddit Search JSON API (checked first; often fast-fails with 403 server-side)
-        try {
+        if (!resumeTier || resumeTier === 1) try {
             const params = new URLSearchParams({
                 q: cleanQuery,
                 sort: cleanSort,
@@ -1338,6 +1370,7 @@ class WidgetService {
                 raw_json: '1'
             });
             if (cleanSubreddit) params.set('restrict_sr', 'on');
+            if (resumeTier === 1 && resumeAfter) params.set('after', resumeAfter);
 
             const endpoint = cleanSubreddit
                 ? `https://www.reddit.com/r/${encodeURIComponent(cleanSubreddit)}/search.json?${params.toString()}`
@@ -1348,9 +1381,11 @@ class WidgetService {
             }, 3000);
 
             if (primaryResponse.ok) {
-                const posts = parsePosts(await primaryResponse.json(), 'Reddit Search');
+                const payload = await primaryResponse.json();
+                const posts = parsePosts(payload, 'Reddit Search');
                 if (posts.length > 0) {
-                    const result = buildResult(posts, 'Reddit Search');
+                    const nextAfter = payload?.data?.after;
+                    const result = buildResult(posts, 'Reddit Search', nextAfter ? { t: 1, after: nextAfter } : null);
                     cache.set(cacheKey, result, 300);
                     return result;
                 }
@@ -1358,9 +1393,11 @@ class WidgetService {
         } catch (e) {}
 
         // Tier 2: Community Hubs + Photon Reddit Resolver
-        try {
+        if (!resumeTier || resumeTier === 2) try {
             const candidateSubs = [];
-            if (cleanSubreddit) {
+            if (resumeTier === 2 && resumeSubs) {
+                candidateSubs.push(...Object.keys(resumeSubs).filter(s => /^[a-zA-Z0-9_]+$/.test(s)));
+            } else if (cleanSubreddit) {
                 candidateSubs.push(cleanSubreddit);
             } else {
                 const qLower = cleanQuery.toLowerCase();
@@ -1399,7 +1436,8 @@ class WidgetService {
 
             const photonPromises = uniqueSubs.map(async (sub) => {
                 try {
-                    const photonUrl = `https://arctic-shift.photon-reddit.com/api/posts/search?subreddit=${encodeURIComponent(sub)}&limit=${perSubLimit}`;
+                    const beforeTs = resumeTier === 2 && resumeSubs && /^\d+$/.test(String(resumeSubs[sub] || '')) ? `&before=${resumeSubs[sub]}` : '';
+                    const photonUrl = `https://arctic-shift.photon-reddit.com/api/posts/search?subreddit=${encodeURIComponent(sub)}&limit=${perSubLimit}${beforeTs}`;
                     const res = await fetchWithTimeout(photonUrl, { timeoutMs: 3500 }, 3500);
                     if (!res.ok) return [];
                     const json = await res.json();
@@ -1411,9 +1449,15 @@ class WidgetService {
 
             const settledPhoton = await Promise.allSettled(photonPromises);
             let rawCandidatePosts = [];
-            settledPhoton.forEach(outcome => {
+            const nextPhotonSubs = {};
+            settledPhoton.forEach((outcome, idx) => {
                 if (outcome.status === 'fulfilled' && Array.isArray(outcome.value)) {
                     rawCandidatePosts.push(...outcome.value);
+                    // Next page for this community starts before its oldest scanned post
+                    const oldest = outcome.value.reduce((min, p) => (p?.created_utc && p.created_utc < min ? p.created_utc : min), Infinity);
+                    if (outcome.value.length > 0 && Number.isFinite(oldest)) {
+                        nextPhotonSubs[uniqueSubs[idx]] = String(Math.floor(oldest));
+                    }
                 }
             });
 
@@ -1444,7 +1488,8 @@ class WidgetService {
 
                 const finalPosts = scoredPosts.slice(0, parsedLimit).map(s => s.post);
                 if (finalPosts.length > 0) {
-                    const result = buildResult(finalPosts, 'Reddit');
+                    const hasMore = Object.keys(nextPhotonSubs).length > 0;
+                    const result = buildResult(finalPosts, 'Reddit', hasMore ? { t: 2, subs: nextPhotonSubs } : null);
                     cache.set(cacheKey, result, 300);
                     return result;
                 }
@@ -1452,13 +1497,15 @@ class WidgetService {
         } catch (e) {}
 
         // Tier 3: Direct Reddit Search RSS (Atom XML fallback)
-        try {
+        if (!resumeTier || resumeTier === 3) try {
+            let lastRssId = '';
             const rssParams = new URLSearchParams({
                 q: cleanQuery,
                 sort: cleanSort,
                 t: cleanTime,
                 limit: String(parsedLimit)
             });
+            if (resumeTier === 3 && resumeAfter) rssParams.set('after', resumeAfter);
             const rssEndpoint = cleanSubreddit
                 ? `https://www.reddit.com/r/${encodeURIComponent(cleanSubreddit)}/search.rss?${rssParams.toString()}&restrict_sr=on`
                 : `https://www.reddit.com/search.rss?${rssParams.toString()}`;
@@ -1497,6 +1544,8 @@ class WidgetService {
                     if (!url || author === 'AutoModerator') continue;
 
                     const media = this._extractRssMedia(entry);
+                    const entryId = readTag('id');
+                    if (/^t3_[a-z0-9]+$/i.test(entryId)) lastRssId = entryId;
 
                     rssPosts.push({
                         title,
@@ -1516,12 +1565,17 @@ class WidgetService {
                 }
 
                 if (rssPosts.length > 0) {
-                    const result = buildResult(rssPosts, 'Reddit Search');
+                    const result = buildResult(rssPosts, 'Reddit Search', lastRssId ? { t: 3, after: lastRssId } : null);
                     cache.set(cacheKey, result, 300);
                     return result;
                 }
             }
         } catch (e) {}
+
+        // Paging past the end: return an empty page so the client simply hides "Load more"
+        if (resumeTier) {
+            return buildResult([], 'Reddit', null);
+        }
 
         return {
             type: 'reddit',
@@ -1534,8 +1588,31 @@ class WidgetService {
         };
     }
 
+    // Opaque pagination token helpers for Reddit "Load more"
+    _encodeRedditCursor(obj) {
+        try {
+            return Buffer.from(JSON.stringify(obj), 'utf8').toString('base64url');
+        } catch (e) {
+            return null;
+        }
+    }
+
+    _decodeRedditCursor(token) {
+        if (!token || typeof token !== 'string' || token.length > 2048) return null;
+        try {
+            const parsed = JSON.parse(Buffer.from(token, 'base64url').toString('utf8'));
+            return parsed && typeof parsed === 'object' ? parsed : null;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    _stripRedditCursor(posts) {
+        return posts.map(({ _cursor, ...rest }) => rest);
+    }
+
     // 7. Reddit & Community Discussions (Supports single or multi-subreddit queries)
-    async getRedditPosts(subreddit, limit = null) {
+    async getRedditPosts(subreddit, limit = null, after = null) {
         const rawInput = (subreddit || 'news').toString().trim();
         // Split by commas, plus signs, or ' and '
         const rawParts = rawInput.split(/[,+]|\s+and\s+/i);
@@ -1548,19 +1625,48 @@ class WidgetService {
 
         const parsedLimit = typeof limit === 'number' && limit > 0 ? Math.min(Math.floor(limit), 50) : null;
 
+        // Resume state: { subs: { [subLower]: cursor } } — only communities with more content remain
+        const resume = this._decodeRedditCursor(after);
+        const resumeSubs = resume && resume.subs && typeof resume.subs === 'object' ? resume.subs : null;
+        const isPaging = Boolean(resumeSubs);
+        const activeSubs = isPaging
+            ? uniqueSubs.filter(s => typeof resumeSubs[s.toLowerCase()] === 'string')
+            : uniqueSubs;
+
+        const pagination = (nextSubs) => {
+            const hasMore = Object.keys(nextSubs).length > 0;
+            return {
+                tool: 'get_reddit_posts',
+                args: { subreddit: rawInput, ...(parsedLimit ? { limit: parsedLimit } : {}) },
+                after: hasMore ? this._encodeRedditCursor({ subs: nextSubs }) : null
+            };
+        };
+
+        if (isPaging && activeSubs.length === 0) {
+            return { type: 'reddit', data: { subreddit: rawInput, posts: [], pagination: pagination({}) } };
+        }
+
         // Single subreddit fast path
-        if (uniqueSubs.length === 1) {
+        if (activeSubs.length === 1 && uniqueSubs.length === 1) {
             const singleLimit = parsedLimit || 5;
-            const res = await this._fetchSingleSubreddit(uniqueSubs[0], Math.max(singleLimit, 10));
+            const sub = activeSubs[0];
+            const cursor = isPaging ? resumeSubs[sub.toLowerCase()] : '';
+            const res = await this._fetchSingleSubreddit(sub, Math.max(singleLimit, 10), cursor);
             if (res.posts.length > 0) {
+                const pagePosts = res.posts.slice(0, singleLimit);
+                const lastCursor = pagePosts[pagePosts.length - 1]._cursor;
                 return {
                     type: 'reddit',
                     data: {
                         subreddit: `r/${res.subreddit}`,
-                        posts: res.posts.slice(0, singleLimit),
-                        source: res.sourceName
+                        posts: this._stripRedditCursor(pagePosts),
+                        source: res.sourceName,
+                        pagination: pagination(lastCursor ? { [sub.toLowerCase()]: lastCursor } : {})
                     }
                 };
+            }
+            if (isPaging) {
+                return { type: 'reddit', data: { subreddit: `r/${sub}`, posts: [], pagination: pagination({}) } };
             }
             return {
                 type: 'reddit',
@@ -1571,18 +1677,21 @@ class WidgetService {
         }
 
         // Multi-subreddit simultaneous fetch & balancing
-        const perSubTarget = parsedLimit ? Math.max(Math.ceil(parsedLimit / uniqueSubs.length), 3) : 10;
-        const fetchPromises = uniqueSubs.map(sub => this._fetchSingleSubreddit(sub, perSubTarget));
+        const perSubTarget = parsedLimit ? Math.max(Math.ceil(parsedLimit / activeSubs.length), 3) : 10;
+        const fetchPromises = activeSubs.map(sub => this._fetchSingleSubreddit(sub, perSubTarget, isPaging ? resumeSubs[sub.toLowerCase()] : ''));
         const settled = await Promise.allSettled(fetchPromises);
 
         const subResults = [];
-        settled.forEach((outcome) => {
+        settled.forEach((outcome, idx) => {
             if (outcome.status === 'fulfilled' && outcome.value.posts.length > 0) {
-                subResults.push(outcome.value);
+                subResults.push({ ...outcome.value, key: activeSubs[idx].toLowerCase() });
             }
         });
 
         if (subResults.length === 0) {
+            if (isPaging) {
+                return { type: 'reddit', data: { subreddit: rawInput, posts: [], pagination: pagination({}) } };
+            }
             return {
                 type: 'reddit',
                 data: {
@@ -1597,14 +1706,27 @@ class WidgetService {
         for (let i = 0; i < maxLen; i++) {
             for (const r of subResults) {
                 if (i < r.posts.length) {
-                    interleaved.push(r.posts[i]);
+                    interleaved.push({ post: r.posts[i], key: r.key });
                 }
             }
         }
 
         // Apply balanced limit
         const finalCount = parsedLimit || Math.min(interleaved.length, uniqueSubs.length * 5, 25);
-        const finalPosts = interleaved.slice(0, finalCount);
+        const finalEntries = interleaved.slice(0, finalCount);
+        const finalPosts = finalEntries.map(e => e.post);
+
+        // Resume each community right after the last post of it that was actually shown
+        const nextSubs = {};
+        for (const entry of finalEntries) {
+            if (entry.post._cursor) nextSubs[entry.key] = entry.post._cursor;
+        }
+        // Communities that returned posts but were fully trimmed by the limit resume from where they were
+        for (const r of subResults) {
+            if (!(r.key in nextSubs)) {
+                nextSubs[r.key] = isPaging ? (resumeSubs[r.key] || '') : '';
+            }
+        }
 
         const sources = [...new Set(subResults.map(r => r.sourceName))];
         const primarySource = sources.length === 1 ? sources[0] : 'Community Discussions';
@@ -1614,9 +1736,10 @@ class WidgetService {
             type: 'reddit',
             data: {
                 subreddit: displaySubs,
-                posts: finalPosts,
+                posts: this._stripRedditCursor(finalPosts),
                 source: primarySource,
-                subreddits: subResults.map(r => `r/${r.subreddit}`)
+                subreddits: subResults.map(r => `r/${r.subreddit}`),
+                pagination: pagination(nextSubs)
             }
         };
     }

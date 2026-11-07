@@ -977,6 +977,39 @@
     font-weight: 500;
 }
 
+.reddit-load-more-wrap {
+    margin-top: 8px;
+}
+
+.reddit-load-more-btn {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+    border-radius: 5px;
+    color: var(--text-muted, #94a3b8);
+    font-size: 0.74rem;
+    font-family: var(--font-mono, monospace);
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.14s ease, border-color 0.14s ease, color 0.14s ease;
+}
+
+.reddit-load-more-btn:hover:not(:disabled) {
+    background: rgba(251, 169, 25, 0.08);
+    border-color: var(--accent-primary, #fba919);
+    color: var(--text-main, #f8fafc);
+}
+
+.reddit-load-more-btn:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
 /* ─────────────────────────────────────────────────────────────
    AEROSPACE & ASTRONOMY NEWS FEED WIDGET
    ───────────────────────────────────────────────────────────── */
