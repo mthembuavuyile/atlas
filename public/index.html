@@ -1266,7 +1266,12 @@
       </div>
       <div class="atlas-ocr-footer">
         <span class="atlas-ocr-footer-hint">Supports drag & drop and clipboard paste (Ctrl+V)</span>
-        <button id="ocrBtnSend" class="atlas-ocr-btn primary">Send to Investigation</button>
+        <div class="atlas-ocr-workflow-actions" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+          <button id="ocrBtnSummarize" class="atlas-ocr-btn" data-ocr-action="summarize" title="Summarize scanned document">Summarize</button>
+          <button id="ocrBtnExtractTable" class="atlas-ocr-btn" data-ocr-action="table" title="Extract tables, line items, and prices">Extract Prices / Table</button>
+          <button id="ocrBtnTranslate" class="atlas-ocr-btn" data-ocr-action="translate" title="Translate extracted text">Translate</button>
+          <button id="ocrBtnSend" class="atlas-ocr-btn primary">Send to Investigation</button>
+        </div>
       </div>
     </div>
   </div>

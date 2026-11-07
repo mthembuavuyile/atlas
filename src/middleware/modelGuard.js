@@ -13,7 +13,7 @@ ALLOWED_FREE_MODELS.add('openrouter/free');
 ALLOWED_FREE_MODELS.add('stealth/ox-alpha');
 
 function modelGuard(req, res, next) {
-  const { model } = req.body || {};
+  const { model, apiKey } = req.body || {};
 
   // If no model provided, it will fallback to DEFAULT_MODEL safely
   if (!model) {
@@ -23,14 +23,26 @@ function modelGuard(req, res, next) {
   const isExplicitlyWhitelisted = ALLOWED_FREE_MODELS.has(model);
   const isFreeSuffix = typeof model === 'string' && model.endsWith(':free');
 
-  if (!isExplicitlyWhitelisted && !isFreeSuffix) {
-    console.warn(`[Security Alert]: Blocked unauthorized model request for: "${model}" from IP: ${req.ip || req.headers['x-forwarded-for']}`);
-    return res.status(403).json({
-      error: 'The selected model is not available. Please choose from the available reasoning models in the menu.'
-    });
+  if (isExplicitlyWhitelisted || isFreeSuffix) {
+    return next();
   }
 
-  next();
+  // Allow BYOK (Bring Your Own Key) users to invoke frontier models on their own OpenRouter key
+  const headers = req.headers || {};
+  const bearerKey = typeof headers['authorization'] === 'string' && headers['authorization'].startsWith('Bearer ')
+    ? headers['authorization'].slice(7).trim()
+    : '';
+  const customApiKey = String(headers['x-openrouter-key'] || bearerKey || apiKey || '').trim();
+  const isValidModelSlug = typeof model === 'string' && /^[a-z0-9-]+\/[a-z0-9._:-]+$/i.test(model);
+
+  if (customApiKey.length >= 16 && isValidModelSlug) {
+    return next();
+  }
+
+  console.warn(`[Security Alert]: Blocked unauthorized model request for: "${model}" from IP: ${req.ip || headers['x-forwarded-for']}`);
+  return res.status(403).json({
+    error: 'The selected model is not available on the shared tier. Please choose from the available reasoning models in the menu or configure your personal OpenRouter API key in Settings.'
+  });
 }
 
 module.exports = { modelGuard, ALLOWED_FREE_MODELS };

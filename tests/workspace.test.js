@@ -197,5 +197,49 @@ describe('Living AI Workspace & Canvas Architecture', () => {
     assert.ok(css.includes('@keyframes freqWaveDance'), 'style.css must specify frequency wave animation');
     assert.ok(css.includes('.speech-pill-frequency'), 'style.css must style speech-pill-frequency');
   });
+
+  test('Document Intelligence summarizes CSV tables, extracts PDF text, and wires OCR workflow actions', async () => {
+    const { summarizeCsvContent, extractPdfTextFromBuffer } = await import('../public/js/ui/modals.js');
+    const sampleCsv = 'Item,Category,Price\nEspresso,Coffee,35.50\nCappuccino,Coffee,42.00\nCroissant,Bakery,48.50';
+    const enrichedCsv = summarizeCsvContent(sampleCsv, 'menu.csv');
+    assert.ok(enrichedCsv.includes('[CSV Document Intelligence: menu.csv — 3 rows, 3 columns]'));
+    assert.ok(enrichedCsv.includes('Columns: Item, Category, Price'));
+    assert.ok(enrichedCsv.includes('sum=126'));
+
+    const fakePdfBuffer = new TextEncoder().encode('%PDF-1.5\nBT (Invoice #2026-09 Total R1450.00) Tj ET');
+    const extractedPdf = extractPdfTextFromBuffer(fakePdfBuffer, 'invoice.pdf');
+    assert.ok(extractedPdf.includes('[PDF Document: invoice.pdf]'));
+    assert.ok(extractedPdf.includes('Invoice #2026-09 Total R1450.00'));
+
+    assert.ok(indexHtml.includes('id="ocrBtnSummarize"'), 'OCR modal must include Summarize action');
+    assert.ok(indexHtml.includes('id="ocrBtnExtractTable"'), 'OCR modal must include Extract Prices / Table action');
+    assert.ok(indexHtml.includes('id="ocrBtnTranslate"'), 'OCR modal must include Translate action');
+  });
+
+  test('modelGuard blocks unauthorized paid models on shared key but allows BYOK frontier models', () => {
+    const { modelGuard } = require('../src/middleware/modelGuard');
+
+    let blockedStatus = null;
+    let nextCalled = false;
+    modelGuard(
+      { body: { model: 'anthropic/claude-3.5-sonnet' }, headers: {}, ip: '127.0.0.1' },
+      { status: (code) => ({ json: () => { blockedStatus = code; } }) },
+      () => { nextCalled = true; }
+    );
+    assert.strictEqual(blockedStatus, 403, 'Should block paid model when no personal key is provided');
+    assert.strictEqual(nextCalled, false);
+
+    let byokNextCalled = false;
+    modelGuard(
+      {
+        body: { model: 'anthropic/claude-3.5-sonnet' },
+        headers: { 'x-openrouter-key': 'sk-or-v1-personal-user-key-1234567890' },
+        ip: '127.0.0.1'
+      },
+      { status: () => ({ json: () => {} }) },
+      () => { byokNextCalled = true; }
+    );
+    assert.strictEqual(byokNextCalled, true, 'Should allow frontier model when valid BYOK key is provided');
+  });
 });
 

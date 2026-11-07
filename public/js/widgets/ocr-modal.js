@@ -11,6 +11,9 @@ class OCRManager {
         this.btnUpload = document.getElementById('ocrBtnUpload');
         this.btnCapture = document.getElementById('ocrBtnCapture');
         this.btnSend = document.getElementById('ocrBtnSend');
+        this.btnSummarize = document.getElementById('ocrBtnSummarize');
+        this.btnExtractTable = document.getElementById('ocrBtnExtractTable');
+        this.btnTranslate = document.getElementById('ocrBtnTranslate');
         this.btnClose = document.getElementById('ocrBtnClose');
         
         this.fileInput = document.createElement('input');
@@ -29,6 +32,9 @@ class OCRManager {
         this.btnUpload?.addEventListener('click', () => this.fileInput.click());
         this.btnCapture?.addEventListener('click', () => this.capture());
         this.btnSend?.addEventListener('click', () => this.sendToChat());
+        this.btnSummarize?.addEventListener('click', () => this.sendToChat('summarize'));
+        this.btnExtractTable?.addEventListener('click', () => this.sendToChat('table'));
+        this.btnTranslate?.addEventListener('click', () => this.sendToChat('translate'));
 
         // Close on backdrop click
         this.modal.addEventListener('click', (e) => {
@@ -201,11 +207,19 @@ class OCRManager {
         }
     }
 
-    sendToChat() {
+    sendToChat(workflowAction = '') {
         const text = this.textarea ? this.textarea.value.trim() : '';
         if (text && text !== "No legible text detected in this image." && !text.startsWith("Initializing") && !text.startsWith("Recognizing") && !text.startsWith("Scanning") && !text.startsWith("Camera") && !text.startsWith("Loading")) {
+            let payload = text;
+            if (workflowAction === 'summarize') {
+                payload = `Summarize the key points, entities, and action items from this scanned document:\n\n${text}`;
+            } else if (workflowAction === 'table') {
+                payload = `Extract all structured line items, tables, and prices from this scanned text into a Markdown table and calculate key totals:\n\n${text}`;
+            } else if (workflowAction === 'translate') {
+                payload = `Translate this scanned document text clearly into English and preserve its structure:\n\n${text}`;
+            }
             // Dispatch event to app.js
-            document.dispatchEvent(new CustomEvent('atlas:ocr-result', { detail: text }));
+            document.dispatchEvent(new CustomEvent('atlas:ocr-result', { detail: payload }));
             this.close();
         }
     }

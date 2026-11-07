@@ -416,5 +416,30 @@ describe('Widget Service Deterministic Capabilities', () => {
       global.fetch = originalFetch;
     }
   });
+
+  test('generateQr formats Wi-Fi, WhatsApp, vCard, and URL payloads with presetType', async () => {
+    const wifiRes = await widgetService.generateQr('wifi: MyOfficeNet password: SecretPass123');
+    assert.strictEqual(wifiRes.type, 'generate_qr');
+    assert.strictEqual(wifiRes.data.presetType, 'wifi');
+    assert.ok(wifiRes.data.text.startsWith('WIFI:T:WPA;S:MyOfficeNet;P:SecretPass123;;'));
+
+    const waRes = await widgetService.generateQr('whatsapp +27821234567 message: Hello from Atlas');
+    assert.strictEqual(waRes.type, 'generate_qr');
+    assert.strictEqual(waRes.data.presetType, 'whatsapp');
+    assert.ok(waRes.data.text.startsWith('https://wa.me/27821234567?text='));
+
+    const vcardRes = await widgetService.generateQr('vcard: Jane Doe, phone: +27820001111, email: jane@vylex.co.za, org: Vylex');
+    assert.strictEqual(vcardRes.type, 'generate_qr');
+    assert.strictEqual(vcardRes.data.presetType, 'vcard');
+    assert.ok(vcardRes.data.text.includes('BEGIN:VCARD'));
+    assert.ok(vcardRes.data.text.includes('FN:Jane Doe'));
+
+    const { renderQrWidget } = await import('../public/js/widgets/qr-widget.js');
+    const html = renderQrWidget(wifiRes.data);
+    assert.ok(html.includes('qr-preset-tab'), 'QR Studio must include interactive preset tabs');
+    assert.ok(html.includes('data-preset="wifi"'));
+    assert.ok(html.includes('data-preset="vcard"'));
+    assert.ok(html.includes('data-preset="whatsapp"'));
+  });
 });
 

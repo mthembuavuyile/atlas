@@ -1996,10 +1996,68 @@ class WidgetService {
     }
 
     async generateQr(data) {
-        if (!data || !data.trim()) {
+        if (!data || !String(data).trim()) {
             return { error: 'Please provide the text or URL to encode in the QR code.' };
         }
-        return { type: 'generate_qr', data: { text: data.trim() } };
+        const raw = String(data).trim();
+        let formattedText = raw;
+        let presetType = 'text';
+
+        // 1. Natural-language Wi-Fi QR formatting: e.g. "wifi MyNetwork password 12345678"
+        const wifiMatch = raw.match(/^(?:wi-?fi(?:\s+network)?)\s*[:=-]?\s*["']?([^"'\n,;]+?)["']?\s+(?:password|pass|pwd|key)\s*[:=-]?\s*["']?([^"'\n]+?)["']?$/i);
+        if (wifiMatch) {
+            const ssid = wifiMatch[1].trim();
+            const pass = wifiMatch[2].trim();
+            formattedText = `WIFI:T:WPA;S:${ssid};P:${pass};;`;
+            presetType = 'wifi';
+        } else if (/^WIFI:/i.test(raw)) {
+            presetType = 'wifi';
+        } else {
+            // 2. Natural-language WhatsApp QR formatting: e.g. "whatsapp +27821234567 Hello"
+            const waMatch = raw.match(/^whatsapp\s*[:=-]?\s*(\+?\d[\d\s-]{6,18})(?:\s+(.+))?$/i);
+            if (waMatch) {
+                const phone = waMatch[1].replace(/[^\d]/g, '');
+                const msg = (waMatch[2] || '').trim();
+                formattedText = msg
+                    ? `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`
+                    : `https://wa.me/${phone}`;
+                presetType = 'whatsapp';
+            } else {
+                // 3. Natural-language vCard / Contact QR formatting: e.g. "vcard John Doe, +27821234567, john@vylex.co.za"
+                const vcardMatch = raw.match(/^(?:vcard|contact(?:\s+card)?)\s*[:=-]?\s*(.+)$/i);
+                if (vcardMatch && !/^BEGIN:VCARD/i.test(raw)) {
+                    const parts = vcardMatch[1].split(/[|,;]/).map(s => s.trim()).filter(Boolean);
+                    const name = parts[0] || 'Contact';
+                    const phone = parts.find(p => /^\+?[\d\s()-]{7,}$/.test(p)) || '';
+                    const email = parts.find(p => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(p)) || '';
+                    const org = parts.find(p => p !== name && p !== phone && p !== email) || '';
+                    const lines = [
+                        'BEGIN:VCARD',
+                        'VERSION:3.0',
+                        `FN:${name}`,
+                        ...(org ? [`ORG:${org}`] : []),
+                        ...(phone ? [`TEL;TYPE=CELL:${phone}`] : []),
+                        ...(email ? [`EMAIL:${email}`] : []),
+                        'END:VCARD'
+                    ];
+                    formattedText = lines.join('\n');
+                    presetType = 'vcard';
+                } else if (/^BEGIN:VCARD/i.test(raw)) {
+                    presetType = 'vcard';
+                } else if (/^https?:\/\//i.test(raw)) {
+                    presetType = 'url';
+                }
+            }
+        }
+
+        return {
+            type: 'generate_qr',
+            data: {
+                text: formattedText,
+                rawInput: raw,
+                presetType
+            }
+        };
     }
 }
 

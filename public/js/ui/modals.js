@@ -9,6 +9,186 @@ import { dom } from './dom.js';
 import { PERSONA_PRESETS } from '../config/constants.js';
 import { getActiveSession, saveSessions, loadSession, createNewSession, renderHistoryTree, closeMobileSidebar } from './session-manager.js';
 
+/**
+ * Parses a CSV string and prepends a structured Document Intelligence header
+ * with row count, column headers, and automatic numeric column statistics.
+ */
+export function summarizeCsvContent(csvText, filename = 'data.csv') {
+  const raw = String(csvText || '').trim();
+  if (!raw) return '';
+
+  const lines = raw.split(/\r?\n/).filter(l => l.trim().length > 0);
+  if (lines.length < 2) return raw;
+
+  const parseCsvRow = (row) => {
+    const cells = [];
+    let current = '';
+    let inQuotes = false;
+    for (let i = 0; i < row.length; i++) {
+      const ch = row[i];
+      if (ch === '"') {
+        inQuotes = !inQuotes;
+      } else if (ch === ',' && !inQuotes) {
+        cells.push(current.trim());
+        current = '';
+      } else {
+        current += ch;
+      }
+    }
+    cells.push(current.trim());
+    return cells;
+  };
+
+  const headers = parseCsvRow(lines[0]);
+  const dataRows = lines.slice(1, 2001).map(parseCsvRow);
+  const numericStats = [];
+
+  headers.forEach((headerName, colIdx) => {
+    if (!headerName) return;
+    const nums = [];
+    for (const row of dataRows) {
+      const cell = (row[colIdx] || '').replace(/[$€£R,\s]/g, '');
+      if (cell !== '' && !Number.isNaN(Number(cell))) {
+        nums.push(Number(cell));
+      }
+    }
+    if (nums.length > 0 && nums.length >= Math.min(3, dataRows.length)) {
+      const sum = nums.reduce((a, b) => a + b, 0);
+      const min = Math.min(...nums);
+      const max = Math.max(...nums);
+      const avg = sum / nums.length;
+      numericStats.push(
+        `- ${headerName}: count=${nums.length}, sum=${Number(sum.toFixed(2))}, avg=${Number(avg.toFixed(2))}, min=${min}, max=${max}`
+      );
+    }
+  });
+
+  const summaryHeader = [
+    `[CSV Document Intelligence: ${filename} — ${lines.length - 1} rows, ${headers.length} columns]`,
+    `Columns: ${headers.join(', ')}`,
+    ...(numericStats.length ? ['Numeric Summary:', ...numericStats] : []),
+    '--- Raw CSV Data ---'
+  ].join('\n');
+
+  return `${summaryHeader}\n${raw.slice(0, 180000)}`;
+}
+
+/**
+ * Fallback lightweight PDF text extractor from an ArrayBuffer or string when pdf.js is offline.
+ */
+export function extractPdfTextFromBuffer(bufferOrString, filename = 'document.pdf') {
+  let raw = '';
+  if (typeof bufferOrString === 'string') {
+    raw = bufferOrString;
+  } else if (bufferOrString instanceof ArrayBuffer || ArrayBuffer.isView(bufferOrString)) {
+    const bytes = bufferOrString instanceof ArrayBuffer ? new Uint8Array(bufferOrString) : new Uint8Array(bufferOrString.buffer);
+    const decoder = new TextDecoder('latin1');
+    raw = decoder.decode(bytes);
+  }
+
+  const fragments = [];
+  const parenRegex = /\(([^()\\]{2,240}(?:\\.[^()\\]*)*)\)/g;
+  let match;
+  while ((match = parenRegex.exec(raw)) !== null) {
+    const cleaned = match[1]
+      .replace(/\\n/g, '\n')
+      .replace(/\\r/g, ' ')
+      .replace(/\\t/g, ' ')
+      .replace(/\\\(/g, '(')
+      .replace(/\\\)/g, ')')
+      .replace(/[^\x20-\x7E\n]/g, '')
+      .trim();
+    if (cleaned.length >= 2 && /[a-zA-Z0-9]{2,}/.test(cleaned)) {
+      fragments.push(cleaned);
+    }
+  }
+
+  const body = fragments.join(' ').replace(/\s+/g, ' ').trim();
+  if (!body) {
+    return `[PDF Document: ${filename}]\n(Scanned or encrypted PDF — use Atlas OCR tool for image-based pages.)`;
+  }
+  return `[PDF Document: ${filename}]\n${body.slice(0, 150000)}`;
+}
+
+let pdfJsLoadPromise = null;
+function ensurePdfJsLoaded() {
+  if (typeof window === 'undefined') return Promise.resolve(null);
+  if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+  if (pdfJsLoadPromise) return pdfJsLoadPromise;
+
+  pdfJsLoadPromise = new Promise((resolve) => {
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    script.async = true;
+    script.onload = () => {
+      if (window.pdfjsLib) {
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc =
+          'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        resolve(window.pdfjsLib);
+      } else {
+        resolve(null);
+      }
+    };
+    script.onerror = () => resolve(null);
+    document.head.appendChild(script);
+  });
+  return pdfJsLoadPromise;
+}
+
+export async function extractPdfTextClientSide(file) {
+  const filename = file.webkitRelativePath || file.name || 'document.pdf';
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdfjsLib = await ensurePdfJsLoaded();
+    if (pdfjsLib && typeof pdfjsLib.getDocument === 'function') {
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      const maxPages = Math.min(pdf.numPages || 1, 40);
+      const pagesText = [];
+      for (let pageNum = 1; pageNum <= maxPages; pageNum++) {
+        const page = await pdf.getPage(pageNum);
+        const textContent = await page.getTextContent();
+        const strings = (textContent.items || []).map(item => item.str || '').join(' ').replace(/\s+/g, ' ').trim();
+        if (strings) {
+          pagesText.push(`--- Page ${pageNum} ---\n${strings}`);
+        }
+      }
+      if (pagesText.length > 0) {
+        return `[PDF Document: ${filename} — ${pdf.numPages} page${pdf.numPages === 1 ? '' : 's'}]\n${pagesText.join('\n\n')}`;
+      }
+    }
+    return extractPdfTextFromBuffer(arrayBuffer, filename);
+  } catch (err) {
+    return `[PDF Document: ${filename}]\nUnable to parse PDF binary directly (${err?.message || 'unknown error'}).`;
+  }
+}
+
+export async function processAttachedFile(file) {
+  if (!file) return null;
+  const path = file.webkitRelativePath || file.name || 'unnamed';
+  const lower = path.toLowerCase();
+  const isPdf = lower.endsWith('.pdf');
+  const isCsv = lower.endsWith('.csv');
+
+  const maxSize = isPdf ? 10 * 1024 * 1024 : (isCsv ? 2 * 1024 * 1024 : 500000);
+  if (file.size > maxSize) return null;
+
+  if (isPdf) {
+    const content = await extractPdfTextClientSide(file);
+    return { path, content };
+  }
+
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const rawText = String(reader.result || '');
+      const content = isCsv ? summarizeCsvContent(rawText, path) : rawText;
+      resolve({ path, content });
+    };
+    reader.onerror = () => resolve(null);
+    reader.readAsText(file);
+  });
+}
+
 export function toggleShortcutsModal(show) {
   if (!dom.shortcutsModal) return;
   const isVisible = dom.shortcutsModal.style.display === 'flex';
@@ -441,18 +621,10 @@ export function initModals() {
     fileInput.accept = '.html,.css,.js,.json,.md,.txt,.py,.ts,.jsx,.tsx,.csv,.xml,.yml,.yaml,.pdf';
     fileInput.multiple = true;
     fileInput.onchange = (e) => {
-      const files = Array.from(e.target.files || []).filter(file => file.size <= 500000);
+      const files = Array.from(e.target.files || []);
       if (!files.length) return;
 
-      Promise.all(files.map(file => new Promise(resolve => {
-        const reader = new FileReader();
-        reader.onload = () => resolve({
-          path: file.webkitRelativePath || file.name,
-          content: String(reader.result || '')
-        });
-        reader.onerror = () => resolve(null);
-        reader.readAsText(file);
-      }))).then(importedFiles => {
+      Promise.all(files.map(file => processAttachedFile(file))).then(importedFiles => {
         const validFiles = importedFiles.filter(Boolean);
         if (validFiles.length) {
           const existing = state.projectFiles || [];
