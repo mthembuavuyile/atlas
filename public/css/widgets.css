@@ -1219,34 +1219,88 @@
 }
 
 /* ─────────────────────────────────────────────────────────────
-   OCR MODAL — EXTRACTED INLINE STYLES
+   OCR & QR MODAL — MOBILE-FIRST LAYOUT
    ───────────────────────────────────────────────────────────── */
 .atlas-ocr-title {
     margin: 0;
-    font-size: 1.1rem;
+    font-size: 0.98rem;
     color: #fff;
     font-weight: 600;
+    line-height: 1.3;
 }
 
 .atlas-ocr-action-row {
-    position: absolute;
-    bottom: 14px;
-    left: 0;
-    right: 0;
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    z-index: 10;
+    position: static;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(105px, 1fr));
+    gap: 8px;
+    width: 100%;
+    z-index: 2;
 }
 
 .atlas-ocr-btn-capture {
     background: #fff;
-    color: #000;
+    color: #0b0f17;
+    border-color: #fff;
+    font-weight: 700;
 }
 
 .atlas-ocr-footer-hint {
-    font-size: 0.8rem;
-    color: #64748b;
+    display: none;
+    font-size: 0.76rem;
+    color: var(--text-muted, #64748b);
+}
+
+.atlas-ocr-workflow-actions {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    width: 100%;
+    align-items: center;
+}
+
+.atlas-ocr-workflow-actions #ocrBtnSend {
+    grid-column: 1 / -1;
+    min-height: 38px;
+    font-weight: 600;
+}
+
+.atlas-qr-modal {
+    max-width: 480px;
+}
+
+.atlas-qr-body {
+    grid-template-columns: 1fr !important;
+    min-height: auto;
+}
+
+.atlas-qr-scan-status {
+    margin-top: 4px;
+    text-align: center;
+    color: var(--text-secondary, #cbd5e1);
+    font-size: 0.84rem;
+}
+
+@media (min-width: 768px) {
+    .atlas-ocr-title {
+        font-size: 1.05rem;
+    }
+
+    .atlas-ocr-footer-hint {
+        display: block;
+    }
+
+    .atlas-ocr-workflow-actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        width: auto;
+    }
+
+    .atlas-ocr-workflow-actions #ocrBtnSend {
+        grid-column: auto;
+        min-height: 34px;
+    }
 }
 
 /* ─────────────────────────────────────────────────────────────

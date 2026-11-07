@@ -1272,8 +1272,8 @@
         </div>
       </div>
       <div class="atlas-ocr-footer">
-        <span class="atlas-ocr-footer-hint">Supports drag & drop and clipboard paste (Ctrl+V)</span>
-        <div class="atlas-ocr-workflow-actions" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+        <span class="atlas-ocr-footer-hint">Supports drag &amp; drop and clipboard paste (Ctrl+V)</span>
+        <div class="atlas-ocr-workflow-actions">
           <button id="ocrBtnSummarize" class="atlas-ocr-btn" data-ocr-action="summarize" title="Summarize scanned document">Summarize</button>
           <button id="ocrBtnExtractTable" class="atlas-ocr-btn" data-ocr-action="table" title="Extract tables, line items, and prices">Extract Prices / Table</button>
           <button id="ocrBtnTranslate" class="atlas-ocr-btn" data-ocr-action="translate" title="Translate extracted text">Translate</button>
@@ -1285,22 +1285,21 @@
 
   <!-- QR Scanner Modal Overlay -->
   <div class="atlas-ocr-overlay" id="qrModalOverlay">
-    <div class="atlas-ocr-modal" style="max-width: 500px;">
+    <div class="atlas-ocr-modal atlas-qr-modal">
       <div class="atlas-ocr-header">
         <h3 class="atlas-ocr-title">QR Code Scanner</h3>
         <button id="qrBtnClose" class="atlas-ocr-btn">Close</button>
       </div>
-      <div class="atlas-ocr-body">
+      <div class="atlas-ocr-body atlas-qr-body">
         <div class="atlas-ocr-panel" style="border: none;">
           <video id="qrVideo" class="atlas-ocr-video" autoplay playsinline style="display: none;"></video>
           <img id="qrPreview" class="atlas-ocr-preview" style="display: none;" alt="QR Preview">
-          <div class="atlas-ocr-action-row" style="justify-content: center; margin-top: 10px;">
+          <div class="atlas-ocr-action-row">
             <button id="qrBtnCamera" class="atlas-ocr-btn primary">Scan via Camera</button>
             <button id="qrBtnUpload" class="atlas-ocr-btn primary">Upload QR Image</button>
           </div>
           <canvas id="qrCanvas" style="display: none;"></canvas>
-          <div id="qrScanStatus"
-            style="margin-top: 15px; text-align: center; color: var(--text-secondary); font-size: 0.9rem;">
+          <div id="qrScanStatus" class="atlas-qr-scan-status">
             Ready to scan.
           </div>
         </div>

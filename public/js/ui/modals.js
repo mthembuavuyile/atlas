@@ -163,12 +163,33 @@ export async function extractPdfTextClientSide(file) {
   }
 }
 
+/**
+ * Returns the `<input type="file" accept="...">` attribute for Attach Files.
+ * On Android, `.ts` is mapped by Android's system MimeTypeMap to `video/mp2ts`
+ * (MPEG-2 Transport Stream video), which causes Android browsers to prompt
+ * the Camcorder and "Photos and videos" picker instead of opening Files/Documents.
+ */
+export function getAttachFileAcceptAttribute(userAgent = typeof navigator !== 'undefined' ? navigator.userAgent : '') {
+  const isAndroid = /Android/i.test(String(userAgent || ''));
+  if (isAndroid) {
+    return 'application/pdf,text/plain,text/csv,text/markdown,text/html,text/css,text/javascript,application/json,application/xml,text/xml,.pdf,.csv,.txt,.md,.json,.js,.py,.html,.css,.xml,.yml,.yaml';
+  }
+  return 'application/pdf,text/plain,text/csv,text/markdown,text/html,text/css,text/javascript,application/json,application/xml,.html,.css,.js,.json,.md,.txt,.py,.ts,.jsx,.tsx,.csv,.xml,.yml,.yaml,.pdf';
+}
+
 export async function processAttachedFile(file) {
   if (!file) return null;
   const path = file.webkitRelativePath || file.name || 'unnamed';
   const lower = path.toLowerCase();
-  const isPdf = lower.endsWith('.pdf');
-  const isCsv = lower.endsWith('.csv');
+  const mime = String(file.type || '').toLowerCase();
+
+  // Reject unsupported video/audio media streams (unless it is a .ts/.tsx TypeScript source file)
+  if ((mime.startsWith('video/') || mime.startsWith('audio/')) && !lower.endsWith('.ts') && !lower.endsWith('.tsx')) {
+    return null;
+  }
+
+  const isPdf = lower.endsWith('.pdf') || mime === 'application/pdf';
+  const isCsv = lower.endsWith('.csv') || mime === 'text/csv' || mime === 'text/comma-separated-values';
 
   const maxSize = isPdf ? 10 * 1024 * 1024 : (isCsv ? 2 * 1024 * 1024 : 500000);
   if (file.size > maxSize) return null;
@@ -660,7 +681,7 @@ export function initModals() {
 
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
-    fileInput.accept = '.html,.css,.js,.json,.md,.txt,.py,.ts,.jsx,.tsx,.csv,.xml,.yml,.yaml,.pdf';
+    fileInput.accept = getAttachFileAcceptAttribute();
     fileInput.multiple = true;
     fileInput.onchange = (e) => {
       const files = Array.from(e.target.files || []);

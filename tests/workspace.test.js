@@ -199,9 +199,20 @@ describe('Living AI Workspace & Canvas Architecture', () => {
   });
 
   test('Document Intelligence summarizes CSV tables, extracts PDF text, and wires OCR workflow actions', async () => {
-    const { summarizeCsvContent, extractPdfTextFromBuffer, formatProjectContextLabel } = await import('../public/js/ui/modals.js');
+    const { summarizeCsvContent, extractPdfTextFromBuffer, formatProjectContextLabel, getAttachFileAcceptAttribute, processAttachedFile } = await import('../public/js/ui/modals.js');
     const { resetProjectFilesForSessionSwitch } = await import('../public/js/ui/session-manager.js');
     const { state } = await import('../public/js/state/store.js');
+
+    // Android accept string excludes .ts (which Android maps to video/mp2ts -> Camcorder prompt)
+    const androidAccept = getAttachFileAcceptAttribute('Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/124.0.0.0 Mobile Safari/537.36');
+    const desktopAccept = getAttachFileAcceptAttribute('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/124.0.0.0 Safari/537.36');
+    assert.ok(androidAccept.includes('application/pdf'), 'Android accept must include application/pdf MIME');
+    assert.ok(!androidAccept.split(',').includes('.ts'), 'Android accept must omit .ts so Android does not trigger video/mp2ts Camcorder');
+    assert.ok(desktopAccept.split(',').includes('.ts'), 'Desktop accept must continue to include .ts');
+
+    // Reject accidental video uploads in processAttachedFile
+    const rejectedVideo = await processAttachedFile({ name: 'clip.mp4', type: 'video/mp4', size: 1024 });
+    assert.strictEqual(rejectedVideo, null, 'Video files must be rejected by processAttachedFile');
 
     const sampleCsv = 'Item,Category,Price\nEspresso,Coffee,35.50\nCappuccino,Coffee,42.00\nCroissant,Bakery,48.50';
     const enrichedCsv = summarizeCsvContent(sampleCsv, 'menu.csv');
