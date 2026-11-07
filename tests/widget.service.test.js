@@ -339,6 +339,36 @@ describe('Widget Service Deterministic Capabilities', () => {
     assert.ok(html.includes('discussion-video-expand-btn'), 'Should render lightbox expand button on video');
   });
 
+  test('renderRedditWidget renders Load more button when pagination cursor is present', async () => {
+    const { renderRedditWidget } = await import('../public/js/widgets/reddit-widget.js');
+
+    const html = renderRedditWidget({
+      subreddit: 'r/pics',
+      posts: [{
+        title: 'Sample photo',
+        url: 'https://www.reddit.com/r/pics/comments/p1',
+        ups: 120,
+        comments: 8,
+        author: 'u/photographer',
+        subreddit: 'r/pics',
+        created_at: '2026-11-07',
+        image: 'https://i.redd.it/sample.jpg',
+        video: null,
+        video_sources: [],
+        is_video: false,
+        is_gif: false
+      }],
+      pagination: {
+        tool: 'get_reddit_posts',
+        args: { subreddit: 'pics' },
+        after: 'eyJzdWJzIjp7InBpY3MiOiJiOjE3MDAwMDAwMDAifX0'
+      }
+    });
+
+    assert.ok(html.includes('reddit-load-more-btn'), 'Should render Load more discussions button');
+    assert.ok(html.includes('atlasLoadMoreReddit'), 'Should wire click handler to atlasLoadMoreReddit');
+  });
+
   test('searchReddit returns structured type: reddit with friendly notice when no posts match', async () => {
     const originalFetch = global.fetch;
     global.fetch = async () => ({
