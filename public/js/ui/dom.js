@@ -126,7 +126,9 @@ export const dom = {
   // Settings Modal
   get unifiedSettingsModal() { return document.getElementById('unifiedSettingsModal'); },
   get settingsSidebarBtn() { return document.getElementById('settingsSidebarBtn'); },
+  get sidebarQuickSettingsBtn() { return document.getElementById('sidebarQuickSettingsBtn'); },
   get closeUnifiedSettingsBtn() { return document.getElementById('closeUnifiedSettingsBtn'); },
+  get closeUnifiedSettingsHeaderBtn() { return document.getElementById('closeUnifiedSettingsHeaderBtn'); },
   get settingsNavBtns() { return document.querySelectorAll('.settings-nav-btn'); },
   get settingsPanes() { return document.querySelectorAll('.settings-pane'); },
   get activeSettingsTitle() { return document.getElementById('activeSettingsTitle'); },
@@ -141,16 +143,23 @@ export const dom = {
   // General Settings & Profile
   get sidebarProfileMenu() { return document.getElementById('sidebarProfileMenu'); },
   get sidebarProfileAvatar() { return document.getElementById('sidebarProfileAvatar'); },
+  get sidebarProfileName() { return document.getElementById('sidebarProfileName'); },
+  get sidebarProfileSub() { return document.getElementById('sidebarProfileSub'); },
   get profileMenuAvatar() { return document.getElementById('profileMenuAvatar'); },
   get profileMenuName() { return document.getElementById('profileMenuName'); },
+  get profileMenuSub() { return document.getElementById('profileMenuSub'); },
   get profileSettingsBtn() { return document.getElementById('profileSettingsBtn'); },
+  get profilePersonalizationBtn() { return document.getElementById('profilePersonalizationBtn'); },
+  get profileShortcutsBtn() { return document.getElementById('profileShortcutsBtn'); },
   get accountNameInput() { return document.getElementById('accountNameInput'); },
   get saveProfileNameBtn() { return document.getElementById('saveProfileNameBtn'); },
   get defaultVoiceSelect() { return document.getElementById('defaultVoiceSelect'); },
+  get previewVoiceBtn() { return document.getElementById('previewVoiceBtn'); },
   get saveGeneralSettingsBtn() { return document.getElementById('saveGeneralSettingsBtn'); },
   get voiceStatusHint() { return document.getElementById('voiceStatusHint'); },
   get clearAllDataBtn() { return document.getElementById('clearAllDataBtn'); },
   get customApiKeyInput() { return document.getElementById('customApiKeyInput'); },
+  get toggleApiKeyVisibilityBtn() { return document.getElementById('toggleApiKeyVisibilityBtn'); },
   get saveApiKeyBtn() { return document.getElementById('saveApiKeyBtn'); },
   get apiKeyStatusHint() { return document.getElementById('apiKeyStatusHint'); }
 };

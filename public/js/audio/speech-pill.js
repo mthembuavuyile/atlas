@@ -56,6 +56,7 @@ let audioWaveInterval = null;
 let heartbeatTimer = null;
 let surgeTimeout = null;
 let isManuallyPaused = false;
+let isSpeechLoading = false;
 
 /**
  * Initializes listeners for the speech pill playback controls and keyboard shortcuts.
@@ -173,16 +174,17 @@ export function startSpeakingResponse({ text, sourceBtn = null, voiceName = '' }
     };
 
     isManuallyPaused = false;
+    isSpeechLoading = true;
     state.isReadingResponse = true;
     state.activeSpeechButton = sourceBtn;
 
     if (sourceBtn) {
-      sourceBtn.classList.add('is-speaking');
-      sourceBtn.title = 'Stop reading response';
+      sourceBtn.classList.add('is-speaking', 'is-loading');
+      sourceBtn.title = 'Cancel loading speech';
       sourceBtn.innerHTML = ICONS.stop || 'Stop';
     }
 
-    showSpeechPill(pillVoiceObj);
+    showSpeechPill(pillVoiceObj, { isLoading: true });
     startElevenLabsPlayback(cleanText, voiceId, pillVoiceObj, sourceBtn);
     return true;
   }
@@ -223,7 +225,12 @@ async function startElevenLabsPlayback(cleanText, voiceId, pillVoiceObj, sourceB
     activeAudio = audio;
 
     audio.onplay = () => {
-      showSpeechPill(pillVoiceObj);
+      isSpeechLoading = false;
+      if (sourceBtn) {
+        sourceBtn.classList.remove('is-loading');
+        sourceBtn.title = 'Stop reading response';
+      }
+      showSpeechPill(pillVoiceObj, { isLoading: false });
       if (audioWaveInterval) clearInterval(audioWaveInterval);
       audioWaveInterval = setInterval(() => {
         if (activeAudio && !activeAudio.paused && !isManuallyPaused) {
@@ -288,19 +295,24 @@ function startBrowserSpeechSynthesis(cleanText, targetVoiceName, sourceBtn) {
 
   activeUtterance = utterance;
   isManuallyPaused = false;
+  isSpeechLoading = true;
   state.isReadingResponse = true;
   state.activeSpeechButton = sourceBtn;
 
   if (sourceBtn) {
-    sourceBtn.classList.add('is-speaking');
+    sourceBtn.classList.add('is-speaking', 'is-loading');
     sourceBtn.title = 'Stop reading response';
     sourceBtn.innerHTML = ICONS.stop || 'Stop';
   }
 
-  showSpeechPill(selectedVoice);
+  showSpeechPill(selectedVoice, { isLoading: true });
 
   utterance.onstart = () => {
-    showSpeechPill(selectedVoice);
+    isSpeechLoading = false;
+    if (sourceBtn) {
+      sourceBtn.classList.remove('is-loading');
+    }
+    showSpeechPill(selectedVoice, { isLoading: false });
   };
 
   utterance.onboundary = (event) => {
@@ -358,6 +370,7 @@ export function stopSpeakingResponse() {
  * Pauses active speech synthesis or ElevenLabs audio.
  */
 export function pauseSpeakingResponse() {
+  if (isSpeechLoading) return;
   if (activeAudio && !activeAudio.paused) {
     activeAudio.pause();
     isManuallyPaused = true;
@@ -375,6 +388,7 @@ export function pauseSpeakingResponse() {
  * Resumes paused speech synthesis or ElevenLabs audio.
  */
 export function resumeSpeakingResponse() {
+  if (isSpeechLoading) return;
   if (activeAudio && activeAudio.paused) {
     isManuallyPaused = false;
     updatePillPausedState(false);
@@ -392,6 +406,7 @@ export function resumeSpeakingResponse() {
  * Toggles speech pause / resume.
  */
 export function togglePauseResume() {
+  if (isSpeechLoading) return;
   if (isManuallyPaused) {
     resumeSpeakingResponse();
   } else {
@@ -402,16 +417,18 @@ export function togglePauseResume() {
 /**
  * Shows and animates the speech playback pill.
  */
-function showSpeechPill(selectedVoice) {
+function showSpeechPill(selectedVoice, options = {}) {
   const pill = dom.speechResponsePill;
   if (!pill) return;
 
+  const isLoading = Boolean(options.isLoading);
   pill.hidden = false;
   pill.classList.remove('is-paused');
+  pill.classList.toggle('is-loading', isLoading);
   pill.classList.add('is-active');
 
   if (dom.speechPillPrimary) {
-    dom.speechPillPrimary.textContent = 'Speaking response';
+    dom.speechPillPrimary.textContent = isLoading ? 'Loading speech...' : 'Speaking response';
   }
 
   if (dom.speechPillSecondary) {
@@ -425,6 +442,9 @@ function showSpeechPill(selectedVoice) {
     dom.speechPillSecondary.textContent = voiceLabel;
   }
 
+  if (dom.speechPillPauseBtn) {
+    dom.speechPillPauseBtn.disabled = isLoading;
+  }
   updatePauseBtnIcon(false);
 }
 
@@ -515,13 +535,18 @@ function cleanupSpeechState() {
   activeAbortController = null;
   activeUtterance = null;
   isManuallyPaused = false;
+  isSpeechLoading = false;
   resetActiveSourceButton();
 
   state.isReadingResponse = false;
 
+  if (dom.speechPillPauseBtn) {
+    dom.speechPillPauseBtn.disabled = false;
+  }
+
   const pill = dom.speechResponsePill;
   if (pill) {
-    pill.classList.remove('is-active', 'is-paused');
+    pill.classList.remove('is-active', 'is-paused', 'is-loading');
     setTimeout(() => {
       if (!state.isReadingResponse) {
         pill.hidden = true;
@@ -535,7 +560,7 @@ function cleanupSpeechState() {
  */
 function resetActiveSourceButton() {
   if (state.activeSpeechButton) {
-    state.activeSpeechButton.classList.remove('is-speaking');
+    state.activeSpeechButton.classList.remove('is-speaking', 'is-loading');
     state.activeSpeechButton.title = 'Speak response';
     state.activeSpeechButton.innerHTML = ICONS.speaker || 'Speak';
     state.activeSpeechButton = null;

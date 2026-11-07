@@ -240,10 +240,30 @@
       <!-- Sidebar Footer -->
       <div class="sidebar-footer">
         <div class="sidebar-profile-wrapper">
-          <button id="settingsSidebarBtn" class="sidebar-profile-trigger" type="button" aria-expanded="false"
-            aria-controls="sidebarProfileMenu">
-            <span class="profile-avatar" id="sidebarProfileAvatar">U</span>
-          </button>
+          <div class="sidebar-account-bar">
+            <button id="settingsSidebarBtn" class="sidebar-profile-trigger" type="button" aria-expanded="false"
+              aria-controls="sidebarProfileMenu" title="Account &amp; Resources">
+              <span class="profile-avatar" id="sidebarProfileAvatar">U</span>
+              <div class="sidebar-profile-info">
+                <span class="sidebar-profile-name" id="sidebarProfileName">Your Name</span>
+                <span class="sidebar-profile-role" id="sidebarProfileSub">Preferences &amp; Voice</span>
+              </div>
+              <svg class="sidebar-profile-chevron" width="13" height="13" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="18 15 12 9 6 15"></polyline>
+              </svg>
+            </button>
+            <button id="sidebarQuickSettingsBtn" class="sidebar-quick-settings-btn" type="button"
+              title="Open Settings" aria-label="Open Settings">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path
+                  d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                </path>
+              </svg>
+            </button>
+          </div>
 
           <div id="sidebarProfileMenu" class="sidebar-profile-menu" hidden>
             <div class="profile-menu-card">
@@ -251,8 +271,48 @@
                 <div class="profile-menu-avatar" id="profileMenuAvatar">U</div>
                 <div class="profile-menu-meta">
                   <span class="profile-menu-name" id="profileMenuName">Your Name</span>
-                  <span class="profile-menu-label">Account</span>
+                  <span class="profile-menu-label" id="profileMenuSub">Atlas Workspace</span>
                 </div>
+              </div>
+
+              <div class="profile-menu-actions">
+                <button id="profileSettingsBtn" class="profile-settings-btn primary" type="button">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path
+                      d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                    </path>
+                  </svg>
+                  <span>General &amp; Voice Settings</span>
+                </button>
+                <button id="profilePersonalizationBtn" class="profile-settings-btn" type="button">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="4" y1="21" x2="4" y2="14"></line>
+                    <line x1="4" y1="10" x2="4" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12" y2="3"></line>
+                    <line x1="20" y1="21" x2="20" y2="16"></line>
+                    <line x1="20" y1="12" x2="20" y2="3"></line>
+                    <line x1="1" y1="14" x2="7" y2="14"></line>
+                    <line x1="9" y1="8" x2="15" y2="8"></line>
+                    <line x1="17" y1="16" x2="23" y2="16"></line>
+                  </svg>
+                  <span>Personalization &amp; Prompts</span>
+                </button>
+                <button id="profileShortcutsBtn" class="profile-settings-btn" type="button">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect>
+                    <line x1="6" y1="8" x2="6.01" y2="8"></line>
+                    <line x1="10" y1="8" x2="10.01" y2="8"></line>
+                    <line x1="14" y1="8" x2="14.01" y2="8"></line>
+                    <line x1="18" y1="8" x2="18.01" y2="8"></line>
+                    <line x1="7" y1="16" x2="17" y2="16"></line>
+                  </svg>
+                  <span>Keyboard Shortcuts</span>
+                </button>
               </div>
 
               <div class="profile-menu-nav">
@@ -277,17 +337,6 @@
                   <span>GitHub</span>
                 </a>
               </div>
-
-              <button id="profileSettingsBtn" class="profile-settings-btn" type="button">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="12" r="3"></circle>
-                  <path
-                    d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
-                  </path>
-                </svg>
-                <span>Settings</span>
-              </button>
             </div>
           </div>
         </div>
@@ -1057,8 +1106,18 @@
         <!-- Sidebar Navigation -->
         <div class="settings-sidebar-nav">
           <div class="settings-nav-header">
-            <button id="closeUnifiedSettingsBtn" class="icon-btn close-settings-btn" aria-label="Close Settings">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <div class="settings-modal-brand">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="3"></circle>
+                <path
+                  d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                </path>
+              </svg>
+              <span>Settings</span>
+            </div>
+            <button id="closeUnifiedSettingsBtn" class="icon-btn close-settings-btn" aria-label="Close Settings" title="Close Settings (Esc)">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <line x1="18" y1="6" x2="6" y2="18"></line>
                 <line x1="6" y1="6" x2="18" y2="18"></line>
               </svg>
@@ -1067,30 +1126,46 @@
 
           <div class="settings-nav-items">
             <button class="settings-nav-btn" data-tab="general-settings">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="3"></circle>
                 <path
                   d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
                 </path>
               </svg>
-              General
+              <span>General &amp; Voice</span>
             </button>
             <button class="settings-nav-btn active" data-tab="studio-parameters">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                <line x1="4" y1="21" x2="4" y2="14"></line>
+                <line x1="4" y1="10" x2="4" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12" y2="3"></line>
+                <line x1="20" y1="21" x2="20" y2="16"></line>
+                <line x1="20" y1="12" x2="20" y2="3"></line>
+                <line x1="1" y1="14" x2="7" y2="14"></line>
+                <line x1="9" y1="8" x2="15" y2="8"></line>
+                <line x1="17" y1="16" x2="23" y2="16"></line>
               </svg>
-              Personalization
+              <span>Personalization</span>
             </button>
+            <a href="/docs" target="_blank" class="settings-nav-btn" style="text-decoration: none;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+              </svg>
+              <span>Documentation</span>
+            </a>
             <a href="/about" target="_blank" class="settings-nav-btn" style="text-decoration: none;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"></circle>
                 <line x1="12" y1="16" x2="12" y2="12"></line>
                 <line x1="12" y1="8" x2="12.01" y2="8"></line>
               </svg>
-              About Atlas
+              <span>About Atlas</span>
             </a>
           </div>
         </div>
@@ -1098,7 +1173,16 @@
         <!-- Main Content Area -->
         <div class="settings-content-area">
           <div class="settings-content-header">
-            <h3 id="activeSettingsTitle">Personalization</h3>
+            <div class="settings-header-titles">
+              <h3 id="activeSettingsTitle">Personalization</h3>
+              <p class="settings-header-desc" id="activeSettingsDesc">Configure model instructions, temperature, and domain presets</p>
+            </div>
+            <button id="closeUnifiedSettingsHeaderBtn" class="icon-btn close-settings-header-btn" type="button" aria-label="Close Settings" title="Close Settings (Esc)">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
           </div>
 
           <div class="settings-panes-wrapper">
@@ -1106,7 +1190,7 @@
             <div class="settings-pane active" id="pane-studio-parameters">
               <div class="settings-pane-scrollable">
                 <!-- Preset Personas -->
-                <div class="settings-section">
+                <div class="settings-section settings-card">
                   <div class="settings-label">Response Style Presets</div>
                   <p class="settings-help">These presets guide how Atlas responds. You can ask any question without
                     choosing one.</p>
@@ -1127,7 +1211,7 @@
                     </button>
                     <button class="preset-pill" data-preset="engineer">
                       <span class="preset-name">Systems Engineer</span>
-                      <span class="preset-desc">Distributed systems, scalability, constraints, & failure modes</span>
+                      <span class="preset-desc">Distributed systems, scalability, constraints, &amp; failure modes</span>
                     </button>
                     <button class="preset-pill" data-preset="builder">
                       <span class="preset-name">Full-Stack Builder</span>
@@ -1135,7 +1219,7 @@
                     </button>
                     <button class="preset-pill" data-preset="reasoner">
                       <span class="preset-name">Deep Reasoner</span>
-                      <span class="preset-desc">Logical decomposition & explicit chain-of-thought</span>
+                      <span class="preset-desc">Logical decomposition &amp; explicit chain-of-thought</span>
                     </button>
                     <button class="preset-pill" data-preset="concise">
                       <span class="preset-name">Concise Expert</span>
@@ -1145,7 +1229,7 @@
                 </div>
 
                 <!-- Custom Instructions Area -->
-                <div class="settings-section">
+                <div class="settings-section settings-card">
                   <div class="settings-flex-row">
                     <label class="settings-label" for="customSystemPrompt">System Instructions</label>
                     <button id="resetModalPromptBtn" class="text-btn">Reset Default</button>
@@ -1155,7 +1239,7 @@
                 </div>
 
                 <!-- Temperature Slider -->
-                <div class="settings-section">
+                <div class="settings-section settings-card">
                   <div class="settings-flex-row">
                     <label class="settings-label" for="temperatureSlider">Temperature</label>
                     <span class="slider-val-badge" id="tempValBadge">0.7</span>
@@ -1170,7 +1254,7 @@
                 </div>
               </div>
 
-              <div class="modal-footer" style="padding-top: 16px; margin-top: 16px;">
+              <div class="modal-footer">
                 <button id="saveSettingsBtn" class="primary-modal-btn">Apply Instructions</button>
               </div>
             </div>
@@ -1178,61 +1262,67 @@
             <!-- General Settings Pane -->
             <div class="settings-pane" id="pane-general-settings">
               <div class="settings-pane-scrollable">
-                <div class="settings-section">
+                <div class="settings-section settings-card">
                   <label class="settings-label" for="accountNameInput">Your Name</label>
-                  <div class="settings-flex-row" style="gap: 8px; align-items: center;">
-                    <input id="accountNameInput" class="system-prompt-editor"
-                      style="height: 38px; padding: 6px 12px; font-size: 0.85rem; flex: 1;"
+                  <p class="settings-help">Displayed in your workspace sidebar and investigation exports.</p>
+                  <div class="settings-flex-row settings-input-row">
+                    <input id="accountNameInput" class="system-prompt-editor settings-text-input"
                       placeholder="Enter your name" autocomplete="name">
-                    <button id="saveProfileNameBtn" class="primary-modal-btn"
-                      style="white-space: nowrap; padding: 0 16px; height: 38px;">Save Name</button>
+                    <button id="saveProfileNameBtn" class="secondary-modal-btn" type="button">Save Name</button>
                   </div>
                 </div>
 
-                <div class="settings-section">
-                  <label class="settings-label" for="customApiKeyInput">Custom OpenRouter API Key (Optional)</label>
-                  <p style="margin: 4px 0 10px 0; font-size: 0.82rem; color: var(--text-tertiary);">Supply your personal
-                    OpenRouter key for uninterrupted access with private quota. Stored securely in local browser
-                    storage.</p>
-                  <form class="settings-flex-row" style="gap: 8px; align-items: center;" onsubmit="event.preventDefault(); document.getElementById('saveApiKeyBtn')?.click();">
-                    <input type="password" id="customApiKeyInput" class="system-prompt-editor"
-                      style="height: 38px; padding: 6px 12px; font-family: monospace; font-size: 0.85rem; flex: 1;"
-                      placeholder="sk-or-v1-..." autocomplete="off">
-                    <button type="button" id="saveApiKeyBtn" class="primary-modal-btn"
-                      style="white-space: nowrap; padding: 0 16px; height: 38px;">Save Key</button>
-                  </form>
-                  <div id="apiKeyStatusHint"
-                    style="display: none; font-size: 0.8rem; color: var(--text-secondary); margin-top: 6px;">Key active
-                    in local session.</div>
-                </div>
-
-                <div class="settings-section">
+                <div class="settings-section settings-card">
                   <label class="settings-label" for="defaultVoiceSelect">Default Read-Aloud Voice</label>
-                  <p style="margin: 4px 0 10px 0; font-size: 0.82rem; color: var(--text-tertiary);">Choose an ElevenLabs
-                    voice or a Google / Browser system voice for reading assistant replies aloud.</p>
-                  <select id="defaultVoiceSelect" class="system-prompt-editor"
-                    style="height: 38px; padding: 6px 12px; font-size: 0.85rem; width: 100%;">
-                    <option value="">Use browser default (Google / System Speech)</option>
-                    <optgroup label="ElevenLabs Voices">
-                      <option value="elevenlabs:JBFqnCBsd6RMkjVDRZzb">ElevenLabs — George (Warm Narrative)</option>
-                      <option value="elevenlabs:EXAVITQu4vr4xnSDxMaL">ElevenLabs — Sarah (Soft &amp; Clear)</option>
-                      <option value="elevenlabs:onwK4e9ZLuTAKqWW03F9">ElevenLabs — Daniel (Authoritative)</option>
-                      <option value="elevenlabs:XB0fDUnXU5powFXDhCwa">ElevenLabs — Charlotte (Conversational)</option>
-                      <option value="elevenlabs:XrExE9yKIg1WjnnlVkGX">ElevenLabs — Matilda (Friendly &amp; Articulate)</option>
-                      <option value="elevenlabs:cjVigY5qzO86Huf0OWal">ElevenLabs — Eric (Smooth &amp; Balanced)</option>
-                    </optgroup>
-                  </select>
+                  <p class="settings-help">Choose an ElevenLabs voice or a Google / Browser system voice for reading assistant replies aloud.</p>
+                  <div class="settings-flex-row settings-input-row">
+                    <select id="defaultVoiceSelect" class="system-prompt-editor settings-select-input">
+                      <option value="">Use browser default (Google / System Speech)</option>
+                      <optgroup label="ElevenLabs Voices">
+                        <option value="elevenlabs:JBFqnCBsd6RMkjVDRZzb">ElevenLabs — George (Warm Narrative)</option>
+                        <option value="elevenlabs:EXAVITQu4vr4xnSDxMaL">ElevenLabs — Sarah (Soft &amp; Clear)</option>
+                        <option value="elevenlabs:onwK4e9ZLuTAKqWW03F9">ElevenLabs — Daniel (Authoritative)</option>
+                        <option value="elevenlabs:XB0fDUnXU5powFXDhCwa">ElevenLabs — Charlotte (Conversational)</option>
+                        <option value="elevenlabs:XrExE9yKIg1WjnnlVkGX">ElevenLabs — Matilda (Friendly &amp; Articulate)</option>
+                        <option value="elevenlabs:cjVigY5qzO86Huf0OWal">ElevenLabs — Eric (Smooth &amp; Balanced)</option>
+                      </optgroup>
+                    </select>
+                    <button id="previewVoiceBtn" class="secondary-modal-btn" type="button" title="Preview selected voice">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                        <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                      </svg>
+                      <span>Test Voice</span>
+                    </button>
+                  </div>
                   <div id="voiceStatusHint" class="settings-status-hint" role="status" aria-live="polite"></div>
                 </div>
 
-                <div class="settings-section">
+                <div class="settings-section settings-card">
+                  <label class="settings-label" for="customApiKeyInput">Custom OpenRouter API Key (Optional)</label>
+                  <p class="settings-help">Supply your personal OpenRouter key for uninterrupted access with private quota. Stored locally in your browser.</p>
+                  <form class="settings-flex-row settings-input-row" onsubmit="event.preventDefault(); document.getElementById('saveApiKeyBtn')?.click();">
+                    <div class="api-key-input-wrapper">
+                      <input type="password" id="customApiKeyInput" class="system-prompt-editor settings-text-input mono"
+                        placeholder="sk-or-v1-..." autocomplete="off">
+                      <button type="button" id="toggleApiKeyVisibilityBtn" class="api-key-eye-btn" title="Show or hide API key" aria-label="Toggle API key visibility">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                          <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                      </button>
+                    </div>
+                    <button type="button" id="saveApiKeyBtn" class="secondary-modal-btn">Save Key</button>
+                  </form>
+                  <div id="apiKeyStatusHint" class="settings-status-hint" style="display: none;">Key active in local session.</div>
+                </div>
+
+                <div class="settings-section settings-card danger-zone-card">
                   <div class="settings-label">Data Management</div>
-                  <div class="settings-flex-row" style="margin-top: 10px;">
-                    <p style="margin: 0; font-size: 0.85rem; color: var(--text-tertiary);">Clear all stored
-                      investigations and local preferences. This action cannot be undone.</p>
-                    <button id="clearAllDataBtn" class="primary-modal-btn"
-                      style="background: var(--vylex-danger, #ef4444); border-color: var(--vylex-danger, #ef4444); white-space: nowrap; margin-left: 10px;">Delete
-                      All Data</button>
+                  <div class="settings-flex-row settings-danger-row">
+                    <p class="settings-help" style="margin: 0;">Clear all stored investigations and local preferences. This action cannot be undone.</p>
+                    <button id="clearAllDataBtn" class="danger-modal-btn" type="button">Delete All Data</button>
                   </div>
                 </div>
               </div>
