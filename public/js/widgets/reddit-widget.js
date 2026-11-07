@@ -1,5 +1,98 @@
 import { createWidgetShell, escapeHtml, formatNumber, WIDGET_ICONS } from './widget-utils.js';
 
+function getPlayableVideoSources(post) {
+    if (!post) return [];
+    return [
+        ...(post.video ? [post.video] : []),
+        ...(Array.isArray(post.video_sources) ? post.video_sources : [])
+    ].filter((s, idx, arr) => s && arr.indexOf(s) === idx && !/(youtube\.com|youtu\.be|redgifs\.com|streamable\.com|gfycat\.com)/i.test(s));
+}
+
+export function cycleRedditVideo(triggerEl, videoGalleryId, direction = 1) {
+    if (typeof window === 'undefined' || !triggerEl) return;
+    const list = window[videoGalleryId];
+    if (!Array.isArray(list) || list.length < 2) return;
+
+    const container = triggerEl.closest('.discussion-video-container');
+    if (!container) return;
+
+    const currentIdx = Number(container.getAttribute('data-video-index') || 0);
+    const nextIdx = (currentIdx + direction + list.length) % list.length;
+    const nextItem = list[nextIdx];
+    if (!nextItem) return;
+
+    container.setAttribute('data-video-index', String(nextIdx));
+
+    // Pause any other playing Reddit videos in the DOM
+    if (typeof document !== 'undefined') {
+        document.querySelectorAll('.discussion-video').forEach(v => {
+            try { v.pause(); } catch (_) {}
+        });
+    }
+
+    const videoEl = container.querySelector('.discussion-video');
+    const fallbackBar = container.querySelector('.discussion-video-fallback-bar');
+    if (fallbackBar) {
+        fallbackBar.style.display = 'none';
+        const fbLink = fallbackBar.querySelector('.video-fallback-btn');
+        if (fbLink && nextItem.link) fbLink.href = nextItem.link;
+    }
+
+    if (videoEl) {
+        videoEl.poster = nextItem.poster || '';
+        const sources = Array.isArray(nextItem.videoSources) ? nextItem.videoSources : [];
+        videoEl.innerHTML = sources.map((src, sIdx) => {
+            const type = src.includes('.m3u8')
+                ? 'application/x-mpegurl'
+                : (src.includes('.webm') ? 'video/webm' : 'video/mp4');
+            const isLast = sIdx === sources.length - 1;
+            const errHandler = isLast
+                ? `onerror="const fb=this.closest('.discussion-video-container')?.querySelector('.discussion-video-fallback-bar');if(fb)fb.style.display='flex';"`
+                : '';
+            return `<source src="${escapeHtml(src)}" type="${type}" ${errHandler}>`;
+        }).join('');
+        try {
+            videoEl.load();
+            const playPromise = videoEl.play();
+            if (playPromise && typeof playPromise.catch === 'function') {
+                playPromise.catch(() => {});
+            }
+        } catch (_) {}
+    }
+
+    const counterEl = container.querySelector('.discussion-video-counter');
+    if (counterEl) {
+        counterEl.textContent = `${nextIdx + 1} / ${list.length}`;
+    }
+
+    const expandBtn = container.querySelector('.discussion-video-expand-btn');
+    if (expandBtn) {
+        expandBtn.setAttribute('data-video-index', String(nextIdx));
+    }
+
+    // Update parent discussion card title, score, and metadata to match the active video
+    const cardItem = container.closest('.atlas-discussion-item');
+    if (cardItem) {
+        const scoreSpan = cardItem.querySelector('.discussion-score-badge span');
+        if (scoreSpan && typeof nextItem.upsFormatted === 'string') {
+            scoreSpan.textContent = nextItem.upsFormatted;
+        }
+        const titleLink = cardItem.querySelector('.discussion-title a');
+        if (titleLink) {
+            if (nextItem.link) titleLink.href = nextItem.link;
+            titleLink.innerHTML = `${escapeHtml(nextItem.title)} <span class="external-icon">${WIDGET_ICONS.externalLink}</span>`;
+        }
+        const subTag = cardItem.querySelector('.discussion-tag');
+        if (subTag && nextItem.provider) {
+            subTag.textContent = nextItem.provider;
+        }
+    }
+}
+
+if (typeof window !== 'undefined') {
+    window.atlasCycleRedditVideo = cycleRedditVideo;
+}
+
 export function renderRedditWidget(data) {
     if (data.error) return `<div class="atlas-widget error">${escapeHtml(data.error)}</div>`;
 
@@ -7,9 +100,13 @@ export function renderRedditWidget(data) {
         return `<div class="atlas-widget-empty">No live discussions found for ${escapeHtml(data.subreddit || 'this topic')}.</div>`;
     }
 
-    // Build unified gallery of static image posts for Next/Prev lightbox navigation
-    const imagePosts = (data.posts || []).filter(p => !!p.image && !p.is_video && !p.video);
+    const allPosts = data.posts || [];
+
+    // Build gallery of static image posts for Next/Prev lightbox navigation
+    const imagePosts = allPosts.filter(p => !!p.image && !p.is_video && !p.video);
     const galleryItems = imagePosts.map((p, idx) => ({
+        type: 'image',
+        isVideo: false,
         src: p.image,
         thumb: p.image,
         title: p.title || `Reddit image ${idx + 1}`,
@@ -18,30 +115,52 @@ export function renderRedditWidget(data) {
         link: p.url || ''
     }));
 
-    const galleryId = `redditGallery_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    // Build gallery of playable video posts for Next/Prev inline & lightbox navigation
+    const videoPosts = allPosts.filter(p => Boolean(p.is_video || p.video) && getPlayableVideoSources(p).length > 0);
+    const videoGalleryItems = videoPosts.map((p, idx) => {
+        const sources = getPlayableVideoSources(p);
+        return {
+            type: 'video',
+            isVideo: true,
+            src: sources[0] || p.video || '',
+            videoSources: sources,
+            poster: p.image || '',
+            thumb: p.image || '',
+            title: p.title || `Reddit video ${idx + 1}`,
+            author: p.author || '',
+            provider: p.subreddit || 'Reddit',
+            link: p.url || '',
+            upsFormatted: formatNumber(p.ups || 0),
+            commentsFormatted: formatNumber(p.comments || 0),
+            createdAt: p.created_at || ''
+        };
+    });
+
+    const uid = `${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const galleryId = `redditGallery_${uid}`;
+    const videoGalleryId = `redditVideoGallery_${uid}`;
     if (typeof window !== 'undefined') {
         window[galleryId] = galleryItems;
+        window[videoGalleryId] = videoGalleryItems;
     }
 
     let html = '<div class="atlas-discussions-list">';
-    for (const post of (data.posts || [])) {
+    for (const post of allPosts) {
         const isVideo = Boolean(post.is_video || post.video);
         const hasImage = Boolean(post.image);
         const galleryIndex = imagePosts.indexOf(post);
+        const videoIndex = videoPosts.indexOf(post);
 
         // Extract direct playable stream candidate URLs
-        const candidateSources = [
-            ...(post.video ? [post.video] : []),
-            ...(Array.isArray(post.video_sources) ? post.video_sources : [])
-        ].filter((s, idx, arr) => s && arr.indexOf(s) === idx && !/(youtube\.com|youtu\.be|redgifs\.com|streamable\.com|gfycat\.com)/i.test(s));
-
+        const candidateSources = getPlayableVideoSources(post);
         const isDirectStream = candidateSources.length > 0;
 
         let mediaHtml = '';
         if (isVideo) {
             if (isDirectStream) {
+                const hasMultipleVideos = videoPosts.length > 1 && videoIndex >= 0;
                 mediaHtml = `
-                    <div class="discussion-video-container">
+                    <div class="discussion-video-container" data-video-index="${videoIndex >= 0 ? videoIndex : 0}" data-video-gallery="${videoGalleryId}">
                         <video class="discussion-video" controls playsinline preload="metadata" poster="${escapeHtml(post.image || '')}">
                             ${candidateSources.map((src, sIdx) => {
                                 const type = src.includes('.m3u8') ? 'application/x-mpegurl' : (src.includes('.webm') ? 'video/webm' : 'video/mp4');
@@ -53,6 +172,18 @@ export function renderRedditWidget(data) {
                             }).join('')}
                             Your browser does not support inline video playback.
                         </video>
+                        ${hasMultipleVideos ? `
+                            <button type="button" class="discussion-video-nav-btn prev" title="Previous video (←)" aria-label="Previous video" onclick="if(window.atlasCycleRedditVideo){window.atlasCycleRedditVideo(this, '${videoGalleryId}', -1);} event.preventDefault(); event.stopPropagation();">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                            </button>
+                            <button type="button" class="discussion-video-nav-btn next" title="Next video (→)" aria-label="Next video" onclick="if(window.atlasCycleRedditVideo){window.atlasCycleRedditVideo(this, '${videoGalleryId}', 1);} event.preventDefault(); event.stopPropagation();">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                            </button>
+                            <span class="discussion-gallery-counter discussion-video-counter">${videoIndex + 1} / ${videoPosts.length}</span>
+                        ` : ''}
+                        <button type="button" class="discussion-video-expand-btn" data-video-index="${videoIndex >= 0 ? videoIndex : 0}" title="Open video in lightbox viewer (← → to navigate)" aria-label="Open video in lightbox viewer" onclick="const idx=Number(this.getAttribute('data-video-index')||0); const v=this.closest('.discussion-video-container')?.querySelector('.discussion-video'); if(v){try{v.pause();}catch(_){}} if(window.atlasOpenLightboxGallery && window['${videoGalleryId}']) { window.atlasOpenLightboxGallery(window['${videoGalleryId}'], idx); } event.preventDefault(); event.stopPropagation();">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+                        </button>
                         <div class="discussion-video-fallback-bar" style="display: none;">
                             <span class="video-fallback-msg">Stream playback unavailable</span>
                             <a href="${escapeHtml(post.url)}" target="_blank" rel="noopener noreferrer" class="video-fallback-btn">

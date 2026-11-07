@@ -236,7 +236,7 @@ class SearchService {
    */
   async searchOpenAlex(query) {
     try {
-      const url = `https://api.openalex.org/works?search=${encodeURIComponent(query)}&per-page=3&mailto=hello@vylex.co.za`;
+      const url = `https://api.openalex.org/works?search=${encodeURIComponent(query)}&per-page=3&mailto=info@vylex.co.za`;
       const res = await fetchWithTimeout(url, { signal: AbortSignal.timeout(3500) });
       if (!res.ok) return [];
       const data = await res.json();

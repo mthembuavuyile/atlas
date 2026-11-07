@@ -293,6 +293,52 @@ describe('Widget Service Deterministic Capabilities', () => {
     assert.ok(html.includes('discussion-media-fallback-card'));
   });
 
+  test('renderRedditWidget renders Prev/Next buttons, counter badge, and lightbox expand on multiple video posts', async () => {
+    const { renderRedditWidget } = await import('../public/js/widgets/reddit-widget.js');
+
+    const mockData = {
+      subreddit: 'r/videos',
+      posts: [
+        {
+          title: 'First Reddit video clip',
+          url: 'https://www.reddit.com/r/videos/comments/vid1',
+          ups: 510,
+          comments: 42,
+          author: 'u/creator1',
+          subreddit: 'r/videos',
+          created_at: '2026-09-10',
+          image: 'https://i.redd.it/vid1.jpg',
+          video: 'https://v.redd.it/vid1/DASH_720.mp4?source=fallback',
+          video_sources: ['https://v.redd.it/vid1/DASH_720.mp4?source=fallback'],
+          is_video: true,
+          is_gif: false
+        },
+        {
+          title: 'Second Reddit video clip',
+          url: 'https://www.reddit.com/r/videos/comments/vid2',
+          ups: 320,
+          comments: 19,
+          author: 'u/creator2',
+          subreddit: 'r/videos',
+          created_at: '2026-09-10',
+          image: 'https://i.redd.it/vid2.jpg',
+          video: 'https://v.redd.it/vid2/DASH_720.mp4?source=fallback',
+          video_sources: ['https://v.redd.it/vid2/DASH_720.mp4?source=fallback'],
+          is_video: true,
+          is_gif: false
+        }
+      ]
+    };
+
+    const html = renderRedditWidget(mockData);
+    assert.ok(html.includes('discussion-video-nav-btn prev'), 'Should render Previous button on video container');
+    assert.ok(html.includes('discussion-video-nav-btn next'), 'Should render Next button on video container');
+    assert.ok(html.includes('discussion-video-counter'), 'Should render video gallery counter badge');
+    assert.ok(html.includes('1 / 2'), 'Should display 1 / 2 counter on first video');
+    assert.ok(html.includes('2 / 2'), 'Should display 2 / 2 counter on second video');
+    assert.ok(html.includes('discussion-video-expand-btn'), 'Should render lightbox expand button on video');
+  });
+
   test('searchReddit returns structured type: reddit with friendly notice when no posts match', async () => {
     const originalFetch = global.fetch;
     global.fetch = async () => ({

@@ -258,7 +258,7 @@ class WidgetService {
             const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cleanQuery)}&format=json&addressdetails=1&limit=5`;
             const res = await fetchWithTimeout(url, {
                 headers: {
-                    'User-Agent': 'AtlasReasoningStudio/1.0 (https://vylex.co.za; hello@vylex.co.za)',
+                    'User-Agent': 'AtlasReasoningStudio/1.0 (https://vylex.co.za; info@vylex.co.za)',
                     'Accept-Language': 'en'
                 },
                 signal: AbortSignal.timeout(4500)
@@ -578,7 +578,7 @@ class WidgetService {
             try {
                 const wikiUrl = `https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(cleanQuery)}&gsrlimit=24&gsrnamespace=6&prop=imageinfo&iiprop=url|mime|extmetadata|size&iiurlwidth=800&format=json`;
                 const res = await fetchWithTimeout(wikiUrl, {
-                    headers: { 'User-Agent': 'AtlasReasoningStudio/1.0 (https://vylex.co.za; hello@vylex.co.za)' }
+                    headers: { 'User-Agent': 'AtlasReasoningStudio/1.0 (https://vylex.co.za; info@vylex.co.za)' }
                 });
                 if (res.ok) {
                     const data = await res.json();

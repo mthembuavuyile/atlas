@@ -2,6 +2,7 @@ const openrouterService = require('../services/openrouter.service');
 const searchService = require('../services/search.service');
 const widgetService = require('../services/widget.service');
 const { ATLAS_TOOLS } = require('../config/tools.config');
+const { CURATED_MODELS } = require('../config/models.config');
 const env = require('../config/env');
 const {
   SYSTEM_PROMPT_FULL,
@@ -30,6 +31,21 @@ class ChatController {
     const now = new Date();
     const currentDateStr = now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
     stateContexts.push(`- Current System Date: ${currentDateStr} (Current Year: ${now.getFullYear()}). You are operating in real time in ${now.getFullYear()}. Never claim that we are in 2024 or earlier.`);
+
+    const activeModeObj = mode && INVESTIGATION_MODES[mode] ? INVESTIGATION_MODES[mode] : INVESTIGATION_MODES.auto;
+    if (activeModeObj) {
+      stateContexts.push(`- Active Investigation Mode: ${activeModeObj.name} (${activeModeObj.id}) — ${activeModeObj.description}.`);
+    }
+
+    if (activeToolsState.model) {
+      const matchedModel = CURATED_MODELS.find(m => m.id === activeToolsState.model);
+      const modelLabel = matchedModel ? `${matchedModel.name} (${matchedModel.id}, badge ${matchedModel.badge})` : activeToolsState.model;
+      stateContexts.push(`- Active Model Selection: ${modelLabel}.`);
+    }
+
+    if (typeof activeToolsState.reasoning === 'boolean') {
+      stateContexts.push(`- Deep Reasoning Effort: ${activeToolsState.reasoning ? 'HIGH (enabled)' : 'STANDARD (low)'}.`);
+    }
 
     if (activeToolsState.webSearch) {
       stateContexts.push("- Live Web Search toggle is ENABLED in UI. Real-time internet grounding is active.");
@@ -104,7 +120,12 @@ class ChatController {
         typeof m.content === 'string' ? m.content.includes('```') : (Array.isArray(m.content) && m.content.length > 1)
       );
 
-      const activeToolsState = { webSearch, hasAttachments };
+      const activeToolsState = {
+        webSearch,
+        hasAttachments,
+        model,
+        reasoning: Boolean(enableDeepReasoning)
+      };
 
       const normalizedMessages = [
         {

@@ -231,5 +231,72 @@ describe('Public Pages Architecture & Layout Standardization', () => {
     assert.ok(css.includes('flex-wrap: nowrap;'), 'Controls must be flex-wrap: nowrap');
     assert.ok(css.includes('max-width: calc(100vw - 24px);'), 'Mobile attach menu must have proper max-width');
   });
+
+  test('AI identity and system prompt accurately describe Atlas without false fine-tuning claims', () => {
+    const {
+      SYSTEM_PROMPT_FULL,
+      SYSTEM_PROMPT_COMPACT,
+      ATLAS_PLATFORM_KNOWLEDGE,
+    } = require('../src/config/identity');
+    const { CURATED_MODELS } = require('../src/config/models.config');
+    const chatController = require('../src/controllers/chat.controller');
+
+    // Provenance & Founder
+    assert.ok(SYSTEM_PROMPT_FULL.includes('Vylex Technologies'));
+    assert.ok(SYSTEM_PROMPT_FULL.includes('https://vylex.co.za'));
+    assert.ok(SYSTEM_PROMPT_FULL.includes('Avuyile Mthembu'));
+    assert.ok(SYSTEM_PROMPT_FULL.includes('https://avuyilemthembu.co.za'));
+
+    // Honest architecture: explicitly forbids claiming Vylex trained or fine-tuned underlying model weights
+    assert.ok(ATLAS_PLATFORM_KNOWLEDGE.includes('NEVER claim that Vylex trained or fine-tuned underlying foundation model weights'));
+    assert.ok(!SYSTEM_PROMPT_FULL.includes('You were created, developed, and fine-tuned by Vylex'));
+    assert.ok(!SYSTEM_PROMPT_COMPACT.includes('engineered and fine-tuned by Vylex'));
+
+    // Knows all 7 curated models, 8 modes, 26 tools, 5-tab Canvas, and localStorage persistence
+    for (const model of CURATED_MODELS) {
+      assert.ok(SYSTEM_PROMPT_FULL.includes(model.id), `System prompt should include curated model ${model.id}`);
+      assert.ok(SYSTEM_PROMPT_FULL.includes(model.name), `System prompt should include curated model name ${model.name}`);
+    }
+    assert.ok(SYSTEM_PROMPT_FULL.includes('26 Built-In Deterministic Tools'));
+    assert.ok(SYSTEM_PROMPT_FULL.includes('5-tab Artifacts Canvas'));
+    assert.ok(SYSTEM_PROMPT_FULL.includes('localStorage'));
+
+    // Dynamic UI state awareness in buildSystemPrompt
+    const builtPrompt = chatController.buildSystemPrompt('solve', 'Focus on boundary conditions.', {
+      webSearch: true,
+      hasAttachments: true,
+      model: 'openrouter/free',
+      reasoning: true,
+    });
+    assert.ok(builtPrompt.includes('Active Investigation Mode: Solve (solve)'));
+    assert.ok(builtPrompt.includes('Active Model Selection: Atlas Default Engine (openrouter/free, badge AUTO)'));
+    assert.ok(builtPrompt.includes('Deep Reasoning Effort: HIGH (enabled)'));
+  });
+
+  test('Public pages accurately state 26 tools, real API providers, and valid section anchors', () => {
+    const fs = require('fs');
+    const path = require('path');
+
+    const aboutHtml = fs.readFileSync(path.join(__dirname, '../public/about.html'), 'utf8');
+    const docsHtml = fs.readFileSync(path.join(__dirname, '../public/docs.html'), 'utf8');
+    const privacyHtml = fs.readFileSync(path.join(__dirname, '../public/privacy.html'), 'utf8');
+
+    // Accurate tool counts and providers in about.html and docs.html
+    assert.ok(aboutHtml.includes('26 Built-In Tools'));
+    assert.ok(!aboutHtml.includes('19 Deterministic Tools'));
+    assert.ok(!aboutHtml.includes('Newton Math API'));
+    assert.ok(!aboutHtml.includes('Unsplash'));
+
+    assert.ok(docsHtml.includes('Deterministic Tools (26)'));
+    assert.ok(!docsHtml.includes('Deterministic Tools (19)'));
+    assert.ok(docsHtml.includes('id="reasoning-traces"'));
+    assert.ok(docsHtml.includes('id="artifacts-canvas"'));
+    assert.ok(docsHtml.includes('Math.js'));
+    assert.ok(docsHtml.includes('Wikimedia Commons'));
+
+    // Accurate client storage description in privacy.html
+    assert.ok(privacyHtml.includes('atlas_investigations'));
+    assert.ok(!privacyHtml.includes('IndexedDB'));
+  });
 });
 

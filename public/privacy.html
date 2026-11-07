@@ -184,7 +184,7 @@
       <h2>2. Client-Side Key Storage &amp; Credentials</h2>
       <div class="legal-card">
         <h3>Zero Server Storage for Personal API Keys</h3>
-        <p>When you provide an OpenRouter API key in Atlas, it is stored locally in your web browser via <code>localStorage</code>. It is never persisted into a Vylex database, logged in application servers, or transmitted to any third party other than OpenRouter itself during inference requests.</p>
+        <p>When you provide a personal OpenRouter API key in Atlas, it is stored locally in your web browser via <code>localStorage</code>. During inference requests, it is passed transiently via request headers to the stateless Atlas backend proxy solely to authenticate your request with OpenRouter; it is never persisted into a Vylex database or logged on application servers.</p>
       </div>
       <p>You can verify, update, or clear your stored credentials at any time in the Settings menu or by clearing your browser site data.</p>
     </section>
@@ -195,7 +195,7 @@
         All chat messages, generated code artifacts, LaTeX derivations, and investigation histories are stored directly on your local device:
       </p>
       <ul>
-        <li><strong>Local Persistence:</strong> Conversations remain in your browser's IndexedDB / local memory.</li>
+        <li><strong>Local Persistence:</strong> Conversations, bookmarks, and preferences remain in your browser's <code>localStorage</code> (<code>atlas_investigations</code>), with no server-side chat history database.</li>
         <li><strong>Export Control:</strong> You can export full conversations into Markdown or JSON formats with one click.</li>
         <li><strong>Immediate Deletion:</strong> Deleting a session in the Atlas sidebar immediately removes it from your local browser storage.</li>
       </ul>
@@ -209,8 +209,8 @@
       <ul>
         <li><strong>OpenRouter:</strong> When you submit a prompt, text and attachments are transmitted via secure HTTPS to OpenRouter to fulfill your requested model inference. Requests are governed by OpenRouter's privacy policy.</li>
         <li><strong>OpenStreetMap (Nominatim):</strong> Location and place lookups are routed through OpenStreetMap's open geographic database without transmitting personal identifiers.</li>
-        <li><strong>Image &amp; Media Services (Unsplash / Pixabay):</strong> Visual searches request public domain photos directly based solely on user search terms.</li>
-        <li><strong>Live Utility Endpoints:</strong> Weather, cryptocurrency quotes, currency conversions, and math solving use public APIs without cookies or user tracking.</li>
+        <li><strong>Image &amp; Media Services (Wikimedia Commons &amp; Pollinations.ai):</strong> Visual reference searches and image synthesis requests transmit only your explicit search query or image prompt.</li>
+        <li><strong>Live Utility Endpoints:</strong> Web search (DuckDuckGo), weather (Open-Meteo), market quotes (CoinGecko, Yahoo Finance, Mempool.space), currency conversions (Frankfurter ECB), space telemetry (NASA / Open Notify), and community feeds (Hacker News, Reddit, TMDB) query public APIs based solely on the tool parameters requested.</li>
       </ul>
     </section>
 

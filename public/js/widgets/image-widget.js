@@ -39,6 +39,7 @@ function ensureLightboxModal() {
                     <div class="atlas-lightbox-img-wrap" id="atlasLightboxImgWrap">
                         <div class="atlas-lightbox-spinner" id="atlasLightboxSpinner"></div>
                         <img id="atlasLightboxImg" src="" alt="Full resolution preview">
+                        <video id="atlasLightboxVideo" class="atlas-lightbox-video" controls playsinline preload="metadata" style="display: none;"></video>
                     </div>
                     <button class="atlas-lightbox-nav-btn next" id="atlasLightboxNextBtn" title="Next (→)" aria-label="Next Image">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
@@ -59,6 +60,7 @@ function ensureLightboxModal() {
 
         modal.addEventListener('click', (e) => {
             if (e.target === modal || e.target.closest('#atlasLightboxCloseBtn')) {
+                stopLightboxVideo(modal);
                 modal.classList.remove('active');
             }
         });
@@ -83,6 +85,7 @@ function ensureLightboxModal() {
         document.addEventListener('keydown', (e) => {
             if (!modal.classList.contains('active')) return;
             if (e.key === 'Escape') {
+                stopLightboxVideo(modal);
                 modal.classList.remove('active');
             } else if (e.key === 'ArrowLeft') {
                 navigateLightbox(-1);
@@ -93,6 +96,19 @@ function ensureLightboxModal() {
     }
 
     return modal;
+}
+
+function stopLightboxVideo(modal) {
+    const videoElem = modal?.querySelector('#atlasLightboxVideo');
+    if (videoElem) {
+        try {
+            videoElem.pause();
+            videoElem.removeAttribute('src');
+            videoElem.innerHTML = '';
+            videoElem.load();
+        } catch (_) {}
+        videoElem.style.display = 'none';
+    }
 }
 
 function navigateLightbox(direction) {
@@ -106,7 +122,10 @@ function showLightboxCurrent() {
     const item = activeGallery[activeIndex];
     if (!item) return;
 
+    stopLightboxVideo(modal);
+
     const imgElem = modal.querySelector('#atlasLightboxImg');
+    const videoElem = modal.querySelector('#atlasLightboxVideo');
     const titleElem = modal.querySelector('#atlasLightboxTitle');
     const counterElem = modal.querySelector('#atlasLightboxCounter');
     const metaElem = modal.querySelector('#atlasLightboxMeta');
@@ -144,7 +163,38 @@ function showLightboxCurrent() {
         linkElem.style.display = (item.link || item.src) ? 'inline-flex' : 'none';
     }
 
-    if (imgElem) {
+    const isVideo = Boolean(
+        item.isVideo ||
+        item.type === 'video' ||
+        (Array.isArray(item.videoSources) && item.videoSources.length > 0)
+    );
+
+    if (isVideo && videoElem) {
+        if (spinner) spinner.style.display = 'none';
+        if (imgElem) {
+            imgElem.style.display = 'none';
+            imgElem.src = '';
+        }
+        videoElem.style.display = 'block';
+        videoElem.poster = item.poster || item.thumb || '';
+        const sources = Array.isArray(item.videoSources) && item.videoSources.length > 0
+            ? item.videoSources
+            : (item.src ? [item.src] : []);
+        videoElem.innerHTML = sources.map(src => {
+            const type = src.includes('.m3u8')
+                ? 'application/x-mpegurl'
+                : (src.includes('.webm') ? 'video/webm' : 'video/mp4');
+            return `<source src="${escapeHtml(src)}" type="${type}">`;
+        }).join('');
+        try {
+            videoElem.load();
+            const playPromise = videoElem.play();
+            if (playPromise && typeof playPromise.catch === 'function') {
+                playPromise.catch(() => {});
+            }
+        } catch (_) {}
+    } else if (imgElem) {
+        if (imgElem) imgElem.style.display = 'block';
         if (spinner) spinner.style.display = 'block';
         imgElem.style.opacity = '0';
         imgElem.onload = () => {
