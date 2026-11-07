@@ -61,6 +61,7 @@ class OCRManager {
                     }
                     if (this.video) this.video.style.display = 'none';
                     if (this.btnCapture) this.btnCapture.style.display = 'none';
+                    if (this.btnCamera) this.btnCamera.style.display = 'inline-flex';
                     if (this.textarea) this.textarea.value = "Scanning image...";
                     this.performOCR(ev.target.result);
                 };
@@ -99,6 +100,7 @@ class OCRManager {
                         }
                         if (this.video) this.video.style.display = 'none';
                         if (this.btnCapture) this.btnCapture.style.display = 'none';
+                        if (this.btnCamera) this.btnCamera.style.display = 'inline-flex';
                         if (this.textarea) this.textarea.value = "Scanning pasted image...";
                         this.performOCR(ev.target.result);
                     };
@@ -116,6 +118,7 @@ class OCRManager {
         if (this.preview) this.preview.style.display = 'none';
         if (this.video) this.video.style.display = 'none';
         if (this.btnCapture) this.btnCapture.style.display = 'none';
+        if (this.btnCamera) this.btnCamera.style.display = 'inline-flex';
     }
 
     close() {
@@ -127,7 +130,8 @@ class OCRManager {
     async startCamera() {
         if (this.preview) this.preview.style.display = 'none';
         if (this.video) this.video.style.display = 'block';
-        if (this.btnCapture) this.btnCapture.style.display = 'inline-block';
+        if (this.btnCamera) this.btnCamera.style.display = 'none';
+        if (this.btnCapture) this.btnCapture.style.display = 'inline-flex';
         
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
             try {
@@ -135,9 +139,15 @@ class OCRManager {
                 this.video.srcObject = this.stream;
                 if (this.textarea) this.textarea.value = "Camera active. Point at document/text and press Capture.";
             } catch (err) {
+                if (this.video) this.video.style.display = 'none';
+                if (this.btnCapture) this.btnCapture.style.display = 'none';
+                if (this.btnCamera) this.btnCamera.style.display = 'inline-flex';
                 if (this.textarea) this.textarea.value = "Camera access denied or unavailable.";
             }
         } else {
+            if (this.video) this.video.style.display = 'none';
+            if (this.btnCapture) this.btnCapture.style.display = 'none';
+            if (this.btnCamera) this.btnCamera.style.display = 'inline-flex';
             if (this.textarea) this.textarea.value = "Camera not supported in this browser environment.";
         }
     }
@@ -165,6 +175,7 @@ class OCRManager {
         }
         if (this.video) this.video.style.display = 'none';
         if (this.btnCapture) this.btnCapture.style.display = 'none';
+        if (this.btnCamera) this.btnCamera.style.display = 'inline-flex';
         
         if (this.textarea) this.textarea.value = "Scanning captured image...";
         this.performOCR(dataUrl);

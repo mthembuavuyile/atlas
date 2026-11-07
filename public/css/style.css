@@ -3669,6 +3669,17 @@ body.is-resizing-canvas .artifacts-canvas-panel {
   .atlas-ocr-body {
     grid-template-columns: 1fr 1fr;
   }
+
+  .atlas-ocr-textarea {
+    height: 100%;
+    min-height: 220px;
+  }
+
+  .atlas-ocr-footer {
+    flex-direction: row;
+    align-items: center;
+    padding: 10px 14px;
+  }
 }
 
 @media (min-width: 1024px) {
