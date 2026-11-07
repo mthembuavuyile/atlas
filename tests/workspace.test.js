@@ -199,7 +199,10 @@ describe('Living AI Workspace & Canvas Architecture', () => {
   });
 
   test('Document Intelligence summarizes CSV tables, extracts PDF text, and wires OCR workflow actions', async () => {
-    const { summarizeCsvContent, extractPdfTextFromBuffer } = await import('../public/js/ui/modals.js');
+    const { summarizeCsvContent, extractPdfTextFromBuffer, formatProjectContextLabel } = await import('../public/js/ui/modals.js');
+    const { resetProjectFilesForSessionSwitch } = await import('../public/js/ui/session-manager.js');
+    const { state } = await import('../public/js/state/store.js');
+
     const sampleCsv = 'Item,Category,Price\nEspresso,Coffee,35.50\nCappuccino,Coffee,42.00\nCroissant,Bakery,48.50';
     const enrichedCsv = summarizeCsvContent(sampleCsv, 'menu.csv');
     assert.ok(enrichedCsv.includes('[CSV Document Intelligence: menu.csv — 3 rows, 3 columns]'));
@@ -210,6 +213,21 @@ describe('Living AI Workspace & Canvas Architecture', () => {
     const extractedPdf = extractPdfTextFromBuffer(fakePdfBuffer, 'invoice.pdf');
     assert.ok(extractedPdf.includes('[PDF Document: invoice.pdf]'));
     assert.ok(extractedPdf.includes('Invoice #2026-09 Total R1450.00'));
+
+    // Attached file label shows filenames
+    assert.strictEqual(
+      formatProjectContextLabel([{ path: 'docs/report.pdf', content: 'abc' }]),
+      'report.pdf (1 file attached for analysis)'
+    );
+    assert.strictEqual(
+      formatProjectContextLabel([{ path: 'report.pdf' }, { path: 'menu.csv' }]),
+      'report.pdf, menu.csv (2 files attached for analysis)'
+    );
+
+    // Switching or creating a new session discards attached files
+    state.projectFiles = [{ path: 'report.pdf', content: 'test' }];
+    resetProjectFilesForSessionSwitch();
+    assert.strictEqual(state.projectFiles.length, 0);
 
     assert.ok(indexHtml.includes('id="ocrBtnSummarize"'), 'OCR modal must include Summarize action');
     assert.ok(indexHtml.includes('id="ocrBtnExtractTable"'), 'OCR modal must include Extract Prices / Table action');

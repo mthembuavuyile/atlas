@@ -7,7 +7,7 @@
 import { state } from '../state/store.js';
 import { dom } from './dom.js';
 import { PERSONA_PRESETS } from '../config/constants.js';
-import { getActiveSession, saveSessions, loadSession, createNewSession, renderHistoryTree, closeMobileSidebar } from './session-manager.js';
+import { getActiveSession, saveSessions, loadSession, createNewSession, renderHistoryTree, closeMobileSidebar, updateContextEstimator } from './session-manager.js';
 
 /**
  * Parses a CSV string and prepends a structured Document Intelligence header
@@ -318,14 +318,37 @@ export function syncSidebarProfileUI() {
   if (dom.accountNameInput) dom.accountNameInput.value = displayName;
 }
 
+export function formatProjectContextLabel(files = []) {
+  const list = Array.isArray(files) ? files : [];
+  const fileCount = list.length;
+  if (fileCount === 0) return 'Attached files';
+
+  const names = list.map(f => {
+    const rawPath = String(f?.path || f?.name || 'file').trim();
+    return rawPath.split(/[\\/]/).pop() || rawPath;
+  });
+
+  if (fileCount === 1) {
+    return `${names[0]} (1 file attached for analysis)`;
+  }
+  if (fileCount <= 3) {
+    return `${names.join(', ')} (${fileCount} files attached for analysis)`;
+  }
+  return `${names.slice(0, 3).join(', ')} +${fileCount - 3} more (${fileCount} files attached for analysis)`;
+}
+
 export function syncProjectContextUI() {
-  const fileCount = state.projectFiles.length;
+  const files = Array.isArray(state.projectFiles) ? state.projectFiles : [];
+  const fileCount = files.length;
+  if (typeof document === 'undefined') return;
   if (dom.projectContextBar) dom.projectContextBar.hidden = fileCount === 0;
   if (dom.projectContextLabel) {
-    dom.projectContextLabel.textContent = fileCount
-      ? `${fileCount} file${fileCount === 1 ? '' : 's'} attached for analysis`
-      : 'Attached files';
+    dom.projectContextLabel.textContent = formatProjectContextLabel(files);
+    dom.projectContextLabel.title = fileCount
+      ? files.map(f => f.path || f.name || '').filter(Boolean).join(', ')
+      : '';
   }
+  updateContextEstimator();
 }
 
 let customComposerHeight = 0;

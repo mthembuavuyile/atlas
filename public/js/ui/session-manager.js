@@ -97,12 +97,24 @@ export function getSessionDateCategory(session) {
   return 'previous';
 }
 
+export function resetProjectFilesForSessionSwitch() {
+  state.projectFiles = [];
+  if (typeof document === 'undefined') return;
+  if (dom.projectContextBar) dom.projectContextBar.hidden = true;
+  if (dom.projectContextLabel) {
+    dom.projectContextLabel.textContent = 'Attached files';
+    dom.projectContextLabel.title = '';
+  }
+}
+
 export function createNewSession() {
   stopSpeakingResponse();
+  resetProjectFilesForSessionSwitch();
   const active = getActiveSession();
   if (active && (!active.messages || active.messages.length === 0)) {
     if (renderSessionMessagesCallback) renderSessionMessagesCallback(active);
     updateSessionMetrics();
+    updateContextEstimator();
     if (dom.messageInput) dom.messageInput.focus();
     if (window.innerWidth <= 768) closeMobileSidebar();
     return;
@@ -136,6 +148,7 @@ export function createNewSession() {
 
 export function loadSession(sessionId) {
   stopSpeakingResponse();
+  resetProjectFilesForSessionSwitch();
   const session = state.sessions.find(s => s.id === sessionId);
   if (!session) return;
 
