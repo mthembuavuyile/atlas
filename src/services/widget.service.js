@@ -1621,16 +1621,166 @@ class WidgetService {
         };
     }
 
-    // 7. Dictionary
+    // 7. Dictionary (Multi-Tier Lexical Pipeline: Free Dictionary API -> Wiktionary REST -> Datamuse WordNet)
     async defineWord(word) {
-        try {
-            const res = await fetchWithTimeout(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`);
-            if (!res.ok) return { error: `No definition found for "${word}".` };
-            const [entry] = await res.json();
-            return { type: 'dictionary', data: { entry } };
-        } catch (err) {
-            return { error: "Lexical definition service is unavailable." };
+        const cleanWord = (word || '')
+            .toString()
+            .trim()
+            .replace(/^["'`]+|["'`?.!]+$/g, '')
+            .trim();
+
+        if (!cleanWord) {
+            return { error: 'Please provide a word to define.' };
         }
+
+        const cacheKey = `dict:${cleanWord.toLowerCase()}`;
+        const cached = cache.get(cacheKey);
+        if (cached) return cached;
+
+        const requestHeaders = {
+            'User-Agent': 'AtlasReasoningStudio/1.0 (https://atlas.vylex.co.za; hello@vylex.co.za)',
+            'Accept': 'application/json'
+        };
+
+        // Tier 1: Free Dictionary API (api.dictionaryapi.dev)
+        try {
+            const res = await fetchWithTimeout(
+                `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(cleanWord.toLowerCase())}`,
+                { headers: requestHeaders, timeoutMs: 3500 },
+                3500
+            );
+            if (res.ok) {
+                const json = await res.json();
+                const entry = Array.isArray(json) ? json[0] : null;
+                if (entry && Array.isArray(entry.meanings) && entry.meanings.length > 0) {
+                    const result = { type: 'dictionary', data: { entry } };
+                    cache.set(cacheKey, result, 3600);
+                    return result;
+                }
+            }
+        } catch (err) {}
+
+        // Tier 2: Wikimedia / English Wiktionary REST API (handles standard lexicon + modern slang like "goated", reliable on cloud IPs)
+        const stripWikiHtml = (html) => {
+            if (!html || typeof html !== 'string') return '';
+            const withoutTags = html
+                .replace(/<style[\s\S]*?<\/style>/gi, '')
+                .replace(/<[^>]+>/g, ' ')
+                .replace(/\s+([,.;:!?])/g, '$1')
+                .replace(/\s+/g, ' ')
+                .trim();
+            return searchService.cleanHtmlEntities(withoutTags);
+        };
+
+        const candidates = [...new Set([cleanWord, cleanWord.toLowerCase()])];
+        for (const candidate of candidates) {
+            try {
+                const wikiRes = await fetchWithTimeout(
+                    `https://en.wiktionary.org/api/rest_v1/page/definition/${encodeURIComponent(candidate)}`,
+                    { headers: requestHeaders, timeoutMs: 3500 },
+                    3500
+                );
+                if (wikiRes.ok) {
+                    const wikiData = await wikiRes.json();
+                    const enSections = Array.isArray(wikiData?.en)
+                        ? wikiData.en
+                        : (Object.values(wikiData || {}).find(arr => Array.isArray(arr) && arr.length > 0) || []);
+
+                    const meanings = [];
+                    for (const section of enSections) {
+                        const partOfSpeech = (section.partOfSpeech || 'definition').toLowerCase();
+                        const definitions = (section.definitions || [])
+                            .map(d => {
+                                const defText = stripWikiHtml(d.definition);
+                                if (!defText) return null;
+                                const rawExample = d.examples?.[0] || d.parsedExamples?.[0]?.example || '';
+                                const example = stripWikiHtml(rawExample);
+                                return example ? { definition: defText, example } : { definition: defText };
+                            })
+                            .filter(Boolean);
+
+                        if (definitions.length > 0) {
+                            meanings.push({ partOfSpeech, definitions });
+                        }
+                    }
+
+                    if (meanings.length > 0) {
+                        const result = {
+                            type: 'dictionary',
+                            data: {
+                                entry: {
+                                    word: cleanWord.toLowerCase(),
+                                    phonetic: '',
+                                    meanings,
+                                    source: 'Wiktionary'
+                                }
+                            }
+                        };
+                        cache.set(cacheKey, result, 3600);
+                        return result;
+                    }
+                }
+            } catch (err) {}
+        }
+
+        // Tier 3: Datamuse / Princeton WordNet Lexical API (fast cloud fallback with IPA phonetics & POS defs)
+        try {
+            const dmRes = await fetchWithTimeout(
+                `https://api.datamuse.com/words?sp=${encodeURIComponent(cleanWord.toLowerCase())}&md=dpf&ipa=1&max=1`,
+                { headers: requestHeaders, timeoutMs: 3500 },
+                3500
+            );
+            if (dmRes.ok) {
+                const dmData = await dmRes.json();
+                const match = Array.isArray(dmData) && dmData.length > 0 ? dmData[0] : null;
+                if (match && Array.isArray(match.defs) && match.defs.length > 0) {
+                    const posMap = {
+                        n: 'noun',
+                        v: 'verb',
+                        adj: 'adjective',
+                        adv: 'adverb',
+                        u: 'idiom'
+                    };
+                    const grouped = new Map();
+                    for (const rawDef of match.defs) {
+                        const [posCode, ...rest] = String(rawDef).split('\t');
+                        const defText = rest.join('\t').trim();
+                        if (!defText) continue;
+                        const pos = posMap[posCode?.trim()] || posCode?.trim() || 'definition';
+                        if (!grouped.has(pos)) grouped.set(pos, []);
+                        grouped.get(pos).push({ definition: defText });
+                    }
+
+                    const meanings = Array.from(grouped.entries()).map(([partOfSpeech, definitions]) => ({
+                        partOfSpeech,
+                        definitions
+                    }));
+
+                    const ipaTag = (match.tags || []).find(t => typeof t === 'string' && t.startsWith('ipa_pron:'));
+                    const phonetic = ipaTag ? `/${ipaTag.slice('ipa_pron:'.length)}/` : '';
+
+                    if (meanings.length > 0) {
+                        const result = {
+                            type: 'dictionary',
+                            data: {
+                                entry: {
+                                    word: match.word || cleanWord.toLowerCase(),
+                                    phonetic,
+                                    meanings,
+                                    source: 'WordNet'
+                                }
+                            }
+                        };
+                        cache.set(cacheKey, result, 3600);
+                        return result;
+                    }
+                }
+            }
+        } catch (err) {}
+
+        return {
+            error: `No lexical entry found for "${cleanWord}" in dictionary providers. Please define "${cleanWord}" directly using your general knowledge.`
+        };
     }
 
     // 8. Currency (Cached 30 min)

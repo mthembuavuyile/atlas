@@ -367,19 +367,26 @@ export function resolveSlashCommand(prompt) {
   };
 }
 
-export async function runLocalWidget(toolToCall, argsPayload, statusText, context) {
+export async function runLocalWidget(toolToCall, argsPayload, statusText, context, options = {}) {
   const { session, bubble, widgetsContainer, statusAnimator, accumulatedWidgets } = context;
+  const fallbackToAi = Boolean(options.fallbackToAi);
 
   if (statusAnimator) {
     statusAnimator.stop();
   }
 
-  const res = await fetch(`${API_BASE}/api/widget/execute`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    signal: state.abortController ? state.abortController.signal : undefined,
-    body: JSON.stringify({ tool: toolToCall, args: argsPayload })
-  });
+  let res;
+  try {
+    res = await fetch(`${API_BASE}/api/widget/execute`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      signal: state.abortController ? state.abortController.signal : undefined,
+      body: JSON.stringify({ tool: toolToCall, args: argsPayload })
+    });
+  } catch (fetchErr) {
+    if (fetchErr?.name === 'AbortError' || !fallbackToAi) throw fetchErr;
+    return false;
+  }
 
   if (!res.ok) {
     let errorMsg = `Widget service failed with status ${res.status}`;
@@ -387,11 +394,17 @@ export async function runLocalWidget(toolToCall, argsPayload, statusText, contex
       const errData = await res.json();
       if (errData?.error) errorMsg = errData.error;
     } catch (_) {}
+    if (fallbackToAi) {
+      return false;
+    }
     throw new Error(errorMsg);
   }
   const widgetResult = await res.json();
 
   if (!widgetResult || typeof widgetResult.type !== 'string') {
+    if (fallbackToAi) {
+      return false;
+    }
     if (widgetResult?.error) {
       const formattedNotice = `<div class="atlas-widget-notice" style="padding: 10px 14px; margin: 6px 0; border-radius: 8px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-light); font-size: 13.5px; color: var(--text-muted);">${parseMarkdownSafely(widgetResult.error, false)}</div>`;
       bubble.innerHTML = formattedNotice;
@@ -404,9 +417,13 @@ export async function runLocalWidget(toolToCall, argsPayload, statusText, contex
       saveSessions();
       updateSessionMetrics();
       scrollToBottom(true);
-      return;
+      return true;
     }
     throw new Error('Widget service returned an invalid response.');
+  }
+
+  if (widgetResult.error && fallbackToAi) {
+    return false;
   }
 
   accumulatedWidgets.push(widgetResult);
@@ -449,6 +466,7 @@ export async function runLocalWidget(toolToCall, argsPayload, statusText, contex
   updateSessionMetrics();
 
   scrollToBottom(true);
+  return true;
 }
 
 /**

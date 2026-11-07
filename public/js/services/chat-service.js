@@ -295,16 +295,20 @@ export async function executeChatTurn(session) {
           payloadMessages[payloadMessages.length - 1].content = `${slash.overrideText}${projectContext || ''}`;
         }
       } else if (slash.toolToCall) {
-        await runLocalWidget(slash.toolToCall, slash.argsPayload, slash.label, widgetContext);
-        return;
+        const handled = await runLocalWidget(slash.toolToCall, slash.argsPayload, slash.label, widgetContext, { fallbackToAi: true });
+        if (handled) return;
+        statusAnimator = startStatusAnimation(bubble, state.activeMode);
+        widgetContext.statusAnimator = statusAnimator;
       }
     }
 
     // 3. Local Deterministic Intent Detection
     const localIntent = detectLocalWidgetIntent(prompt);
     if (localIntent) {
-      await runLocalWidget(localIntent.tool, localIntent.args, localIntent.label, widgetContext);
-      return;
+      const handled = await runLocalWidget(localIntent.tool, localIntent.args, localIntent.label, widgetContext, { fallbackToAi: true });
+      if (handled) return;
+      statusAnimator = startStatusAnimation(bubble, state.activeMode);
+      widgetContext.statusAnimator = statusAnimator;
     }
 
     // 4. Intelligent Context Limit Pre-Check
