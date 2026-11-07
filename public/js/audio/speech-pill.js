@@ -1,14 +1,58 @@
 /**
  * speech-pill.js
- * Premium floating speech playback pill with animated audio frequency waves.
- * Controls Web Speech API synthesis, pause/resume, and real-time visualizer state.
+ * Floating speech playback pill with animated audio frequency waves.
+ * Supports ElevenLabs Text-to-Speech API voices in addition to Google / Browser Web Speech synthesis,
+ * with pause/resume, stop controls, and automatic fallback.
  */
 
 import { state } from '../state/store.js';
 import { dom } from '../ui/dom.js';
 import { ICONS } from '../config/constants.js';
 
+export const ELEVENLABS_VOICE_OPTIONS = [
+  {
+    id: 'JBFqnCBsd6RMkjVDRZzb',
+    value: 'elevenlabs:JBFqnCBsd6RMkjVDRZzb',
+    name: 'George',
+    label: 'ElevenLabs — George (Warm Narrative)'
+  },
+  {
+    id: 'EXAVITQu4vr4xnSDxMaL',
+    value: 'elevenlabs:EXAVITQu4vr4xnSDxMaL',
+    name: 'Sarah',
+    label: 'ElevenLabs — Sarah (Soft & Clear)'
+  },
+  {
+    id: 'onwK4e9ZLuTAKqWW03F9',
+    value: 'elevenlabs:onwK4e9ZLuTAKqWW03F9',
+    name: 'Daniel',
+    label: 'ElevenLabs — Daniel (Authoritative)'
+  },
+  {
+    id: 'XB0fDUnXU5powFXDhCwa',
+    value: 'elevenlabs:XB0fDUnXU5powFXDhCwa',
+    name: 'Charlotte',
+    label: 'ElevenLabs — Charlotte (Conversational)'
+  },
+  {
+    id: 'XrExE9yKIg1WjnnlVkGX',
+    value: 'elevenlabs:XrExE9yKIg1WjnnlVkGX',
+    name: 'Matilda',
+    label: 'ElevenLabs — Matilda (Friendly & Articulate)'
+  },
+  {
+    id: 'cjVigY5qzO86Huf0OWal',
+    value: 'elevenlabs:cjVigY5qzO86Huf0OWal',
+    name: 'Eric',
+    label: 'ElevenLabs — Eric (Smooth & Balanced)'
+  }
+];
+
 let activeUtterance = null;
+let activeAudio = null;
+let activeAudioUrl = null;
+let activeAbortController = null;
+let audioWaveInterval = null;
 let heartbeatTimer = null;
 let surgeTimeout = null;
 let isManuallyPaused = false;
@@ -34,22 +78,66 @@ export function initSpeechPill() {
   }
 
   // Keyboard shortcut: Escape halts active speech playback
-  window.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && state.isReadingResponse) {
-      stopSpeakingResponse();
-    }
-  });
+  if (typeof window !== 'undefined') {
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && state.isReadingResponse) {
+        stopSpeakingResponse();
+      }
+    });
+  }
 }
 
 /**
- * Starts reading out an assistant message response.
+ * Cancels any ongoing ElevenLabs audio stream or Web Speech synthesis without hiding the pill immediately.
+ */
+function cancelActivePlaybackHandles() {
+  if (activeAbortController) {
+    try {
+      activeAbortController.abort();
+    } catch (_) {}
+    activeAbortController = null;
+  }
+
+  if (audioWaveInterval) {
+    clearInterval(audioWaveInterval);
+    audioWaveInterval = null;
+  }
+
+  if (activeAudio) {
+    try {
+      activeAudio.onplay = null;
+      activeAudio.onpause = null;
+      activeAudio.onended = null;
+      activeAudio.onerror = null;
+      activeAudio.pause();
+      activeAudio.src = '';
+    } catch (_) {}
+    activeAudio = null;
+  }
+
+  if (activeAudioUrl && typeof URL !== 'undefined' && typeof URL.revokeObjectURL === 'function') {
+    try {
+      URL.revokeObjectURL(activeAudioUrl);
+    } catch (_) {}
+    activeAudioUrl = null;
+  }
+
+  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+    if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+      window.speechSynthesis.cancel();
+    }
+  }
+}
+
+/**
+ * Starts reading out an assistant message response using either ElevenLabs TTS or Browser/Google Speech.
  * @param {Object} options
  * @param {string} options.text - Text to read
  * @param {HTMLButtonElement} [options.sourceBtn] - Message speak action button
  * @param {string} [options.voiceName] - Custom voice override
  */
 export function startSpeakingResponse({ text, sourceBtn = null, voiceName = '' }) {
-  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return false;
+  if (typeof window === 'undefined') return false;
 
   // If already speaking this exact message, toggle stop
   if (state.isReadingResponse && state.activeSpeechButton === sourceBtn && sourceBtn !== null) {
@@ -58,9 +146,7 @@ export function startSpeakingResponse({ text, sourceBtn = null, voiceName = '' }
   }
 
   // Halt any previous playback without hiding immediately
-  if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
-    window.speechSynthesis.cancel();
-  }
+  cancelActivePlaybackHandles();
   resetActiveSourceButton();
 
   const cleanText = text
@@ -75,8 +161,118 @@ export function startSpeakingResponse({ text, sourceBtn = null, voiceName = '' }
 
   if (!cleanText) return false;
 
-  const voices = window.speechSynthesis.getVoices ? window.speechSynthesis.getVoices() : [];
   const targetVoiceName = voiceName || state.defaultVoiceName || '';
+
+  if (targetVoiceName.startsWith('elevenlabs:')) {
+    const voiceId = targetVoiceName.slice('elevenlabs:'.length).trim() || 'JBFqnCBsd6RMkjVDRZzb';
+    const matchedVoice = ELEVENLABS_VOICE_OPTIONS.find(
+      (v) => v.value === targetVoiceName || v.id === voiceId
+    );
+    const pillVoiceObj = {
+      name: matchedVoice ? `ElevenLabs · ${matchedVoice.name}` : 'ElevenLabs Voice'
+    };
+
+    isManuallyPaused = false;
+    state.isReadingResponse = true;
+    state.activeSpeechButton = sourceBtn;
+
+    if (sourceBtn) {
+      sourceBtn.classList.add('is-speaking');
+      sourceBtn.title = 'Stop reading response';
+      sourceBtn.innerHTML = ICONS.stop || 'Stop';
+    }
+
+    showSpeechPill(pillVoiceObj);
+    startElevenLabsPlayback(cleanText, voiceId, pillVoiceObj, sourceBtn);
+    return true;
+  }
+
+  return startBrowserSpeechSynthesis(cleanText, targetVoiceName, sourceBtn);
+}
+
+/**
+ * Streams MP3 audio from the backend ElevenLabs TTS endpoint and plays it in the speech pill.
+ * Falls back to browser speech synthesis if the network or API quota is unavailable.
+ */
+async function startElevenLabsPlayback(cleanText, voiceId, pillVoiceObj, sourceBtn) {
+  const controller = new AbortController();
+  activeAbortController = controller;
+
+  try {
+    const response = await fetch('/api/tts/speak', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        text: cleanText.slice(0, 4500),
+        voiceId
+      }),
+      signal: controller.signal
+    });
+
+    if (!response.ok) {
+      throw new Error(`ElevenLabs TTS HTTP ${response.status}`);
+    }
+
+    const audioBlob = await response.blob();
+    if (controller.signal.aborted || !state.isReadingResponse) {
+      return;
+    }
+
+    activeAudioUrl = URL.createObjectURL(audioBlob);
+    const audio = new Audio(activeAudioUrl);
+    activeAudio = audio;
+
+    audio.onplay = () => {
+      showSpeechPill(pillVoiceObj);
+      if (audioWaveInterval) clearInterval(audioWaveInterval);
+      audioWaveInterval = setInterval(() => {
+        if (activeAudio && !activeAudio.paused && !isManuallyPaused) {
+          triggerWaveSurge();
+        }
+      }, 240);
+    };
+
+    audio.onpause = () => {
+      if (activeAudio && !activeAudio.ended && state.isReadingResponse) {
+        updatePillPausedState(true);
+      }
+    };
+
+    audio.onended = () => {
+      cleanupSpeechState();
+    };
+
+    audio.onerror = () => {
+      console.warn('[Atlas Speech] ElevenLabs audio playback error; falling back to browser speech.');
+      cancelActivePlaybackHandles();
+      if (state.isReadingResponse) {
+        startBrowserSpeechSynthesis(cleanText, '', sourceBtn);
+      }
+    };
+
+    await audio.play();
+  } catch (err) {
+    if (err?.name === 'AbortError') return;
+    console.warn('[Atlas Speech] ElevenLabs TTS unavailable, falling back to browser speech:', err?.message || err);
+    cancelActivePlaybackHandles();
+    if (state.isReadingResponse && typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      startBrowserSpeechSynthesis(cleanText, '', sourceBtn);
+    } else {
+      cleanupSpeechState();
+    }
+  }
+}
+
+/**
+ * Speaks response using the browser's built-in Web Speech API (Google / System voices).
+ */
+function startBrowserSpeechSynthesis(cleanText, targetVoiceName, sourceBtn) {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+    cleanupSpeechState();
+    return false;
+  }
+
+  const voices = window.speechSynthesis.getVoices ? window.speechSynthesis.getVoices() : [];
   const selectedVoice = voices.find(v => v.name === targetVoiceName)
     || voices.find(v => v.name.toLowerCase() === targetVoiceName.toLowerCase())
     || voices.find(v => v.default)
@@ -154,16 +350,20 @@ export function startSpeakingResponse({ text, sourceBtn = null, voiceName = '' }
  * Halts active speech synthesis and hides the pill.
  */
 export function stopSpeakingResponse() {
-  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-    window.speechSynthesis.cancel();
-  }
+  cancelActivePlaybackHandles();
   cleanupSpeechState();
 }
 
 /**
- * Pauses active speech synthesis.
+ * Pauses active speech synthesis or ElevenLabs audio.
  */
 export function pauseSpeakingResponse() {
+  if (activeAudio && !activeAudio.paused) {
+    activeAudio.pause();
+    isManuallyPaused = true;
+    updatePillPausedState(true);
+    return;
+  }
   if (typeof window !== 'undefined' && 'speechSynthesis' in window && window.speechSynthesis.speaking) {
     window.speechSynthesis.pause();
     isManuallyPaused = true;
@@ -172,9 +372,15 @@ export function pauseSpeakingResponse() {
 }
 
 /**
- * Resumes paused speech synthesis.
+ * Resumes paused speech synthesis or ElevenLabs audio.
  */
 export function resumeSpeakingResponse() {
+  if (activeAudio && activeAudio.paused) {
+    isManuallyPaused = false;
+    updatePillPausedState(false);
+    activeAudio.play().catch(() => {});
+    return;
+  }
   if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
     window.speechSynthesis.resume();
     isManuallyPaused = false;
@@ -279,11 +485,34 @@ function cleanupSpeechState() {
     clearInterval(heartbeatTimer);
     heartbeatTimer = null;
   }
+  if (audioWaveInterval) {
+    clearInterval(audioWaveInterval);
+    audioWaveInterval = null;
+  }
   if (surgeTimeout) {
     clearTimeout(surgeTimeout);
     surgeTimeout = null;
   }
 
+  if (activeAudio) {
+    try {
+      activeAudio.onplay = null;
+      activeAudio.onpause = null;
+      activeAudio.onended = null;
+      activeAudio.onerror = null;
+      activeAudio.pause();
+    } catch (_) {}
+    activeAudio = null;
+  }
+
+  if (activeAudioUrl && typeof URL !== 'undefined' && typeof URL.revokeObjectURL === 'function') {
+    try {
+      URL.revokeObjectURL(activeAudioUrl);
+    } catch (_) {}
+    activeAudioUrl = null;
+  }
+
+  activeAbortController = null;
   activeUtterance = null;
   isManuallyPaused = false;
   resetActiveSourceButton();

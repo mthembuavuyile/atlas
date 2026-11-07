@@ -259,5 +259,19 @@ describe('Living AI Workspace & Canvas Architecture', () => {
     );
     assert.strictEqual(byokNextCalled, true, 'Should allow frontier model when valid BYOK key is provided');
   });
+
+  test('Voice picker settings include ElevenLabs voices alongside Google / Browser voices', async () => {
+    const elevenlabsService = require('../src/services/elevenlabs.service');
+    const { ELEVENLABS_VOICE_OPTIONS } = await import('../public/js/audio/speech-pill.js');
+    const modalsCode = fs.readFileSync(path.join(__dirname, '..', 'public', 'js', 'ui', 'modals.js'), 'utf8');
+
+    const backendVoices = elevenlabsService.getVoices();
+    assert.ok(Array.isArray(backendVoices) && backendVoices.length >= 4, 'Backend service must expose curated ElevenLabs voices');
+    assert.ok(ELEVENLABS_VOICE_OPTIONS.some(v => v.value === 'elevenlabs:JBFqnCBsd6RMkjVDRZzb'), 'Frontend voice options must include George');
+    assert.ok(ELEVENLABS_VOICE_OPTIONS.some(v => v.value === 'elevenlabs:EXAVITQu4vr4xnSDxMaL'), 'Frontend voice options must include Sarah');
+    assert.ok(modalsCode.includes('ElevenLabs Voices'), 'modals.js must group ElevenLabs voices in #defaultVoiceSelect');
+    assert.ok(modalsCode.includes('Google & Browser Voices'), 'modals.js must group Google & Browser voices in #defaultVoiceSelect');
+    assert.ok(indexHtml.includes('elevenlabs:JBFqnCBsd6RMkjVDRZzb'), 'index.html #defaultVoiceSelect must include ElevenLabs voice options');
+  });
 });
 

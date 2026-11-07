@@ -7,6 +7,7 @@
 import { state } from '../state/store.js';
 import { dom } from './dom.js';
 import { PERSONA_PRESETS } from '../config/constants.js';
+import { ELEVENLABS_VOICE_OPTIONS } from '../audio/speech-pill.js';
 import { getActiveSession, saveSessions, loadSession, createNewSession, renderHistoryTree, closeMobileSidebar, updateContextEstimator } from './session-manager.js';
 
 /**
@@ -229,29 +230,47 @@ export function populateVoiceOptions() {
 
   const browserDefaultOption = document.createElement('option');
   browserDefaultOption.value = '';
-  browserDefaultOption.textContent = 'Use browser default';
+  browserDefaultOption.textContent = 'Use browser default (Google / System Speech)';
   dom.defaultVoiceSelect.appendChild(browserDefaultOption);
 
-  voices.forEach(voice => {
+  // 1. ElevenLabs AI Voices (Free Tier API)
+  const elevenLabsGroup = document.createElement('optgroup');
+  elevenLabsGroup.label = 'ElevenLabs Voices';
+  ELEVENLABS_VOICE_OPTIONS.forEach((voice) => {
+    const option = document.createElement('option');
+    option.value = voice.value;
+    option.textContent = voice.label;
+    elevenLabsGroup.appendChild(option);
+  });
+  dom.defaultVoiceSelect.appendChild(elevenLabsGroup);
+
+  // 2. Google & Browser Web Speech Voices
+  const browserGroup = document.createElement('optgroup');
+  browserGroup.label = 'Google & Browser Voices';
+  voices.forEach((voice) => {
     const option = document.createElement('option');
     option.value = voice.name;
     option.textContent = `${voice.name} (${voice.lang})`;
-    dom.defaultVoiceSelect.appendChild(option);
+    browserGroup.appendChild(option);
   });
-
-  if (voices.length === 0) {
-    const loadingOption = document.createElement('option');
-    loadingOption.value = '';
-    loadingOption.textContent = 'Voice list not ready yet';
-    dom.defaultVoiceSelect.appendChild(loadingOption);
+  if (voices.length > 0) {
+    dom.defaultVoiceSelect.appendChild(browserGroup);
   }
 
-  const selectedVoiceExists = voices.some(voice => voice.name === currentValue);
+  const isElevenLabsSelected = ELEVENLABS_VOICE_OPTIONS.some((v) => v.value === currentValue);
+  const isBrowserVoiceSelected = voices.some((voice) => voice.name === currentValue);
+  const selectedVoiceExists = isElevenLabsSelected || isBrowserVoiceSelected;
+
   dom.defaultVoiceSelect.value = selectedVoiceExists ? currentValue : '';
   if (dom.voiceStatusHint) {
-    dom.voiceStatusHint.textContent = currentValue && !selectedVoiceExists
-      ? 'Saved voice is unavailable in this browser. Choose another voice or use the browser default.'
-      : '';
+    if (currentValue && !selectedVoiceExists && voices.length > 0) {
+      dom.voiceStatusHint.textContent = 'Saved voice is unavailable in this browser. Choose another voice or use the browser default.';
+    } else if (isElevenLabsSelected) {
+      const matched = ELEVENLABS_VOICE_OPTIONS.find((v) => v.value === currentValue);
+      dom.voiceStatusHint.textContent = `ElevenLabs (${matched ? matched.name : 'AI'}) active for Read Aloud.`;
+    } else {
+      dom.voiceStatusHint.textContent = '';
+    }
   }
 }
 
@@ -748,6 +767,22 @@ export function initModals() {
     localStorage.setItem('atlas_account_name', nextName);
     syncSidebarProfileUI();
     if (dom.accountNameInput) dom.accountNameInput.value = nextName;
+  });
+
+  dom.defaultVoiceSelect?.addEventListener('change', () => {
+    const nextVoiceName = dom.defaultVoiceSelect?.value || '';
+    state.defaultVoiceName = nextVoiceName;
+    localStorage.setItem('atlas_default_voice', nextVoiceName);
+    if (dom.voiceStatusHint) {
+      if (nextVoiceName.startsWith('elevenlabs:')) {
+        const matched = ELEVENLABS_VOICE_OPTIONS.find((v) => v.value === nextVoiceName);
+        dom.voiceStatusHint.textContent = `ElevenLabs (${matched ? matched.name : 'AI'}) saved for Read Aloud.`;
+      } else {
+        dom.voiceStatusHint.textContent = nextVoiceName
+          ? 'Google / Browser voice preference saved.'
+          : 'Browser default voice saved.';
+      }
+    }
   });
 
   dom.saveGeneralSettingsBtn?.addEventListener('click', () => {

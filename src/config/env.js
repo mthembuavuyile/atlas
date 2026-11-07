@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('dotenv').config({ path: '.env' });
 
 const { APP, COMPANY } = require('./identity');
 
@@ -10,7 +10,8 @@ const env = {
   APP_TITLE: APP.shortTitle,
   APP_URL: process.env.APP_URL || APP.url,
   UNSPLASH_ACCESS_KEY: process.env.UNSPLASH_ACCESS_KEY || '',
-  PIXABAY_API_KEY: process.env.PIXABAY_API_KEY || ''
+  PIXABAY_API_KEY: process.env.PIXABAY_API_KEY || '',
+  ELEVENLABS_API_KEY: process.env.ELEVENLABS_API_KEY || ''
 };
 
 // Startup validation

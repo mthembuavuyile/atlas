@@ -1208,12 +1208,19 @@
 
                 <div class="settings-section">
                   <label class="settings-label" for="defaultVoiceSelect">Default Read-Aloud Voice</label>
-                  <p style="margin: 4px 0 10px 0; font-size: 0.82rem; color: var(--text-tertiary);">Choose the voice
-                    used when you tap the speaker button on assistant replies. Changes apply to the next reply you read
-                    aloud.</p>
+                  <p style="margin: 4px 0 10px 0; font-size: 0.82rem; color: var(--text-tertiary);">Choose an ElevenLabs
+                    voice or a Google / Browser system voice for reading assistant replies aloud.</p>
                   <select id="defaultVoiceSelect" class="system-prompt-editor"
                     style="height: 38px; padding: 6px 12px; font-size: 0.85rem; width: 100%;">
-                    <option value="">Loading voices...</option>
+                    <option value="">Use browser default (Google / System Speech)</option>
+                    <optgroup label="ElevenLabs Voices">
+                      <option value="elevenlabs:JBFqnCBsd6RMkjVDRZzb">ElevenLabs — George (Warm Narrative)</option>
+                      <option value="elevenlabs:EXAVITQu4vr4xnSDxMaL">ElevenLabs — Sarah (Soft &amp; Clear)</option>
+                      <option value="elevenlabs:onwK4e9ZLuTAKqWW03F9">ElevenLabs — Daniel (Authoritative)</option>
+                      <option value="elevenlabs:XB0fDUnXU5powFXDhCwa">ElevenLabs — Charlotte (Conversational)</option>
+                      <option value="elevenlabs:XrExE9yKIg1WjnnlVkGX">ElevenLabs — Matilda (Friendly &amp; Articulate)</option>
+                      <option value="elevenlabs:cjVigY5qzO86Huf0OWal">ElevenLabs — Eric (Smooth &amp; Balanced)</option>
+                    </optgroup>
                   </select>
                   <div id="voiceStatusHint" class="settings-status-hint" role="status" aria-live="polite"></div>
                 </div>
