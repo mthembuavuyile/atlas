@@ -284,5 +284,25 @@ describe('Living AI Workspace & Canvas Architecture', () => {
     assert.ok(modalsCode.includes('Google & Browser Voices'), 'modals.js must group Google & Browser voices in #defaultVoiceSelect');
     assert.ok(indexHtml.includes('elevenlabs:JBFqnCBsd6RMkjVDRZzb'), 'index.html #defaultVoiceSelect must include ElevenLabs voice options');
   });
+
+  test('Speech pill displays Loading speech state before audio playback begins and Settings UI includes upgraded controls', () => {
+    const speechPillCode = fs.readFileSync(path.join(__dirname, '..', 'public', 'js', 'audio', 'speech-pill.js'), 'utf8');
+    const modalsCode = fs.readFileSync(path.join(__dirname, '..', 'public', 'js', 'ui', 'modals.js'), 'utf8');
+    const css = fs.readFileSync(path.join(__dirname, '..', 'public', 'css', 'style.css'), 'utf8');
+
+    assert.ok(speechPillCode.includes("'Loading speech...'"), 'speech-pill.js must show Loading speech... while generating TTS');
+    assert.ok(speechPillCode.includes("showSpeechPill(pillVoiceObj, { isLoading: true })"), 'speech-pill.js must enter loading state before ElevenLabs audio starts');
+    assert.ok(speechPillCode.includes("showSpeechPill(pillVoiceObj, { isLoading: false })"), 'speech-pill.js must transition out of loading state when playback begins');
+    assert.ok(css.includes('.speech-response-pill.is-loading'), 'style.css must style the speech pill loading state');
+
+    assert.ok(indexHtml.includes('id="sidebarQuickSettingsBtn"'), 'Sidebar footer must include direct quick settings button');
+    assert.ok(indexHtml.includes('id="profilePersonalizationBtn"'), 'Sidebar profile popup must include Personalization shortcut');
+    assert.ok(indexHtml.includes('id="profileShortcutsBtn"'), 'Sidebar profile popup must include Keyboard Shortcuts button');
+    assert.ok(indexHtml.includes('id="closeUnifiedSettingsHeaderBtn"'), 'Settings content header must include an accessible close button');
+    assert.ok(indexHtml.includes('id="activeSettingsDesc"'), 'Settings content header must include activeSettingsDesc subtitle');
+    assert.ok(indexHtml.includes('id="previewVoiceBtn"'), 'Settings voice section must include a Test Voice preview button');
+    assert.ok(indexHtml.includes('id="toggleApiKeyVisibilityBtn"'), 'Settings API key section must include a visibility toggle button');
+    assert.ok(modalsCode.includes('previewVoiceBtn'), 'modals.js must wire previewVoiceBtn to test selected voice');
+  });
 });
 

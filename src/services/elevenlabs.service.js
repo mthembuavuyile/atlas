@@ -1,5 +1,13 @@
 const { Readable } = require('stream');
-const { ElevenLabsClient } = require('@elevenlabs/elevenlabs-js');
+// The ElevenLabs SDK is very large (~30s+ to require on Windows), so it is
+// lazy-loaded on first TTS request instead of at server startup.
+let ElevenLabsClientCtor = null;
+function getElevenLabsClient() {
+  if (!ElevenLabsClientCtor) {
+    ({ ElevenLabsClient: ElevenLabsClientCtor } = require('@elevenlabs/elevenlabs-js'));
+  }
+  return new ElevenLabsClientCtor();
+}
 
 /**
  * Curated ElevenLabs pre-made voices available on the Free Tier API
@@ -150,7 +158,7 @@ async function convertTextToSpeech(text, voiceId = DEFAULT_VOICE_ID, modelId = '
     return synthesizeFreeCloudTts(text, cleanVoiceId);
   }
 
-  const client = new ElevenLabsClient();
+  const client = getElevenLabsClient();
 
   try {
     return await client.textToSpeech.convert(cleanVoiceId, {

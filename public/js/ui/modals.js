@@ -7,7 +7,7 @@
 import { state } from '../state/store.js';
 import { dom } from './dom.js';
 import { PERSONA_PRESETS } from '../config/constants.js';
-import { ELEVENLABS_VOICE_OPTIONS } from '../audio/speech-pill.js';
+import { ELEVENLABS_VOICE_OPTIONS, startSpeakingResponse, stopSpeakingResponse } from '../audio/speech-pill.js';
 import { getActiveSession, saveSessions, loadSession, createNewSession, renderHistoryTree, closeMobileSidebar, updateContextEstimator } from './session-manager.js';
 
 /**
@@ -353,9 +353,21 @@ export function syncSidebarProfileUI() {
     .join('') || 'U';
 
   if (dom.sidebarProfileAvatar) dom.sidebarProfileAvatar.textContent = initials;
+  if (dom.sidebarProfileName) dom.sidebarProfileName.textContent = displayName;
   if (dom.profileMenuAvatar) dom.profileMenuAvatar.textContent = initials;
   if (dom.profileMenuName) dom.profileMenuName.textContent = displayName;
   if (dom.accountNameInput) dom.accountNameInput.value = displayName;
+
+  const voiceVal = state.defaultVoiceName || '';
+  let subLabel = 'Preferences & Voice';
+  if (voiceVal.startsWith('elevenlabs:')) {
+    const matched = ELEVENLABS_VOICE_OPTIONS.find((v) => v.value === voiceVal);
+    subLabel = matched ? `ElevenLabs · ${matched.name}` : 'ElevenLabs Voice';
+  } else if (voiceVal) {
+    subLabel = `Voice · ${voiceVal.split(' ')[0]}`;
+  }
+  if (dom.sidebarProfileSub) dom.sidebarProfileSub.textContent = subLabel;
+  if (dom.profileMenuSub) dom.profileMenuSub.textContent = subLabel;
 }
 
 export function formatProjectContextLabel(files = []) {
@@ -751,6 +763,14 @@ export function initModals() {
     }
   });
 
+  dom.sidebarQuickSettingsBtn?.addEventListener('click', (event) => {
+    event.stopPropagation();
+    if (dom.sidebarProfileMenu) dom.sidebarProfileMenu.hidden = true;
+    if (dom.settingsSidebarBtn) dom.settingsSidebarBtn.setAttribute('aria-expanded', 'false');
+    if (window.innerWidth <= 768) closeMobileSidebar();
+    openUnifiedSettings('general-settings');
+  });
+
   dom.profileSettingsBtn?.addEventListener('click', () => {
     if (dom.sidebarProfileMenu) dom.sidebarProfileMenu.hidden = true;
     if (dom.settingsSidebarBtn) dom.settingsSidebarBtn.setAttribute('aria-expanded', 'false');
@@ -758,11 +778,27 @@ export function initModals() {
     openUnifiedSettings('general-settings');
   });
 
+  dom.profilePersonalizationBtn?.addEventListener('click', () => {
+    if (dom.sidebarProfileMenu) dom.sidebarProfileMenu.hidden = true;
+    if (dom.settingsSidebarBtn) dom.settingsSidebarBtn.setAttribute('aria-expanded', 'false');
+    if (window.innerWidth <= 768) closeMobileSidebar();
+    openUnifiedSettings('studio-parameters');
+  });
+
+  dom.profileShortcutsBtn?.addEventListener('click', () => {
+    if (dom.sidebarProfileMenu) dom.sidebarProfileMenu.hidden = true;
+    if (dom.settingsSidebarBtn) dom.settingsSidebarBtn.setAttribute('aria-expanded', 'false');
+    if (window.innerWidth <= 768) closeMobileSidebar();
+    toggleShortcutsModal(true);
+  });
+
   dom.closeUnifiedSettingsBtn?.addEventListener('click', () => closeUnifiedSettings());
+  dom.closeUnifiedSettingsHeaderBtn?.addEventListener('click', () => closeUnifiedSettings());
 
   dom.settingsNavBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       const targetTab = btn.getAttribute('data-tab');
+      if (!targetTab) return;
       dom.settingsNavBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
 
@@ -775,8 +811,8 @@ export function initModals() {
           dom.activeSettingsTitle.textContent = 'Personalization';
           dom.activeSettingsDesc.textContent = 'Configure model instructions, temperature, and domain presets';
         } else if (targetTab === 'general-settings') {
-          dom.activeSettingsTitle.textContent = 'General';
-          dom.activeSettingsDesc.textContent = 'Manage your application data and preferences';
+          dom.activeSettingsTitle.textContent = 'General & Voice';
+          dom.activeSettingsDesc.textContent = 'Manage your profile, ElevenLabs or browser read-aloud voice, API keys, and local workspace data';
         }
       }
     });
@@ -788,12 +824,18 @@ export function initModals() {
     localStorage.setItem('atlas_account_name', nextName);
     syncSidebarProfileUI();
     if (dom.accountNameInput) dom.accountNameInput.value = nextName;
+    const orig = dom.saveProfileNameBtn.textContent;
+    dom.saveProfileNameBtn.textContent = 'Saved';
+    setTimeout(() => {
+      if (dom.saveProfileNameBtn) dom.saveProfileNameBtn.textContent = orig;
+    }, 900);
   });
 
   dom.defaultVoiceSelect?.addEventListener('change', () => {
     const nextVoiceName = dom.defaultVoiceSelect?.value || '';
     state.defaultVoiceName = nextVoiceName;
     localStorage.setItem('atlas_default_voice', nextVoiceName);
+    syncSidebarProfileUI();
     if (dom.voiceStatusHint) {
       if (nextVoiceName.startsWith('elevenlabs:')) {
         const matched = ELEVENLABS_VOICE_OPTIONS.find((v) => v.value === nextVoiceName);
@@ -804,6 +846,21 @@ export function initModals() {
           : 'Browser default voice saved.';
       }
     }
+  });
+
+  dom.previewVoiceBtn?.addEventListener('click', () => {
+    const selectedVoice = dom.defaultVoiceSelect?.value || state.defaultVoiceName || '';
+    startSpeakingResponse({
+      text: 'Hello from Atlas. Your selected read-aloud voice is ready.',
+      voiceName: selectedVoice
+    });
+  });
+
+  dom.toggleApiKeyVisibilityBtn?.addEventListener('click', () => {
+    if (!dom.customApiKeyInput) return;
+    const isPassword = dom.customApiKeyInput.type === 'password';
+    dom.customApiKeyInput.type = isPassword ? 'text' : 'password';
+    dom.toggleApiKeyVisibilityBtn.classList.toggle('active', isPassword);
   });
 
   dom.saveGeneralSettingsBtn?.addEventListener('click', () => {
@@ -858,6 +915,11 @@ export function initModals() {
         dom.apiKeyStatusHint.style.display = 'block';
       }
     }
+    const orig = dom.saveApiKeyBtn.textContent;
+    dom.saveApiKeyBtn.textContent = 'Saved';
+    setTimeout(() => {
+      if (dom.saveApiKeyBtn) dom.saveApiKeyBtn.textContent = orig;
+    }, 900);
   });
 
   dom.clearAllDataBtn?.addEventListener('click', () => {
