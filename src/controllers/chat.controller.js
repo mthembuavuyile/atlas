@@ -431,22 +431,31 @@ class ChatController {
         }
       ];
 
-      // Use a fast, lightweight model for title generation; fall back to free model pool if no custom key
-      const titleModel = customApiKey ? 'google/gemini-2.5-flash' : (env.DEFAULT_MODEL || 'openrouter/free');
+      // Use a fast, dedicated reasoning model from free pool for titles; fall back if custom key
+      const titleModel = customApiKey ? 'google/gemini-2.5-flash' : 'nvidia/nemotron-3-ultra-550b-a55b:free';
 
       const openRouterResponse = await openrouterService.createChatCompletion({
         messages: promptMessages,
         model: titleModel,
         temperature: 0.3,
         stream: false,
-        maxTokens: 30,
+        maxTokens: 300,
         apiKey: customApiKey,
         referer: env.APP_URL
       });
 
       const data = await openRouterResponse.json();
-      const rawTitle = data.choices?.[0]?.message?.content || '';
-      const cleanTitle = rawTitle.replace(/["*`_#]/g, '').trim();
+      const choice = data.choices?.[0];
+      const rawTitle = choice?.message?.content || choice?.message?.reasoning || '';
+      let cleanTitle = String(rawTitle || '')
+        .split(/[\r\n]+/)[0]
+        .replace(/^title:\s*/i, '')
+        .replace(/["*`_#]/g, '')
+        .trim();
+
+      if (cleanTitle.length > 50) {
+        cleanTitle = cleanTitle.slice(0, 48) + '...';
+      }
 
       return res.json({
         title: cleanTitle || message.slice(0, 32)
