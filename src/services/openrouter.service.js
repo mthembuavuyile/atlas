@@ -17,8 +17,13 @@ class OpenRouterService {
    * @param {string} [customKey]
    */
   hasApiKey(customKey = null) {
-    const key = customKey || env.OPENROUTER_API_KEY;
-    return Boolean(key && key.trim().length > 0 && key !== 'your_openrouter_api_key_here');
+    if (customKey && customKey.trim().length > 0 && customKey !== 'your_openrouter_api_key_here') {
+      return true;
+    }
+    const pool = Array.isArray(env.OPENROUTER_API_KEYS) && env.OPENROUTER_API_KEYS.length > 0
+      ? env.OPENROUTER_API_KEYS
+      : [env.OPENROUTER_API_KEY];
+    return pool.some(k => Boolean(k && k.trim().length > 0 && k !== 'your_openrouter_api_key_here'));
   }
 
   /**
@@ -40,6 +45,7 @@ class OpenRouterService {
    * @param {string} [options.apiKey]
    * @param {string} [options.referer]
    * @param {Set<string>} [options.attemptedModels]
+   * @param {number} [options.keyIndex]
    */
   async createChatCompletion({
     messages,
@@ -51,9 +57,14 @@ class OpenRouterService {
     reasoning = undefined,
     apiKey = null,
     referer = env.APP_URL || APP.url,
-    attemptedModels = new Set()
+    attemptedModels = new Set(),
+    keyIndex = 0
   }) {
-    const activeKey = (apiKey && apiKey.trim()) || env.OPENROUTER_API_KEY;
+    const keyPool = Array.isArray(env.OPENROUTER_API_KEYS) && env.OPENROUTER_API_KEYS.length > 0
+      ? env.OPENROUTER_API_KEYS
+      : [env.OPENROUTER_API_KEY].filter(Boolean);
+
+    const activeKey = (apiKey && apiKey.trim()) || keyPool[keyIndex % keyPool.length] || env.OPENROUTER_API_KEY;
 
     if (!this.hasApiKey(activeKey)) {
       const keyErr = new Error('OpenRouter API Key not configured. Please set OPENROUTER_API_KEY in Vercel Environment Variables or supply a custom key in Settings.');
@@ -130,8 +141,27 @@ class OpenRouterService {
       const rawMessage = errorJson.error?.message || errorJson.message || `Atlas Engine API error (${response.status})`;
       const lower = rawMessage.toLowerCase();
 
-      // Check if account-level daily limit for free models was hit
+      // Check if account-level daily limit for free models was hit on this key
       const isDailyFreeLimitExceeded = lower.includes('free-models-per-day') || lower.includes('free tier daily') || lower.includes('purchase credits to raise');
+
+      // If we hit daily limit on this server key and we have other backup keys in the pool, switch key first!
+      if (isDailyFreeLimitExceeded && !apiKey && keyPool.length > 1 && keyIndex + 1 < keyPool.length) {
+        console.warn(`⚡ [Daily Free Quota Hit on OpenRouter Key #${keyIndex + 1}]: Rotating to backup OpenRouter key #${keyIndex + 2}...`);
+        await this.sleep(100);
+        return this.createChatCompletion({
+          messages,
+          model,
+          temperature,
+          stream,
+          tools,
+          maxTokens,
+          reasoning,
+          apiKey: null,
+          referer,
+          attemptedModels: new Set(),
+          keyIndex: keyIndex + 1
+        });
+      }
 
       if (isDailyFreeLimitExceeded) {
         console.warn(`⚡ [Daily Free Quota Hit on OpenRouter]: ${rawMessage}. Skipping all remaining :free models.`);

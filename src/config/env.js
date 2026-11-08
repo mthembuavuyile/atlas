@@ -2,9 +2,28 @@ require('dotenv').config({ path: '.env' });
 
 const { APP, COMPANY } = require('./identity');
 
+// Helper to parse comma-separated or primary+backup OpenRouter keys
+function resolveOpenRouterKeys() {
+  const rawList = process.env.OPENROUTER_API_KEYS || process.env.OPENROUTER_API_KEY || '';
+  const parsed = rawList
+    .split(/[,\s]+/)
+    .map(k => k.trim())
+    .filter(k => k && k.startsWith('sk-or-') && k !== 'your_openrouter_api_key_here');
+
+  if (process.env.OPENROUTER_BACKUP_KEY && process.env.OPENROUTER_BACKUP_KEY.startsWith('sk-or-')) {
+    const backup = process.env.OPENROUTER_BACKUP_KEY.trim();
+    if (!parsed.includes(backup)) parsed.push(backup);
+  }
+
+  return parsed;
+}
+
+const openRouterKeys = resolveOpenRouterKeys();
+
 const env = {
   PORT: process.env.PORT || 3000,
-  OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY || '',
+  OPENROUTER_API_KEY: openRouterKeys[0] || process.env.OPENROUTER_API_KEY || '',
+  OPENROUTER_API_KEYS: openRouterKeys,
   DEFAULT_MODEL: process.env.OPENROUTER_MODEL || 'openrouter/free',
   OPENROUTER_BASE_URL: process.env.OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1',
   APP_TITLE: APP.shortTitle,
