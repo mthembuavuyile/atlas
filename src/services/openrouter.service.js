@@ -212,9 +212,10 @@ class OpenRouterService {
           tools: fallbackTools,
           maxTokens,
           reasoning,
-          apiKey: activeKey,
+          apiKey,
           referer,
           attemptedModels,
+          keyIndex,
           errorMessage: rawMessage,
           status: response.status
         });
@@ -242,6 +243,7 @@ class OpenRouterService {
     apiKey,
     referer,
     attemptedModels,
+    keyIndex = 0,
     errorMessage,
     status = 500
   }) {
@@ -260,7 +262,8 @@ class OpenRouterService {
         reasoning,
         apiKey,
         referer,
-        attemptedModels
+        attemptedModels,
+        keyIndex
       });
     }
 
