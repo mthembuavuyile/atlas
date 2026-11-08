@@ -161,5 +161,6 @@ export const dom = {
   get customApiKeyInput() { return document.getElementById('customApiKeyInput'); },
   get toggleApiKeyVisibilityBtn() { return document.getElementById('toggleApiKeyVisibilityBtn'); },
   get saveApiKeyBtn() { return document.getElementById('saveApiKeyBtn'); },
+  get removeApiKeyBtn() { return document.getElementById('removeApiKeyBtn'); },
   get apiKeyStatusHint() { return document.getElementById('apiKeyStatusHint'); }
 };

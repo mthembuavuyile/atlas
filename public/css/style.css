@@ -4206,6 +4206,16 @@ body.is-resizing-canvas .artifacts-canvas-panel {
   background: rgba(251, 169, 25, 0.08);
 }
 
+.secondary-modal-btn.danger-text-btn {
+  color: var(--text-muted);
+}
+
+.secondary-modal-btn.danger-text-btn:hover {
+  border-color: rgba(239, 68, 68, 0.5);
+  background: rgba(239, 68, 68, 0.08);
+  color: #ef4444;
+}
+
 .danger-zone-card {
   border-color: rgba(239, 68, 68, 0.25);
   background: rgba(239, 68, 68, 0.03);

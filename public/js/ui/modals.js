@@ -306,6 +306,9 @@ export function openUnifiedSettings(defaultTab = 'studio-parameters') {
     dom.apiKeyStatusHint.style.display = state.apiKey ? 'block' : 'none';
     dom.apiKeyStatusHint.textContent = state.apiKey ? 'Custom key active in this browser.' : '';
   }
+  if (dom.removeApiKeyBtn) {
+    dom.removeApiKeyBtn.style.display = state.apiKey ? 'inline-flex' : 'none';
+  }
   if (dom.accountNameInput) dom.accountNameInput.value = (state.accountName || '').trim() || 'Your Name';
   populateVoiceOptions();
 
@@ -914,6 +917,10 @@ export function initModals() {
       localStorage.removeItem('atlas_openrouter_api_key');
     }
 
+    if (dom.removeApiKeyBtn) {
+      dom.removeApiKeyBtn.style.display = nextApiKey ? 'inline-flex' : 'none';
+    }
+
     syncSidebarProfileUI();
     if (dom.apiKeyStatusHint) {
       dom.apiKeyStatusHint.textContent = nextApiKey
@@ -942,18 +949,35 @@ export function initModals() {
         dom.apiKeyStatusHint.textContent = 'Custom API key saved and active.';
         dom.apiKeyStatusHint.style.display = 'block';
       }
+      if (dom.removeApiKeyBtn) dom.removeApiKeyBtn.style.display = 'inline-flex';
     } else {
       localStorage.removeItem('atlas_openrouter_api_key');
       if (dom.apiKeyStatusHint) {
-        dom.apiKeyStatusHint.textContent = 'Custom key cleared. Default server key active.';
+        dom.apiKeyStatusHint.textContent = 'Custom key cleared. Default server tier active.';
         dom.apiKeyStatusHint.style.display = 'block';
       }
+      if (dom.removeApiKeyBtn) dom.removeApiKeyBtn.style.display = 'none';
     }
     const orig = dom.saveApiKeyBtn.textContent;
     dom.saveApiKeyBtn.textContent = 'Saved';
     setTimeout(() => {
       if (dom.saveApiKeyBtn) dom.saveApiKeyBtn.textContent = orig;
     }, 900);
+  });
+
+  dom.removeApiKeyBtn?.addEventListener('click', () => {
+    state.apiKey = '';
+    localStorage.removeItem('atlas_openrouter_api_key');
+    if (dom.customApiKeyInput) {
+      dom.customApiKeyInput.value = '';
+    }
+    if (dom.removeApiKeyBtn) {
+      dom.removeApiKeyBtn.style.display = 'none';
+    }
+    if (dom.apiKeyStatusHint) {
+      dom.apiKeyStatusHint.textContent = 'Custom key removed. Reverted to default server tier.';
+      dom.apiKeyStatusHint.style.display = 'block';
+    }
   });
 
   dom.clearAllDataBtn?.addEventListener('click', () => {
