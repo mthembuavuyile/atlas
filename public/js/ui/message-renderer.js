@@ -80,10 +80,6 @@ export function renderMessageItem(role, content = '', reasoning = '', shouldScro
   const row = document.createElement('div');
   row.className = `message-row ${role}`;
 
-  const avatar = document.createElement('div');
-  avatar.className = 'avatar';
-  avatar.textContent = role === 'user' ? 'U' : 'A';
-
   const wrapper = document.createElement('div');
   wrapper.className = 'message-content-wrapper';
 
@@ -287,7 +283,6 @@ export function renderMessageItem(role, content = '', reasoning = '', shouldScro
     wrapper.appendChild(actionsBar);
   }
 
-  row.appendChild(avatar);
   row.appendChild(wrapper);
 
   dom.messagesContainer.appendChild(row);

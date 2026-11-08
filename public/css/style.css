@@ -1255,44 +1255,37 @@ a:hover {
   width: 100%;
   max-width: 720px;
   display: flex;
-  gap: 8px;
   margin-bottom: 12px;
 }
 
 .message-row.user {
-  flex-direction: row-reverse;
+  justify-content: flex-end;
 }
 
-.avatar {
-  width: 24px;
-  height: 24px;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.62rem;
-  font-weight: 700;
-  flex-shrink: 0;
-  font-family: var(--font-mono);
-}
-
-.message-row.user .avatar {
-  background: rgba(255, 255, 255, 0.08);
-  color: var(--text-main);
-}
-
-.message-row.assistant .avatar {
-  background: var(--accent-primary);
-  color: #fff;
+.message-row.assistant {
+  justify-content: flex-start;
 }
 
 .message-content-wrapper {
-  max-width: calc(100% - 32px);
+  max-width: 100%;
   width: 100%;
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
+}
+
+.message-row.user .message-content-wrapper {
+  max-width: 82%;
+  width: auto;
+  flex: 0 1 auto;
+  align-items: flex-end;
+}
+
+.message-row.assistant .message-content-wrapper {
+  max-width: 100%;
+  width: 100%;
+  flex: 1;
 }
 
 .message-widgets-container {
