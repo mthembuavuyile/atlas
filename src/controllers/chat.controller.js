@@ -462,7 +462,21 @@ class ChatController {
       });
     } catch (err) {
       console.warn('[Atlas GenerateTitle Error]:', err.message);
-      const fallback = message.slice(0, 36) + (message.length > 36 ? '...' : '');
+      // Clean up fallback: take first 4 to 6 words instead of raw character slicing
+      const cleanMsg = String(message || '')
+        .replace(/^\/[a-z0-9_-]+\s+/i, '')
+        .replace(/^(?:can you|please|help me|i want to|how to|what is|tell me about|explain to me|write a|generate a)\s+/i, '')
+        .replace(/[\r\n]+/g, ' ')
+        .trim();
+      const firstClause = cleanMsg.split(/[.?!:;\n]/)[0].trim() || cleanMsg;
+      const words = firstClause.split(' ').filter(Boolean);
+      let fallback = words.slice(0, 6).join(' ');
+      if (fallback) {
+        fallback = fallback.charAt(0).toUpperCase() + fallback.slice(1);
+        if (words.length > 6) fallback += '...';
+      } else {
+        fallback = message.slice(0, 32);
+      }
       return res.json({ title: fallback });
     }
   }

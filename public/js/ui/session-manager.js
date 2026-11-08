@@ -307,6 +307,42 @@ export function renderHistoryTree(searchQuery = '') {
   if (dom.historyGroupPrevious) dom.historyGroupPrevious.style.display = dom.historyListPrevious.children.length > 0 ? 'block' : 'none';
 }
 
+/**
+ * Extracts a concise, natural 3 to 6 word title from user prompt text.
+ * Used as an immediate clean title and offline fallback when API title generation is unavailable or rate-limited.
+ */
+export function formatFallbackTitle(prompt) {
+  let text = String(prompt || '').trim();
+  if (!text) return 'New Session';
+
+  // Strip slash commands (e.g., /code, /math, /crypto)
+  text = text.replace(/^\/[a-z0-9_-]+\s+/i, '');
+
+  // Strip conversational introductory filler
+  text = text.replace(/^(?:can you|could you|please|help me(?: to)?|i want to|how (?:do i|to|can i)|what is|tell me about|explain (?:to me )?|write (?:a|an)?|generate (?:a|an)?|create (?:a|an)?|build (?:a|an)?|show me)\s+/i, '');
+
+  // Clean markdown, quotes, multiple whitespace and punctuation
+  text = text.replace(/[`"*#_~]/g, '');
+  text = text.replace(/[\r\n]+/g, ' ');
+  text = text.replace(/\s+/g, ' ').trim();
+
+  // Pick the first clause if multiple sentences or questions exist
+  const firstSentence = text.split(/[.?!:;\n]/)[0].trim() || text;
+  const words = firstSentence.split(' ').filter(Boolean);
+
+  if (words.length === 0) return 'New Session';
+
+  const titleWords = words.slice(0, Math.min(words.length, 6));
+  let title = titleWords.join(' ');
+  title = title.charAt(0).toUpperCase() + title.slice(1);
+
+  if (words.length > 6 || firstSentence.length < text.length) {
+    title += '...';
+  }
+
+  return title.slice(0, 48);
+}
+
 export async function fetchSessionTitle(userPrompt, sessionId) {
   try {
     const res = await fetch(`${API_BASE}/api/title`, {
@@ -324,7 +360,7 @@ export async function fetchSessionTitle(userPrompt, sessionId) {
     if (!res.ok) throw new Error(`Title request failed with status ${res.status}`);
     const data = await res.json();
     const title = typeof data.title === 'string' ? data.title.trim() : '';
-    if (title) {
+    if (title && !title.includes('Daily free reasoning quota') && !title.includes('Rate limit')) {
       const session = state.sessions.find(s => s.id === sessionId);
       if (session) {
         session.title = title;
@@ -332,5 +368,13 @@ export async function fetchSessionTitle(userPrompt, sessionId) {
         renderHistoryTree();
       }
     }
-  } catch (e) {}
+  } catch (e) {
+    // If backend is rate-limited, ensure fallback title is clean and concise
+    const session = state.sessions.find(s => s.id === sessionId);
+    if (session && (!session.title || session.title.length > 40)) {
+      session.title = formatFallbackTitle(userPrompt);
+      saveSessions();
+      renderHistoryTree();
+    }
+  }
 }

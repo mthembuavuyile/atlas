@@ -25,6 +25,7 @@ import {
   loadSession,
   renderHistoryTree,
   fetchSessionTitle,
+  formatFallbackTitle,
   setRenderSessionMessagesCallback
 } from './ui/session-manager.js';
 import {
@@ -210,7 +211,7 @@ async function handleChatSubmit(e) {
   state.lastUserPrompt = prompt;
 
   if (session.messages.filter(m => m.role === 'user').length === 1) {
-    session.title = prompt.slice(0, 45) + (prompt.length > 45 ? '...' : '');
+    session.title = formatFallbackTitle(prompt);
     // Note: AI title refinement is deferred until stream completion in chat-service.js
     // to avoid concurrent request collisions on OpenRouter (concurrency limit = 1 on free tier).
   }
