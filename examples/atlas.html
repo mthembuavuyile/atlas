@@ -1123,7 +1123,7 @@
     <form class="composer-form" id="launcherForm">
       <div class="composer-box" id="composerBox">
         <textarea id="promptInput" class="composer-textarea" placeholder="What would you like to work on?" rows="2"
-          autofocus></textarea>
+          enterkeyhint="enter" autofocus></textarea>
 
         <div class="composer-bottom-bar">
           <div class="composer-controls-left">
@@ -1394,9 +1394,19 @@
       launchAtlas(prompt, true);
     });
 
-    // Keydown (Enter to send, Shift+Enter for newline)
+    function isMobileComposer() {
+      if (typeof window.matchMedia === 'function' && window.matchMedia('(hover: none) and (pointer: coarse)').matches) {
+        return true;
+      }
+      if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent || '')) {
+        return true;
+      }
+      return window.innerWidth <= 768;
+    }
+
+    // Keydown (Desktop: Enter to send, Shift+Enter for newline; Mobile: Enter for newline, UI button to send)
     promptInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
+      if (e.key === 'Enter' && !e.shiftKey && !e.isComposing && !isMobileComposer()) {
         e.preventDefault();
         launcherForm.dispatchEvent(new Event('submit'));
       }

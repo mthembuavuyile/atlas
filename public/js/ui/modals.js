@@ -415,6 +415,40 @@ export function resetComposerHeight() {
   }
 }
 
+/**
+ * Detects whether the composer is being used on a mobile/touch device.
+ * On mobile, the virtual keyboard return arrow inserts a newline instead of submitting,
+ * while users tap the UI send button to submit.
+ */
+export function isMobileComposer({
+  userAgent = typeof navigator !== 'undefined' ? navigator.userAgent : '',
+  innerWidth = typeof window !== 'undefined' ? window.innerWidth : 1024,
+  coarsePointer = typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+    ? window.matchMedia('(hover: none) and (pointer: coarse)').matches
+    : false
+} = {}) {
+  if (coarsePointer) return true;
+  if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(String(userAgent || ''))) {
+    return true;
+  }
+  if (typeof innerWidth === 'number' && innerWidth <= 768) {
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Determines whether a keydown event on the composer textarea should submit the prompt.
+ * Desktop: Enter submits, Shift+Enter inserts a newline.
+ * Mobile: Enter (virtual keyboard return arrow) inserts a newline; UI button submits.
+ */
+export function shouldSubmitOnEnter(event, env = {}) {
+  if (!event || event.key !== 'Enter') return false;
+  if (event.shiftKey || event.isComposing) return false;
+  if (isMobileComposer(env)) return false;
+  return true;
+}
+
 export function autoResizeTextarea() {
   if (!dom.messageInput) return;
   dom.messageInput.style.height = 'auto';

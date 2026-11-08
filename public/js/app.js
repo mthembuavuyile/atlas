@@ -39,7 +39,8 @@ import {
   openUnifiedSettings,
   toggleShortcutsModal,
   initComposerResizer,
-  resetComposerHeight
+  resetComposerHeight,
+  shouldSubmitOnEnter
 } from './ui/modals.js';
 import { initVoiceDictation } from './audio/voice.js';
 import { initSpeechPill, stopSpeakingResponse } from './audio/speech-pill.js';
@@ -271,7 +272,7 @@ function initComposerListeners() {
       }
     }
 
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (shouldSubmitOnEnter(e)) {
       e.preventDefault();
       if (!state.isGenerating && dom.messageInput.value.trim().length > 0) {
         dom.chatForm?.dispatchEvent(new Event('submit'));
